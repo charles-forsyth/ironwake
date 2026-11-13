@@ -1,0 +1,17 @@
+name: Feature Request
+description: Propose a new vessel, port, hydrodynamic feature, or showcase tool
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the feature and how it fits Ironwake's peaceful sailing, trade, or simulation loop.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification Idea
+      description: How can this feature be deterministically measured or visually verified?

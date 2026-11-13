@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ironwake: a steampunk naval sailing game in Unreal Engine 5.8</title>
+  <meta name="description" content="Open-source steampunk naval sailing game in Unreal Engine 5.8. Sail ironclads, brigs and steamers between three working ports. Rotate 18 ships and buildings in 3D, mix the sea audio, and drive the Kelvin wake lab in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://charles-forsyth.github.io/ironwake/">
+  <meta property="og:title" content="Ironwake: steampunk naval sailing in Unreal Engine 5.8">
+  <meta property="og:description" content="Three working ports, a 30-ship living sea, physically solved Kelvin wakes. Rotate the fleet in 3D, mix the sea, and play with the wake lab.">
+  <meta property="og:image" content="https://charles-forsyth.github.io/ironwake/assets/og-share.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://charles-forsyth.github.io/ironwake/assets/og-share.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=IM+Fell+English+SC&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="Ironwake home"><img src="assets/apple-touch-icon.png" alt=""><span>Ironwake</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#reel">Reel</a>
+        <a href="#fleet">Fleet</a>
+        <a href="#ports">Ports</a>
+        <a href="#wake">Wake lab</a>
+        <a href="#sound">Sound</a>
+        <a href="#build">How it was built</a>
+        <a href="#play">Run it</a>
+        <a class="btn btn-sm" href="https://github.com/charles-forsyth/ironwake">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="Introduction">
+      <video id="hero-video" autoplay muted loop playsinline poster="assets/poster_cut1_archipelago_voyage.jpg">
+        <source src="video/cut1_archipelago_voyage.mp4" type="video/mp4">
+      </video>
+      <div class="hero-copy">
+        <div class="wrap">
+          <span class="kicker">Unreal Engine 5.8 · open source</span>
+          <h1>Steam, sail and <em>iron</em> on a living sea</h1>
+          <div class="rule" aria-hidden="true"><span>EST. 1871</span></div>
+          <p class="lead">
+            Ironwake is a peaceful-first steampunk naval game. Take a turret ironclad, a rigged brig or a paddle
+            steamer between three working harbours, trade cargo with the harbourmaster, and watch a sea that
+            behaves like water: crests by sea state, wakes from a solved Kelvin pattern, ships that heel and pitch.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#fleet">Rotate the fleet in 3D</a>
+            <a class="btn" href="#wake">Play with the wake lab</a>
+            <a class="btn" href="https://github.com/charles-forsyth/ironwake">Source and spec</a>
+          </div>
+          <div class="ledger">
+            <div><b>3</b><span>working ports</span></div>
+            <div><b>30</b><span>NPC ships, 0 collisions in soak</span></div>
+            <div><b>18</b><span>web 3D models below</span></div>
+            <div><b>53 fps</b><span>medium preset, M-series Mac</span></div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm hero-toggle" id="hero-toggle" aria-pressed="false">Pause video</button>
+    </section>
+
+    <section id="reel">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>The reel</h2>
+          <p>All footage is captured from the game itself, rendered off-screen on a Mac. Nothing is pre-rendered
+            or painted over. Pick a cut.</p>
+        </div>
+        <div class="reel">
+          <div class="reel-stage">
+            <video id="reel-video" controls playsinline preload="metadata" poster="assets/poster_cut1_archipelago_voyage.jpg">
+              <source src="video/cut1_archipelago_voyage.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-list" id="reel-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fleet">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>The fleet and the waterfront, in 3D</h2>
+          <p>The same ships, buildings and crew that sail in the game, cut down to about 26,000 triangles each for
+            the browser. Drag to orbit; scroll or pinch to zoom. Moving parts (yards, paddle wheels, propellers,
+            crane, windmill sails) are separate nodes, as they are in the engine.</p>
+        </div>
+
+        <div class="hangar">
+          <div class="viewer" id="viewer">
+            <model-viewer id="mv" loading="eager" alt="Interactive 3D model from Ironwake"
+              camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="18deg"
+              camera-orbit="32deg 74deg auto" shadow-intensity="0.9" exposure="1.0"
+              tone-mapping="agx" interaction-prompt="none" touch-action="pan-y"></model-viewer>
+            <div class="viewer-bar">
+              <span id="mv-file">models/tall_brig_rigged.glb</span>
+              <div class="controls">
+                <button type="button" class="btn btn-sm" id="mv-rotate" aria-pressed="true">Turntable on</button>
+                <button type="button" class="btn btn-sm" id="mv-bg">Backdrop: harbour</button>
+                <button type="button" class="btn btn-sm" id="mv-reset">Reset view</button>
+              </div>
+            </div>
+          </div>
+          <aside class="inspector" aria-live="polite">
+            <span class="kicker" id="insp-cat">Ships</span>
+            <h3 id="insp-title">Tall Brig Curlew</h3>
+            <p id="insp-desc"></p>
+            <dl class="facts">
+              <dt>In the game</dt><dd id="insp-role"></dd>
+              <dt>Size</dt><dd id="insp-dims"></dd>
+              <dt>Web mesh</dt><dd id="insp-tris"></dd>
+              <dt>Download</dt><dd id="insp-size"></dd>
+            </dl>
+          </aside>
+        </div>
+
+        <div class="chips" id="fleet-filter" role="group" aria-label="Filter models">
+          <button type="button" class="chip" data-cat="all" aria-pressed="true">All 18</button>
+          <button type="button" class="chip" data-cat="ships" aria-pressed="false">Ships</button>
+          <button type="button" class="chip" data-cat="aircraft" aria-pressed="false">Airships</button>
+          <button type="button" class="chip" data-cat="architecture" aria-pressed="false">Waterfront</button>
+          <button type="button" class="chip" data-cat="craft_crew" aria-pressed="false">Small craft and crew</button>
+        </div>
+        <div class="roster" id="roster"></div>
+      </div>
+    </section>
+
+    <section id="ports">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Three harbours, each its own place</h2>
+          <p>Ports are data, not hand-placed scenes: one JSON file sets each harbour's position, breakwaters, quays,
+            berths and market. Make fast at the harbourmaster (<kbd>Enter</kbd> under 2.5 knots) to trade eight goods
+            for Silver Crowns, then log the call in the captain's book (<kbd>O</kbd>).</p>
+        </div>
+        <div class="ports">
+          <div class="port-tabs" id="port-tabs"></div>
+          <figure class="port-figure">
+            <img id="port-img" src="assets/port_greyhaven_noon.jpg" alt="">
+            <figcaption>
+              <span id="port-cap"></span>
+              <span class="port-views" id="port-views"></span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="wake">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>The wake lab</h2>
+          <p>Ship wakes in Ironwake come from a physics solve, not a texture of foam. A cluster job integrated the
+            Havelock wave spectrum over 1,600 wave angles to get the Kelvin pattern at three Froude numbers, and built
+            a turbulent twin-screw wash field. The game blends those tables by speed. This canvas runs the same blend
+            on the real tables, live.</p>
+        </div>
+        <div class="lab">
+          <div class="lab-canvas-wrap">
+            <canvas id="wake-canvas" width="512" height="512" aria-label="Live Kelvin wake simulation"></canvas>
+            <div class="lab-readout" id="lab-readout">loading tables...</div>
+          </div>
+          <div class="lab-panel">
+            <div class="slider-row">
+              <label for="kn">Ship speed</label>
+              <input type="range" id="kn" min="1" max="18" step="0.5" value="9">
+              <output id="kn-out" for="kn">9.0 kn</output>
+            </div>
+            <div class="slider-row">
+              <label for="len">Hull length</label>
+              <input type="range" id="len" min="15" max="125" step="1" value="88">
+              <output id="len-out" for="len">88 m</output>
+            </div>
+            <div>
+              <span class="note">Layers</span>
+              <div class="layer-toggles" id="layers">
+                <button type="button" class="chip" data-layer="wave" aria-pressed="true">Kelvin waves</button>
+                <button type="button" class="chip" data-layer="wash" aria-pressed="true">Screw wash</button>
+                <button type="button" class="chip" data-layer="lace" aria-pressed="true">Cusp lace</button>
+                <button type="button" class="chip" data-layer="contact" aria-pressed="true">Hull contact foam</button>
+              </div>
+            </div>
+            <pre class="formula" id="formula">Fn = V / sqrt(g L)
+low   Fn 0.15  transverse waves dominate
+mid   Fn 0.24  classic 19.47 deg cusp line
+high  Fn 0.36  long diverging arms, deep midship trough
+Wake height blends low > mid > high as Fn rises; foam is gated by speed so a ship at 2 knots leaves almost nothing.</pre>
+            <p class="note">Tables: <code>T_IW_KelvinWaveLut.png</code> (RGB = three Froude numbers) and
+              <code>T_IW_PropWashFoamLut.png</code> (R wash, G cusp lace, B hull contact), both 1024 x 1024, in
+              <code>Content/Data/</code>. Solver: <code>pipeline/solve_wake_lut.py</code>.</p>
+          </div>
+        </div>
+
+        <div class="compare-grid">
+          <figure class="compare">
+            <div class="ba" data-ba>
+              <img src="assets/ba_wake_before.jpg" alt="Earlier build: flat white wake band behind the ironclad">
+              <img class="ba-after" src="assets/ba_wake_after.jpg" alt="Current build: Kelvin wake and broken screw wash behind the ironclad">
+              <span class="ba-tag l">BEFORE</span><span class="ba-tag r">AFTER</span>
+              <input type="range" min="0" max="100" value="50" aria-label="Wake before and after slider">
+            </div>
+            <figcaption>Ironclad at about 14 knots. Before: a flat white band. After: cusp arms, transverse crests and a wash that breaks up downstream.</figcaption>
+          </figure>
+          <figure class="compare">
+            <div class="ba" data-ba>
+              <img src="assets/ba_town_before.jpg" alt="Earlier build: Greyhaven from 400 m at noon">
+              <img class="ba-after" src="assets/ba_town_after.jpg" alt="Current build: Greyhaven from 400 m at noon">
+              <span class="ba-tag l">BEFORE</span><span class="ba-tag r">AFTER</span>
+              <input type="range" min="0" max="100" value="50" aria-label="Town before and after slider">
+            </div>
+            <figcaption>Greyhaven from 400 m at noon, a few builds apart: hillside terrain, retaining walls, landmark tavern and foundry.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="sound">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Mix the sea</h2>
+          <p>The game layers looping stems by speed, weather and place, on eight sound buses with a slider each.
+            Music is off by default. Mix your own passage below, then fire one-shots over it.</p>
+        </div>
+        <div class="deck">
+          <div>
+            <h3>Ambience stems</h3>
+            <div class="presets" id="presets">
+              <button type="button" class="btn btn-sm" data-preset="harbour">Quiet harbour</button>
+              <button type="button" class="btn btn-sm" data-preset="passage">Open passage, 12 kn</button>
+              <button type="button" class="btn btn-sm" data-preset="squall">Squall at night</button>
+              <button type="button" class="btn btn-sm" data-preset="off">Stop all</button>
+            </div>
+            <div class="mixer" id="mixer"></div>
+          </div>
+          <div>
+            <h3>One-shots</h3>
+            <p class="note">Bridge calls, weather and the harbourmaster's bell.</p>
+            <div class="pads" id="pads"></div>
+            <div class="recipe" id="recipe"><b>Pick any sound</b> to see how it was made.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>From the logbook</h2>
+          <p>Stills from the verification runs. Every build is checked from fixed camera positions, and each shot is
+            scored before a card is accepted. Click to enlarge.</p>
+        </div>
+        <div class="gallery" id="gallery-grid"></div>
+      </div>
+    </section>
+
+    <section id="build">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>How it was built</h2>
+          <p>Ironwake is also a research project: how far can an agent pipeline take a complex 3D simulation when a
+            person sets direction and quality bars, and agents do the building, testing and art passes?</p>
+        </div>
+        <div class="story">
+          <div>
+            <h3>The loop</h3>
+            <ol class="pipeline">
+              <li><div><strong>A card per change</strong><span>Each feature is a written card with a target, such as "town reads 7/10 from 400 m", on a Kanban board. A build agent works one card at a time.</span></div></li>
+              <li><div><strong>Heavy work on a cluster</strong><span>3D generation, wake physics, mesh prep and video encoding run as batch jobs on an HPC cluster, so the laptop stays free.</span></div></li>
+              <li><div><strong>Off-screen tests</strong><span>Every run is headless and silent: fixed camera shots, multi-seed traffic soaks, paired FPS benchmarks.</span></div></li>
+              <li><div><strong>Scored, then promoted</strong><span>Shots are scored by a vision reviewer against the card's target. A build replaces the playable app only after an independent verification card passes.</span></div></li>
+              <li><div><strong>A spec that cites the code</strong><span>The spec quotes every value with its source file and line, and a checker confirms all 3,658 citations still match.</span></div></li>
+            </ol>
+          </div>
+          <div>
+            <h3>The last overnight run</h3>
+            <ol class="timeline">
+              <li><b>P24</b><span><strong>Town at 400 m.</strong> Hillside terrain, landmark buildings, retaining walls.</span></li>
+              <li><b>P25</b><span><strong>Quay lanes.</strong> Harbour-mouth lock and berth reservations: 0 collisions, 0 stuck, 0 groundings over three 50-minute seeds.</span></li>
+              <li><b>P26</b><span><strong>The brig.</strong> 42 m Curlew with 17 moving rig parts; four-ship shipyard.</span></li>
+              <li><b>P27</b><span><strong>Wakes.</strong> Havelock Kelvin and screw-wash tables solved on the cluster.</span></li>
+              <li><b>P28</b><span><strong>Moving parts.</strong> 120+ animated parts: rowing crew, paddle wheels, crane and bell, airship screws.</span></li>
+              <li><b>P29</b><span><strong>Two more ports.</strong> Ironcrag and Stigsby, three-port chart, market and logbook.</span></li>
+              <li><b>P30</b><span><strong>Verify and promote.</strong> Multi-seed soak, paired FPS, spec check 3658 / 3658.</span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="play">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Run it yourself</h2>
+          <p>You need Unreal Engine 5.8 (Water, Landmass and Python plugins ship with it) and a Mac with Apple
+            Silicon or a Windows PC. Licensed third-party meshes and textures aren't in this repo. The C++,
+            Python build scripts, data, spec and pipeline are all here; see <a href="https://github.com/charles-forsyth/ironwake/blob/main/CREDITS.md">CREDITS.md</a> for asset sources.</p>
+        </div>
+        <div class="two-col">
+          <div>
+            <h3>Controls</h3>
+            <table>
+              <thead><tr><th>Action</th><th>Keys</th></tr></thead>
+              <tbody>
+                <tr><td>Engine telegraph / sail plan</td><td><kbd>W</kbd> <kbd>S</kbd>, one step per press</td></tr>
+                <tr><td>Helm</td><td>hold <kbd>A</kbd> <kbd>D</kbd>; <kbd>Q</kbd> <kbd>E</kbd> rudder midships</td></tr>
+                <tr><td>Chart and waypoints</td><td><kbd>M</kbd>, click to add, <kbd>Enter</kbd> to sail</td></tr>
+                <tr><td>Autopilot</td><td><kbd>P</kbd> off / hold / waypoints / tour</td></tr>
+                <tr><td>Make fast, trade</td><td><kbd>Enter</kbd> in port under 2.5 kn</td></tr>
+                <tr><td>Captain's logbook</td><td><kbd>O</kbd></td></tr>
+                <tr><td>Time and weather</td><td><kbd>T</kbd> clock speed, <kbd>L</kbd> next weather</td></tr>
+                <tr><td>Binoculars, photo mode</td><td><kbd>Shift</kbd>, <kbd>F</kbd></td></tr>
+                <tr><td>Help</td><td><kbd>H</kbd> or <kbd>F1</kbd></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h3>Build and test</h3>
+<pre class="code">git clone https://github.com/charles-forsyth/ironwake.git
+cd ironwake
+
+# open IronwakeTest.uproject in UE 5.8 and build,
+# or headless:
+UnrealEditor IronwakeTest.uproject \
+  -RenderOffScreen -nosound -unattended -nosplash
+
+# check every spec citation against the source
+python3 tools/spec_check.py --all</pre>
+            <div class="callout"><p>Combat exists in the code but is parked; this is a sailing game first. The open-sea storm look is parked too.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged image">
+    <button type="button" class="btn btn-sm" id="lb-close">Close</button>
+    <img id="lb-img" src="" alt="">
+    <p id="lb-cap"></p>
+  </div>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>Ironwake · MIT licence for code · by Chuck Forsyth, built with Hermes Agent, Unreal Engine 5.8, Blender, Hunyuan3D and FFmpeg.</span>
+      <span>
+        <a href="https://github.com/charles-forsyth/ironwake">Repository</a> ·
+        <a href="https://github.com/charles-forsyth/ironwake/blob/main/SPEC.md">SPEC.md</a> ·
+        <a href="https://github.com/charles-forsyth/ironwake/blob/main/CREDITS.md">Credits</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>

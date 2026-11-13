@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Live Interactive 3D Showcase & Audio Deck
+    url: https://charles-forsyth.github.io/ironwake/
+    about: Orbit all 17 3D vessels & buildings in WebGL, mix sea audio stems, and run the Havelock wake simulator.
+  - name: Private Security Advisory
+    url: https://github.com/charles-forsyth/ironwake/security/advisories/new
+    about: Report security issues privately per SECURITY.md.

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you reference Ironwake's hydrodynamic LUT pipeline, procedural rigging, or agentic simulation architecture, please cite it using this metadata."
+title: "Ironwake: Open-Source Steampunk Naval Simulation & Hydrodynamic Showcase in Unreal Engine 5.8"
+type: software
+authors:
+  - family-names: Forsyth
+    given-names: Chuck
+version: 1.0.0
+date-released: "2026-11-13"
+license: MIT
+repository-code: "https://github.com/charles-forsyth/ironwake"
+url: "https://charles-forsyth.github.io/ironwake/"
+keywords:
+  - unreal-engine-5
+  - naval-simulation
+  - kelvin-wake
+  - hydrodynamics
+  - procedural-rigging
+  - steampunk
+  - webgl-showcase

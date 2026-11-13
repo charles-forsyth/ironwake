@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "buses": [
+    "SEA",
+    "WIND",
+    "SHIP",
+    "VOICES",
+    "GUNS",
+    "MUSIC",
+    "UI"
+  ],
+  "clips": [
+    {
+      "id": "wind_sea_proc",
+      "file": "audio/wind_sea_proc.mp3",
+      "title": "Open-Sea Trade Wind",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 40.05,
+      "bus": "WIND",
+      "recipe": "40 s broadband filtered noise bed shaped for steady North-Atlantic trade wind across rigging and sea surface (Storm Layer 0)."
+    },
+    {
+      "id": "bow_rush_proc",
+      "file": "audio/bow_rush_proc.mp3",
+      "title": "Cutwater Bow Rush",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 20.04,
+      "bus": "SEA",
+      "recipe": "20 s continuous hydrodynamic cutwater rush attached to the stem; scales linearly from 0 to 10 kn with slow dual-sine drift modulation."
+    },
+    {
+      "id": "hull_wake_loop",
+      "file": "audio/hull_wake_loop.mp3",
+      "title": "Stern Turbulent Wake",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 20.04,
+      "bus": "SEA",
+      "recipe": "20 s FFT-periodic Gaussian noise shaped with 70-2200 Hz bandpass (slope 0.7, -0.15 tilt) and 0.5 Hz periodic swell modulation."
+    },
+    {
+      "id": "creak_wooden_hull",
+      "file": "audio/creak_wooden_hull.mp3",
+      "title": "Working Timber & Frames",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 4.83,
+      "bus": "SHIP",
+      "recipe": "Heavy seasoned oak frame and plank-seam groan triggered by roll angle and wind load on square-rigged vessels (CC0 source)."
+    },
+    {
+      "id": "harbour_lap_proc",
+      "file": "audio/harbour_lap_proc.mp3",
+      "title": "Sheltered Quay Swell Lap",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 30.04,
+      "bus": "SEA",
+      "recipe": "30 s spatialised harbour basin water bed modulated on a 4.3 s sheltered pier-swell cadence around stone quays."
+    },
+    {
+      "id": "gale_proc",
+      "file": "audio/gale_proc.mp3",
+      "title": "Force-8 Gale Shroud Roar",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 40.05,
+      "bus": "WIND",
+      "recipe": "40 s mid-high-band aerodynamic roar crossfaded smoothly across 24-36 kn apparent wind (Storm Layer 1)."
+    },
+    {
+      "id": "rain_proc",
+      "file": "audio/rain_proc.mp3",
+      "title": "Squall Rain on Deck & Sea",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 30.04,
+      "bus": "WIND",
+      "recipe": "30 s high-frequency droplet patter bed coupled directly to active Niagara squall precipitation density (Storm Layer 3)."
+    },
+    {
+      "id": "main_theme",
+      "file": "audio/main_theme.mp3",
+      "title": "Shattered Reach \u2014 Calm Theme",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 30.8,
+      "bus": "MUSIC",
+      "recipe": "Low brass, cello, and maritime strings score for peaceful archipelago passages (off by default; 4 s fade-in when enabled)."
+    },
+    {
+      "id": "battle_night_storm",
+      "file": "audio/battle_night_storm.mp3",
+      "title": "Iron & Squall \u2014 Action Theme",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 30.8,
+      "bus": "MUSIC",
+      "recipe": "Driving orchestral percussion and dark low-brass motif triggered on hostile naval contact with 2.5 s crossfade."
+    },
+    {
+      "id": "bow_wash_loop",
+      "file": "audio/bow_wash_loop.mp3",
+      "title": "Bow Wave Shoulder Wash",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 20.04,
+      "bus": "SEA",
+      "recipe": "20 s FFT-periodic broadband wash (250-3000 Hz, 0.7 Hz AM) boosted dynamically by live bow submergence in swell."
+    },
+    {
+      "id": "hull_hiss_proc",
+      "file": "audio/hull_hiss_proc.mp3",
+      "title": "Boundary-Layer Hull Foam Hiss",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 20.04,
+      "bus": "SEA",
+      "recipe": "20 s high-band aerated bubble hiss (900-6000 Hz, 1.0 Hz AM) along the midbody waterline above 8 kn."
+    },
+    {
+      "id": "slow_lap_loop",
+      "file": "audio/slow_lap_loop.mp3",
+      "title": "Anchor & Idle Hull Lapping",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 8.05,
+      "bus": "SEA",
+      "recipe": "Close-perspective gentle water slap against iron and timber plating when hove-to or making under 4 kn."
+    },
+    {
+      "id": "storm_howling_wind",
+      "file": "audio/storm_howling_wind.mp3",
+      "title": "Hurricane Rigging Whistle",
+      "category": "stem",
+      "loop": true,
+      "duration_s": 8.05,
+      "bus": "WIND",
+      "recipe": "High-velocity storm wind howling through stays and funnel guys above 38-48 kn (Storm Layer 2, CC0 source)."
+    },
+    {
+      "id": "harbour_bell",
+      "file": "audio/harbour_bell.mp3",
+      "title": "Harbourmaster Double Ship's Bell",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 2.85,
+      "bus": "SHIP",
+      "recipe": "Procedural 1870s cast-bronze double bell chime (t=0.0 s + t=0.38 s, D5 587.3 Hz prime, 1174.7 Hz octave, 1410 Hz tierce, 2093 Hz nominal) on port mooring."
+    },
+    {
+      "id": "foghorn_sfx",
+      "file": "audio/foghorn_sfx.mp3",
+      "title": "Steam Merchant Foghorn",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 6.09,
+      "bus": "GUNS",
+      "recipe": "Deep low-pressure steam whistle sounded across 9 km attenuation radius by passing merchant steamers and on contact."
+    },
+    {
+      "id": "broadside_sfx",
+      "file": "audio/broadside_sfx.mp3",
+      "title": "Turret & Broadside Cannon Report",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 4.08,
+      "bus": "GUNS",
+      "recipe": "Heavy black-powder naval gun discharge with low-end concussion; pitch-shifted to 0.62x for armour-belt shell impacts."
+    },
+    {
+      "id": "captain_contact",
+      "file": "audio/captain_contact.mp3",
+      "title": "Bridge Call \u2014 Contact Bearing",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 7.34,
+      "bus": "VOICES",
+      "recipe": "19th-century bridge command call announcing hostile vessel sighting on entering detection range."
+    },
+    {
+      "id": "captain_load",
+      "file": "audio/captain_load.mp3",
+      "title": "Bridge Call \u2014 Clear for Action",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 9.64,
+      "bus": "VOICES",
+      "recipe": "Follow-on bridge gunnery order sequenced automatically after initial contact report."
+    },
+    {
+      "id": "officer_correct",
+      "file": "audio/officer_correct.mp3",
+      "title": "Spotting Officer \u2014 Correct Elevation",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 4.94,
+      "bus": "VOICES",
+      "recipe": "Rangefinder spotting callout advising fall-of-shot correction after a bracketed salvo."
+    },
+    {
+      "id": "officer_damage",
+      "file": "audio/officer_damage.mp3",
+      "title": "Damage Control \u2014 Hull Hit Report",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 6.64,
+      "bus": "VOICES",
+      "recipe": "Watch officer damage report triggered on incoming shell impact (rate-limited to once per 25 s)."
+    },
+    {
+      "id": "officer_splash",
+      "file": "audio/officer_splash.mp3",
+      "title": "Spotting Officer \u2014 Splash Observed",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 3.45,
+      "bus": "VOICES",
+      "recipe": "Short fall-of-shot splash observation alternated with elevation correction calls."
+    },
+    {
+      "id": "thunder_near",
+      "file": "audio/thunder_near.mp3",
+      "title": "Close Squall Thunder (< 2.8 km)",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 5.54,
+      "bus": "WIND",
+      "recipe": "Synthesised close-strike thunder crack and low-pass rumble delayed by acoustic travel time d / 343 m/s."
+    },
+    {
+      "id": "thunder_far",
+      "file": "audio/thunder_far.mp3",
+      "title": "Horizon Thunder Roll (2.8 - 7 km)",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 6.53,
+      "bus": "WIND",
+      "recipe": "Low-passed 300 Hz brown-noise distant storm roll arriving 8-20 s after horizon sheet lightning."
+    },
+    {
+      "id": "creak_storm_strain",
+      "file": "audio/creak_storm_strain.mp3",
+      "title": "Heavy Hull Strain & Grounding Crunch",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 9.04,
+      "bus": "SHIP",
+      "recipe": "Deep structural timber and iron-knee groan used for storm sea states >= 2.8 and pitched down 0.5x on shoal grounding."
+    },
+    {
+      "id": "ui_click",
+      "file": "audio/ui_click.mp3",
+      "title": "Brass Telegraph & Menu Detent",
+      "category": "sfx",
+      "loop": false,
+      "duration_s": 0.13,
+      "bus": "UI",
+      "recipe": "Crisp 90 ms band-passed mechanical detent click routed to pause-safe SC_UI bus."
+    }
+  ]
+}

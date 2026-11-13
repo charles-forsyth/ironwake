@@ -1,0 +1,26 @@
+name: Bug Report
+description: Report a bug in Ironwake C++ simulation, pipeline scripts, or the WebGL showcase
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Clear description of the defect and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Platform / Browser / Engine Version
+      placeholder: "macOS Apple Silicon · UE 5.8.4 / Safari 19"

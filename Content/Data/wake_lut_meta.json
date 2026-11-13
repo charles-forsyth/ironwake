@@ -1,0 +1,31 @@
+{
+  "grid_size": 1024,
+  "quadrature_angles": 1600,
+  "domain_x_L": [
+    -6.5,
+    1.5
+  ],
+  "domain_y_L": [
+    -3.0,
+    3.0
+  ],
+  "hull_span_x_L": [
+    -0.48,
+    0.48
+  ],
+  "bow_x_L": 0.48,
+  "stern_x_L": -0.48,
+  "kelvin_wave_channels": {
+    "R": "Fn=0.15",
+    "G": "Fn=0.24",
+    "B": "Fn=0.36",
+    "A": "crest_breaking"
+  },
+  "foam_lut_channels": {
+    "R": "turbulent_prop_wash",
+    "G": "kelvin_cusp_lace",
+    "B": "hull_shoulder_contact",
+    "A": "envelope"
+  },
+  "elapsed_s": 53.57
+}

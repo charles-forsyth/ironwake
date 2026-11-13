@@ -1,0 +1,31 @@
+# Unreal Engine generated & binary directories
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Content/Collections/
+Content/Developers/
+Content/Ironwake/
+Content/Maps/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Python & OS artifacts
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+
+# Licensed third-party sources are credited, never redistributed (see CREDITS.md).
+# Re-make them locally with the Content/Python and pipeline scripts.
+build/
+*.fbx
+*.fbm/
+*.uasset
+*.umap
