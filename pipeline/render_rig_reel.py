@@ -64,6 +64,8 @@ def setup_render(a, sc):
     sc.render.fps = 30
     sc.view_settings.view_transform = "AgX"
     sc.view_settings.look = "AgX - Medium High Contrast"
+    sc.cycles.max_bounces = 4
+    sc.render.film_transparent = False
     sc.render.image_settings.file_format = "PNG"
     sc.cycles.device = "CPU"
     if a.device != "CPU":
@@ -82,46 +84,70 @@ def setup_render(a, sc):
 
 
 def studio(sc, lo, hi):
+    """Seamless dark-slate studio: constant world, a huge matte floor that fades into it."""
     w = bpy.data.worlds.new("Slate")
     sc.world = w
     w.use_nodes = True
-    nt = w.node_tree
-    bg = nt.nodes["Background"]
-    grad = nt.nodes.new("ShaderNodeTexGradient")
-    coord = nt.nodes.new("ShaderNodeTexCoord")
-    mapn = nt.nodes.new("ShaderNodeMapping")
-    ramp = nt.nodes.new("ShaderNodeValToRGB")
-    mapn.inputs["Rotation"].default_value = (0.0, math.radians(-90), 0.0)
-    nt.links.new(coord.outputs["Generated"], mapn.inputs["Vector"])
-    nt.links.new(mapn.outputs["Vector"], grad.inputs["Vector"])
-    nt.links.new(grad.outputs["Fac"], ramp.inputs["Fac"])
-    ramp.color_ramp.elements[0].color = (0.11, 0.15, 0.19, 1)
-    ramp.color_ramp.elements[1].color = (0.018, 0.03, 0.04, 1)
-    nt.links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.9
+    bg = w.node_tree.nodes["Background"]
+    bg.inputs["Color"].default_value = (0.035, 0.05, 0.062, 1)
+    bg.inputs["Strength"].default_value = 1.0
+    sc.render.use_motion_blur = False
 
-    size = (hi - lo).length * 12
-    bpy.ops.mesh.primitive_plane_add(size=size, location=(0, 0, lo.z - 0.02))
-    floor = bpy.context.active_object
+    # Cyclorama sweep: a floor that curves up into a wall all the way round, so no horizon line
+    # ever shows, whatever the camera height. Built as a lathe: a bowl with a flat base.
+    import bmesh
+    R = (hi - lo).length * 3.0
+    flat = R * 0.55
+    bm = bmesh.new()
+    prof = []
+    for i in range(24):
+        t = i / 23.0
+        if t < 0.4:
+            prof.append((flat * t / 0.4, 0.0))
+        else:
+            u = (t - 0.4) / 0.6
+            ang = u * math.pi / 2
+            prof.append((flat + (R - flat) * math.sin(ang), (R - flat) * (1 - math.cos(ang)) * 1.6))
+    segs = 72
+    rings = []
+    for (r, z) in prof:
+        ring = [bm.verts.new((r * math.cos(2 * math.pi * k / segs), r * math.sin(2 * math.pi * k / segs), lo.z - 0.02 + z)) for k in range(segs)]
+        rings.append(ring)
+    for a_, b_ in zip(rings[:-1], rings[1:]):
+        for k in range(segs):
+            bm.faces.new((a_[k], a_[(k + 1) % segs], b_[(k + 1) % segs], b_[k]))
+    me = bpy.data.meshes.new("Cyc")
+    bm.to_mesh(me)
+    bm.free()
+    for poly in me.polygons:
+        poly.use_smooth = True
+    floor = bpy.data.objects.new("Cyc", me)
+    sc.collection.objects.link(floor)
     m = bpy.data.materials.new("SlateFloor")
     m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (0.03, 0.045, 0.055, 1)
-    b.inputs["Roughness"].default_value = 0.42
+    b.inputs["Base Color"].default_value = (0.035, 0.05, 0.062, 1)
+    b.inputs["Roughness"].default_value = 0.55
     floor.data.materials.append(m)
 
     key = bpy.data.lights.new("Key", "SUN")
-    key.energy = 3.4
-    key.angle = math.radians(4)
-    key.color = (1.0, 0.93, 0.82)
+    key.energy = 3.6
+    key.angle = math.radians(6)
+    key.color = (1.0, 0.92, 0.8)
     ko = bpy.data.objects.new("Key", key)
-    ko.rotation_euler = (math.radians(52), 0, math.radians(-38))
+    ko.rotation_euler = (math.radians(50), 0, math.radians(-35))
     sc.collection.objects.link(ko)
+    fill = bpy.data.lights.new("Fill", "SUN")
+    fill.energy = 0.9
+    fill.color = (0.7, 0.82, 1.0)
+    fo = bpy.data.objects.new("Fill", fill)
+    fo.rotation_euler = (math.radians(65), 0, math.radians(120))
+    sc.collection.objects.link(fo)
     rim = bpy.data.lights.new("Rim", "SUN")
-    rim.energy = 1.6
+    rim.energy = 2.2
     rim.color = (0.62, 0.8, 1.0)
     ro = bpy.data.objects.new("Rim", rim)
-    ro.rotation_euler = (math.radians(70), 0, math.radians(150))
+    ro.rotation_euler = (math.radians(75), 0, math.radians(165))
     sc.collection.objects.link(ro)
 
 
@@ -197,15 +223,16 @@ def main():
     cam = bpy.data.objects.new("Cam", cam_d)
     sc.collection.objects.link(cam)
     sc.camera = cam
-    dist = span * 1.05
-    elev = math.radians(18)
+    # Per-vignette framing: the airship floats high (look at its true centre), the tender is short and deep.
+    dist = span * {"brig": 1.18, "paddle": 1.1, "tender": 1.45, "airship": 1.25}[a.vignette]
+    elev = math.radians({"airship": 10}.get(a.vignette, 18))
     for f in range(N):
         t = f / float(N - 1)
         ease = 0.5 - 0.5 * math.cos(math.pi * t)
-        az = math.radians(205 + 40 * ease)    # slow 40 degree arc on the bow quarter
+        az = math.radians(200 + 32 * ease)    # slow 32 degree arc on the bow quarter, never head-on
         p = ctr + Vector((math.cos(az) * math.cos(elev), math.sin(az) * math.cos(elev), math.sin(elev))) * dist
         cam.location = p
-        cam.rotation_euler = (ctr + Vector((0, 0, (hi.z - lo.z) * 0.05)) - p).to_track_quat("-Z", "Y").to_euler()
+        cam.rotation_euler = (ctr - p).to_track_quat("-Z", "Y").to_euler()
         cam.keyframe_insert("location", frame=f)
         cam.keyframe_insert("rotation_euler", frame=f)
 
@@ -223,6 +250,7 @@ def main():
         sc.frame_set(f)
         sc.render.filepath = fp
         bpy.ops.render.render(write_still=True)
+        print("FRAME_DONE", a.vignette, f, flush=True)
     print("RENDER_OK", a.vignette, flush=True)
 
 

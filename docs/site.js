@@ -19,7 +19,8 @@
   var CUTS = [
     { file: "cut1_archipelago_voyage", title: "Archipelago voyage", sub: "22 s · all three ports, the brig, the living sea, the market" },
     { file: "cut2_hydrodynamic_wake_lab", title: "Wake lab, 1.5 to 16 knots", sub: "12 s · in-game ironclad beside the solved wake field" },
-    { file: "cut3_storm_swell", title: "Heavy swell", sub: "20 s · real vertical sea motion in rough water" }
+    { file: "cut3_storm_swell", title: "Heavy swell", sub: "20 s · real vertical sea motion in rough water" },
+    { file: "cut4_articulated_rig_reel", title: "Moving parts", sub: "14 s · Blender studio render of the web models: yards, paddles, crane, propellers" }
   ];
   var reelVideo = $("reel-video");
   var reelList = $("reel-list");
