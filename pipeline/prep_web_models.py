@@ -367,13 +367,30 @@ def join_objs(objs, name=None):
     return res
 
 
+def weld_mesh(obj, dist=1e-5):
+    """Merge coincident vertices. The glTF importer splits vertices on every UV/normal seam,
+    so the source meshes arrive as near triangle soup; collapse-decimating that tears the
+    surface into loose shards (visible as cuts and see-through gaps on the web)."""
+    import bmesh
+    me = obj.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    span = max(obj.dimensions) or 1.0
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=dist * span)
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+
+
 def decimate_mesh(obj, target_faces):
+    weld_mesh(obj)
     cur_faces = len(obj.data.polygons)
     if cur_faces <= target_faces or target_faces <= 0:
         return
     select_only([obj], active=obj)
     mod = obj.modifiers.new("WebDecimate", "DECIMATE")
     mod.decimate_type = "COLLAPSE"
+    mod.use_collapse_triangulate = True
     mod.ratio = max(0.02, min(1.0, float(target_faces) / float(cur_faces)))
     bpy.ops.object.modifier_apply(modifier=mod.name)
 
@@ -479,6 +496,7 @@ def enforce_web_materials():
     for m in bpy.data.materials:
         if not m:
             continue
+        m.use_backface_culling = False  # exported as glTF doubleSided: no see-through back faces
         m.use_nodes = True
         nt = m.node_tree
         bsdf = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)

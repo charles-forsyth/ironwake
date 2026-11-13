@@ -28,8 +28,8 @@
       },
       "faces": 25804,
       "triangles": 26380,
-      "size_bytes": 2949992,
-      "size_kb": 2880.9,
+      "size_bytes": 2940184,
+      "size_kb": 2871.3,
       "unreal_role": "Articulated 2-Mast Merchant Brig ( Hull + 17 Animated Rig & Sail Parts )",
       "qa_score": 9.5
     },
@@ -46,10 +46,10 @@
         "height": 57.4,
         "formatted": "125.0 x 33.2 x 57.4 m"
       },
-      "faces": 27499,
-      "triangles": 27499,
-      "size_bytes": 3268124,
-      "size_kb": 3191.5,
+      "faces": 27500,
+      "triangles": 27500,
+      "size_bytes": 3268192,
+      "size_kb": 3191.6,
       "unreal_role": "Capital Escort & Coastal Bombardment Ironclad ( 125 m, 8,000 t )",
       "qa_score": 8.8
     },
@@ -62,14 +62,14 @@
       "description": "110 m bluff-hulled steampunk cargo airship with ribbed canvas-and-brass envelope, underslung cargo gondola, external catwalks, cruciform tailplanes, and four outrigger propellers.",
       "dimensions_m": {
         "length": 110.0,
-        "beam": 93.93,
-        "height": 56.66,
+        "beam": 93.94,
+        "height": 56.7,
         "formatted": "110.0 x 93.9 x 56.7 m"
       },
       "faces": 26572,
       "triangles": 26716,
-      "size_bytes": 3167320,
-      "size_kb": 3093.1,
+      "size_bytes": 3162860,
+      "size_kb": 3088.7,
       "unreal_role": "High-Altitude Heavy Freight Dirigible ( 4 Outrigger Screws, 310 m Cruise )",
       "qa_score": 8.2
     },
@@ -81,15 +81,15 @@
       "category": "aircraft",
       "description": "70 m Crown aerial patrol dirigible assembled from PatrolAirshipV4 with twin forward nacelle tractor screws and an aft cruciform tail pusher propeller in laminated mahogany and polished brass.",
       "dimensions_m": {
-        "length": 72.01,
+        "length": 72.02,
         "beam": 40.52,
-        "height": 49.11,
+        "height": 49.1,
         "formatted": "72.0 x 40.5 x 49.1 m"
       },
-      "faces": 25172,
-      "triangles": 27015,
-      "size_bytes": 3019900,
-      "size_kb": 2949.1,
+      "faces": 25216,
+      "triangles": 27016,
+      "size_bytes": 3020572,
+      "size_kb": 2949.8,
       "unreal_role": "Harbour Overwatch & Reconnaissance Dirigible ( 3 Spinning Screws, 240 m Cruise )",
       "qa_score": 9.1
     },
@@ -106,10 +106,10 @@
         "height": 21.08,
         "formatted": "45.0 x 14.5 x 21.1 m"
       },
-      "faces": 28548,
-      "triangles": 28548,
-      "size_bytes": 3016224,
-      "size_kb": 2945.5,
+      "faces": 28547,
+      "triangles": 28547,
+      "size_bytes": 3012516,
+      "size_kb": 2941.9,
       "unreal_role": "Packet & Passenger Side-Wheel Steamer ( Dual Sponson Wheels + Churn FX )",
       "qa_score": 9.2
     },
@@ -122,14 +122,14 @@
       "description": "30 m iron salvage workboat equipped with an aft steam-winch turntable, twin-leg A-frame derrick boom slewed 22 degrees outboard, and a suspended brass-portholed diving bell.",
       "dimensions_m": {
         "length": 32.25,
-        "beam": 11.27,
+        "beam": 11.26,
         "height": 14.65,
         "formatted": "32.2 x 11.3 x 14.7 m"
       },
       "faces": 25424,
       "triangles": 25424,
-      "size_bytes": 2912040,
-      "size_kb": 2843.8,
+      "size_bytes": 2908776,
+      "size_kb": 2840.6,
       "unreal_role": "Wreck-Diving Support Vessel ( Slewing A-Frame Derrick + Pendulum Diving Bell )",
       "qa_score": 9.6
     },
@@ -148,8 +148,8 @@
       },
       "faces": 32356,
       "triangles": 32572,
-      "size_bytes": 3704364,
-      "size_kb": 3617.5,
+      "size_bytes": 3701184,
+      "size_kb": 3614.4,
       "unreal_role": "Inner-Harbour Ship-to-Shore Gig ( 6 Synchronised Oars + 4 Seated Crew )",
       "qa_score": 9.3
     },
@@ -162,14 +162,14 @@
       "description": "50 m iron-hulled coastal tramp collier with raised forecastle, central bridge deckhouse, tall black funnel, and fore-and-aft cargo derricks.",
       "dimensions_m": {
         "length": 50.0,
-        "beam": 10.47,
+        "beam": 10.48,
         "height": 31.1,
         "formatted": "50.0 x 10.5 x 31.1 m"
       },
       "faces": 26000,
       "triangles": 26000,
-      "size_bytes": 3061056,
-      "size_kb": 2989.3,
+      "size_bytes": 3061204,
+      "size_kb": 2989.5,
       "unreal_role": "Coastal Coal & Ore Freighter ( 50 m Bulk Merchant Traffic )",
       "qa_score": 8.0
     },
@@ -188,8 +188,8 @@
       },
       "faces": 26000,
       "triangles": 26000,
-      "size_bytes": 3097152,
-      "size_kb": 3024.6,
+      "size_bytes": 3097428,
+      "size_kb": 3024.8,
       "unreal_role": "Fast Channel Pilot & Escort Cutter ( Bar Entry & Reef Guidance )",
       "qa_score": 7.8
     },
@@ -202,14 +202,14 @@
       "description": "22 m heavy steel harbour steam tug fitted with a braided rope bow pudding fender, forward timber wheelhouse, tall coal stack, and low aft towing deck.",
       "dimensions_m": {
         "length": 22.0,
-        "beam": 9.22,
+        "beam": 9.21,
         "height": 15.32,
         "formatted": "22.0 x 9.2 x 15.3 m"
       },
       "faces": 26000,
       "triangles": 26000,
-      "size_bytes": 3063580,
-      "size_kb": 2991.8,
+      "size_bytes": 3063280,
+      "size_kb": 2991.5,
       "unreal_role": "High-Thrust Berthing & Towage Steam Tug ( 22 m Harbour Workhorse )",
       "qa_score": 9.0
     },
@@ -222,14 +222,14 @@
       "description": "15 m Victorian naval steam launch featuring a plumb stem, exposed vertical brass boiler and raked funnel forward, and a stanchion-supported passenger canopy aft.",
       "dimensions_m": {
         "length": 15.0,
-        "beam": 6.09,
+        "beam": 6.1,
         "height": 6.96,
         "formatted": "15.0 x 6.1 x 7.0 m"
       },
-      "faces": 24999,
-      "triangles": 24999,
-      "size_bytes": 2910940,
-      "size_kb": 2842.7,
+      "faces": 25000,
+      "triangles": 25000,
+      "size_bytes": 2910848,
+      "size_kb": 2842.6,
       "unreal_role": "Admiralty Officer & Quay Dispatch Launch ( 15 m Canopy Steam Boat )",
       "qa_score": 8.0
     },
@@ -248,8 +248,8 @@
       },
       "faces": 26117,
       "triangles": 26298,
-      "size_bytes": 3284708,
-      "size_kb": 3207.7,
+      "size_bytes": 3284320,
+      "size_kb": 3207.3,
       "unreal_role": "Quayside Landmark Public House ( TownTavernV4 + Mounted SignAnchorTavern )",
       "qa_score": 8.8
     },
@@ -266,9 +266,9 @@
         "height": 15.0,
         "formatted": "12.7 x 21.1 x 15.0 m"
       },
-      "faces": 26499,
-      "triangles": 26499,
-      "size_bytes": 3376960,
+      "faces": 26500,
+      "triangles": 26500,
+      "size_bytes": 3376940,
       "size_kb": 3297.8,
       "unreal_role": "South-Wharf Heavy Industrial Smelting Works ( 15 m Brick Clerestory Hall )",
       "qa_score": 8.3
@@ -281,15 +281,15 @@
       "category": "architecture",
       "description": "18.5 m rail-straddling steel portal dock crane with a riveted boiler cab, vertical exhaust chimney, lattice jib boom, sheave block, and heavy cargo hook.",
       "dimensions_m": {
-        "length": 18.47,
-        "beam": 7.61,
+        "length": 18.48,
+        "beam": 7.62,
         "height": 18.5,
         "formatted": "18.5 x 7.6 x 18.5 m"
       },
-      "faces": 24999,
-      "triangles": 24999,
-      "size_bytes": 2945648,
-      "size_kb": 2876.6,
+      "faces": 25000,
+      "triangles": 25000,
+      "size_bytes": 2945708,
+      "size_kb": 2876.7,
       "unreal_role": "Coaling Pier & Foundry Wharf Cargo Portal Crane ( 18.5 m Lattice Jib )",
       "qa_score": 8.0
     },
@@ -303,13 +303,13 @@
       "dimensions_m": {
         "length": 24.0,
         "beam": 8.77,
-        "height": 19.64,
+        "height": 19.65,
         "formatted": "24.0 x 8.8 x 19.6 m"
       },
-      "faces": 25999,
-      "triangles": 25999,
-      "size_bytes": 3032188,
-      "size_kb": 2961.1,
+      "faces": 26000,
+      "triangles": 26000,
+      "size_bytes": 3032252,
+      "size_kb": 2961.2,
       "unreal_role": "Bunkering Wharf Coal Elevator & Chute Tower ( 24 m Industrial Tipple )",
       "qa_score": 8.0
     },
@@ -328,8 +328,8 @@
       },
       "faces": 25876,
       "triangles": 25876,
-      "size_bytes": 3083532,
-      "size_kb": 3011.3,
+      "size_bytes": 3079804,
+      "size_kb": 3007.6,
       "unreal_role": "Headland Daymark & Grain Mill ( Tower + 4 Rotating Lattice Sail Sweeps )",
       "qa_score": 8.4
     },
@@ -348,8 +348,8 @@
       },
       "faces": 22000,
       "triangles": 22000,
-      "size_bytes": 2610260,
-      "size_kb": 2549.1,
+      "size_bytes": 2610452,
+      "size_kb": 2549.3,
       "unreal_role": "Quarterdeck Helmsman, Salvage Rigger & Quay Dockhand ( 1.78 m Crew Mesh )",
       "qa_score": 8.0
     },
@@ -366,10 +366,10 @@
         "height": 0.2,
         "formatted": "0.7 x 1.3 x 0.2 m"
       },
-      "faces": 18806,
-      "triangles": 21987,
-      "size_bytes": 2818240,
-      "size_kb": 2752.2,
+      "faces": 21381,
+      "triangles": 21381,
+      "size_bytes": 2938664,
+      "size_kb": 2869.8,
       "unreal_role": "Ambient Harbour & Wake Flock Bird ( 1.30 m Span, Hinged L/R Wings )",
       "qa_score": 8.2
     }
