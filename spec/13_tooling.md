@@ -344,6 +344,46 @@ Card order was rewritten several times in BRIEF: current explicit order lines ar
 
 **Stale / superseded BRIEF text:** the "Controls (DESIGN.md section 3)" line (A/D rudder steps, RMB zoom) [src build/BRIEF.md:47] is superseded by the held-wheel rudder and RMB-exits-scope bindings in chapter 9; "Current state (verified 2026-11-09 00:45)" [src build/BRIEF.md:49] describes the pre-build map and is historical.
 
+## 13.12 Public showcase repo and site (2026-11-13)
+
+The public mirror is `charles-forsyth/ironwake` on GitHub; GitHub Pages serves `docs/` at
+`https://charles-forsyth.github.io/ironwake/`. It holds the C++ source, Config, the editor Python, the asset pipeline
+scripts and these spec chapters. Cooked `.uasset` content and licensed source models stay out of it (see chapter 12 and
+`CREDITS.md`).
+
+### Site (`docs/`)
+| Piece | What it does | Value |
+|---|---|---|
+| 3D hangar | `<model-viewer>` over the web GLBs in `docs/models/` (18 models plus `manifest.json`) | `model-viewer/4.0.0` [src docs/index.html:21] |
+| Reel | four cuts; cut 4 is a Blender studio render, labelled as one, the rest are in-game captures | `cut4_articulated_rig_reel` [src docs/site.js:23] |
+| Sound | Web Audio mixer over the 25 MP3s in `docs/audio/` | |
+| Wake lab | Canvas Kelvin-wake toy beside the cut-2 footage | |
+
+### Pipeline scripts used for the site
+| Script | Job | Key value |
+|---|---|---|
+| `pipeline/prep_web_models.py` | Blender: assemble articulated GLBs (moving parts kept as separate `PART_*` nodes), decimate to about 26k triangles, write QA thumbnails | `decimate_mesh(tav, 26000)` [src pipeline/prep_web_models.py:845] |
+| weld before decimate | the glTF importer splits vertices on every UV/normal seam; collapse-decimating that tore surfaces into slivers and holes, so seams are merged first | `def weld_mesh(obj, dist=1e-5):` [src pipeline/prep_web_models.py:370] |
+| two-sided materials | exported as glTF `doubleSided`, so back faces never show through | `m.use_backface_culling = False` [src pipeline/prep_web_models.py:499] |
+| depsgraph refresh | read `matrix_world` only after an update, or every part collapses to the origin | `bpy.context.view_layer.update()` [src pipeline/prep_web_models.py:531] |
+| `pipeline/render_rig_reel.py` | Cycles studio vignettes (brig yards, paddle wheels, tender crane and bell, airship propellers) in a lathed cyclorama | `--samples 16` [src pipeline/render_rig_reel.py:7] |
+| camera arc | slow 32 degree arc on the bow quarter, never head-on (bow-on foreshortens and clips) | `200 + 32 * ease` [src pipeline/render_rig_reel.py:232] |
+
+### Cluster runs (Ursa `standard` partition)
+- Web GLBs: one 16-CPU node, 18 Blender slices in parallel, about 40 s per run.
+- Reel: an 8-task Slurm array (one task per vignette half, 4 Blender processes x 4 threads), 480 frames at 1280x720 in
+  about 7 minutes, then a separate small encode job on the cluster. One node alone runs about 45 minutes (about 23 s per frame).
+- Ursa pitfalls: the `ffmpeg/8.1` module lacks libx264 and libmp3lame, so jobs fetch a static ffmpeg into `/tmp`; Mac
+  `tar` adds AppleDouble `._*` files (use `COPYFILE_DISABLE=1 tar --no-xattrs` and delete `._*` in the job); UE WAVs are
+  WAVE_FORMAT_EXTENSIBLE, which Python's `wave` rejects, so durations come from ffmpeg.
+
+### Release gate
+| Check | Value |
+|---|---|
+| `tools/verify_repo.py`: every model, sound, page reference and link resolves, plus a privacy scan of tracked files and GLB metadata | `VERIFY OK` [src tools/verify_repo.py:144] |
+| CI runs the gate, then every spec citation | `python3 tools/spec_check.py --all --fails` [src .github/workflows/ci.yml:26] |
+| CI job name | `Repo, showcase and privacy gate` [src .github/workflows/ci.yml:13] |
+
 ## 13.11 Gaps / unknown
 
 - No script verifies the built `.app` after packaging (no smoke test); `package.sh` only greps `BUILD SUCCESSFUL|BUILD FAILED|Error:`. A packaged-run smoke check is unknown/absent.

@@ -87,7 +87,7 @@ Peaceful goals in the concept (trade routes, charting, wreck salvage, photo mode
 | Control | DESIGN.md | Built (SPEC.md section 4 from IronwakeP11.cpp) | Status |
 |---|---|---|---|
 | W/S | engine telegraph steps, holds [src DESIGN.md:38] | one step per press, sailing ship = sail plan [src SPEC.md:43] | matches |
-| A/D | rudder steps [src DESIGN.md:39] | hold to turn the wheel [src SPEC.md:44]; H1: held A/D turns wheel at 30 deg/s (build report `H1.md`) | CHANGED in H1 |
+| A/D | rudder steps [src DESIGN.md:39] | hold to turn the wheel [src SPEC.md:45]; H1: held A/D turns wheel at 30 deg/s (build report `H1.md`) | CHANGED in H1 |
 | RMB | zoom [src DESIGN.md:41] | removed in H1: "Removed: right-click zoom" (build report `H1.md`) | CONFLICT: code wins |
 | Shift | n/a | binoculars/scope [src SPEC.md:49] | added |
 | M | map, click waypoint [src DESIGN.md:43] | chart with waypoints [src SPEC.md:47] | matches |
@@ -102,7 +102,7 @@ Full binding table lives in chapter 9. Chapter 1 only records the design deltas.
 
 | Aspect | Target (WORLD_PLAN.md / DESIGN.md) | Current slice | Source |
 |---|---|---|---|
-| Extent | `120 x 120 km` [src WORLD_PLAN.md:3] | `8.4 km` [src SPEC.md:44] | slice is one corner of the calm trade sea [src WORLD_PLAN.md:3] |
+| Extent | `120 x 120 km` [src WORLD_PLAN.md:3] | `8.4 km` [src SPEC.md:45] | slice is one corner of the calm trade sea [src WORLD_PLAN.md:3] |
 | Islands | `30-40` [src WORLD_PLAN.md:21] | `18 places` (build report `I1.md`) places incl. 14 seeded islands (build report `I1.md`) | WORLD_PLAN counts 14 built [src WORLD_PLAN.md:21] |
 | Ports | `8-12` [src WORLD_PLAN.md:21] | `1 built` [src WORLD_PLAN.md:21] built [src WORLD_PLAN.md:21] | Greyhaven only |
 | Sea zones | `Sea zones 4` [src WORLD_PLAN.md:20] | calm trade sea only | stormy straits, pirate reef, outer ocean not built |

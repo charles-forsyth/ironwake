@@ -61,7 +61,7 @@ Notes: peaks per kind from `case EIsle::...: I.Hp = N * CM` (Wooded 48, Pines 12
 
 Arrive radius for islands = `HazardR + 25000` cm (so arrival is reached while still outside the hazard circle) `I.HazardR + 25000.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:292]. Derived: Kestrel 762 m + 250 m = `1012` m; Little Sable 214 m + 250 m = `464` m.
 
-Place count: 4 core + 14 islands = 18 (SPEC.md: "18 places") `18 places` [src SPEC.md:45]. The Kestrel isle name differs from the card-D island name St Brannoc (core). Island names in the minimap/compass are the `Tag` strings; the NEXT line and toasts use the full name.
+Place count: 4 core + 14 islands = 18 (SPEC.md: "18 places") `18 places` [src SPEC.md:46]. The Kestrel isle name differs from the card-D island name St Brannoc (core). Island names in the minimap/compass are the `Tag` strings; the NEXT line and toasts use the full name.
 
 Island list, sea-state and chart fields live in `FIsle` (name, tag, kind, centre, radius, peak, `HazardR`, `bTerrain`, `bPlateau`) `struct FIsle` [src Source/IronwakeTest/IronwakeArchipelago.h:26].
 

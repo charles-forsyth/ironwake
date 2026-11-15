@@ -31,6 +31,7 @@ W3 water-fix build, not A1-era; frigate and cutter are always unlocked. See chap
 ---
 
 Status as of 2026-11-13 13:00 EST. **Promoted build: `Packaged/Ironwake/Ironwake.app`** (promoted in **P30** from verified `Ironwake_P29.app`: data-driven 3-port world via `world_ports.json` — Greyhaven + Ironcrag + Stigsby, 4-ship Shipyard incl. 42 m rigged Tall Brig, 7-ship Havelock LUT wakes, 120+ moving parts & 3D crew, Harbourmaster 8-good trade market & Captain's Logbook; `53.10 FPS` MEDIUM `+1.15` vs P19 & `+18.15` vs W3, `33.25 FPS` HIGH `+1.40` vs P19).
+Showcase (2026-11-13, after P30): public repo `charles-forsyth/ironwake`, site https://charles-forsyth.github.io/ironwake/ (18 web models, 25 sounds, wake lab, 4-cut reel). Pipeline, cluster runs and release gate: chapter 13.12. No game code changed.
 Previous Nov 10 W3 `Ironwake.app` backed up to `Packaged/Ironwake/Ironwake_W3_prev.app`; per-card archives remain at `Packaged/Ironwake/Ironwake_<card>.app`.
 
 New to the project? Read `HANDOFF.md` first.
@@ -141,6 +142,7 @@ P23-P24 stepped-bench town + headland lighthouse + trace windows (67 houses, str
 7. In-game audio recording at 13 kn to confirm no hum (needs Chuck away from the Mac); `25/25` sounds classed (`0` unclassed, `bad=0` verified in P30).
 8. Combat remains parked; **`Ironwake_P29.app` promoted to `Packaged/Ironwake/Ironwake.app` in P30** (`build/MORNING_REPORT_3.md`).
 9. Chapters under `spec/` are the detailed record; run build/tools/spec_check.py --all after code changes.
+10. Public showcase: re-run `prep_web_models.py` / `render_rig_reel.py` on Ursa and `tools/verify_repo.py` in the public repo whenever ships or parts change (chapter 13.12).
 
 ## 10. Credits
 Star map: NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC.
