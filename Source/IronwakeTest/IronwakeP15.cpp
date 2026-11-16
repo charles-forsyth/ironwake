@@ -73,12 +73,14 @@ float FIwHill::Base(float X, float Y) const
 	const float ShoreX = -50.f + (ShoreXc + 50.f) * Sc;
 	const float D = X - ShoreX;
 	if (HeightScale != 1.f && Z > 2.f) Z = 2.f + (Z - 2.f) * HeightScale;
-	if (D > 0.f)
-	{
-		const float Tb = FMath::Max(SS(0.5f, 10.f, Cove), SS(135.f, 175.f, AY));
-		const float Slope = FMath::Lerp(3.0f, FMath::Lerp(0.14f, 0.22f, SS(190.f, 230.f, AY)), Tb);
-		Z = FMath::Min(Z, 2.f - Slope * D);
-	}
+		if (D > 0.f)
+		{
+			const float Tb = FMath::Max(SS(0.5f, 10.f, Cove), SS(135.f, 175.f, AY));
+			const float Slope = FMath::Lerp(3.0f, FMath::Lerp(0.28f, 0.36f, SS(190.f, 230.f, AY)), Tb);
+			// P34: plunge underwater beach/cove floor cleanly below Z = -1.6 m once past the surf line so SingleLayerWater never Z-fights shallow triangles!
+			const float SurfDrop = (Z < 0.15f) ? 1.35f * SS(0.15f, -0.35f, Z) : 0.f;
+			Z = FMath::Min(Z, 2.f - Slope * D - SurfDrop);
+		}
 	return FMath::Max(Z, -9.5f);
 }
 

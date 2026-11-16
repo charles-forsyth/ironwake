@@ -6,20 +6,20 @@ Scope: everything the sea does visually around a ship and in the storm: the Kelv
 
 | Input | Definition | Source |
 |---|---|---|
-| Nominal knots `Kn` [src Source/IronwakeTest/IronwakeShipHydro.cpp:157] | `max(GetSpeedKnots(), 0)`; sim speed / `SpeedCompression` | [src Source/IronwakeTest/IronwakeShipHydro.cpp:157] |
-| Speed fraction `Frac` [src Source/IronwakeTest/IronwakeShipHydro.cpp:158] (bow FX, wake) | `Kn / 13` [src Source/IronwakeTest/IronwakeShipHydro.cpp:158], clamped to `1.2` [src Source/IronwakeTest/IronwakeShipHydro.cpp:158]; FULL AHEAD = 13 kn = 1.0 | [src Source/IronwakeTest/IronwakeShipHydro.cpp:158] |
+| Nominal knots `Kn` [src Source/IronwakeTest/IronwakeShipHydro.cpp:159] | `max(GetSpeedKnots(), 0)`; sim speed / `SpeedCompression` | [src Source/IronwakeTest/IronwakeShipHydro.cpp:157] |
+| Speed fraction `Frac` [src Source/IronwakeTest/IronwakeShipHydro.cpp:160] (bow FX, wake) | `Kn / 13` [src Source/IronwakeTest/IronwakeShipHydro.cpp:160], clamped to `1.2` [src Source/IronwakeTest/IronwakeShipHydro.cpp:160]; FULL AHEAD = 13 kn = 1.0 | [src Source/IronwakeTest/IronwakeShipHydro.cpp:158] |
 | `SpeedCompression` [src Source/IronwakeTest/IronwakeShipPawn.h:95] | `1.5` [src Source/IronwakeTest/IronwakeShipPawn.h:95] (sim m/s = nominal kn x 0.5144 x 1.5) | [src Source/IronwakeTest/IronwakeShipPawn.h:95] |
-| Compressed speed passed to bow wave | `Kn * KnCmS * SpeedCompression / 100` [src Source/IronwakeTest/IronwakeShipHydro.cpp:160] (m/s), `KnCmS = 51.4444` | [src Source/IronwakeTest/IronwakeShipHydro.cpp:160] |
+| Compressed speed passed to bow wave | `Kn * KnCmS * SpeedCompression / 100` [src Source/IronwakeTest/IronwakeShipHydro.cpp:162] (m/s), `KnCmS = 51.4444` | [src Source/IronwakeTest/IronwakeShipHydro.cpp:160] |
 | Compressed speed passed to wake | `Kn * 51.4444 * SpeedCompression / 100` (m/s) | [src Source/IronwakeTest/IronwakeShipPawn.cpp:858] |
 | Hull profile | `HullProf` [src Source/IronwakeTest/IronwakeHydro.h:23-24] (chapter 3, 3.10.5): stem `X1` [src Source/IronwakeTest/IronwakeHydro.h:23-24], `HalfBreadthAt(x)`, length `Length()` [src Source/IronwakeTest/IronwakeHydro.h:23-24] | [src Source/IronwakeTest/IronwakeHydro.h:23-24] |
 | Sea state | `IronwakeSea::GetSeaState()` 0..4 | [src Source/IronwakeTest/IronwakeHydro.h:47] |
 | Ribbon scale `Scale` (bow wave) | `HullLengthM / 125` [src Source/IronwakeTest/IronwakeShipPawn.cpp:240] (125 m ironclad = 1.0) | [src Source/IronwakeTest/IronwakeShipPawn.cpp:240] |
-| Hull length scale `Hs` [src Source/IronwakeTest/IronwakeShipHydro.cpp:185] (spray) | `HullLengthM / 70` [src Source/IronwakeTest/IronwakeShipHydro.cpp:185] | [src Source/IronwakeTest/IronwakeShipHydro.cpp:185] |
+| Hull length scale `Hs` [src Source/IronwakeTest/IronwakeShipHydro.cpp:187] (spray) | `HullLengthM / 70` [src Source/IronwakeTest/IronwakeShipHydro.cpp:187] | [src Source/IronwakeTest/IronwakeShipHydro.cpp:185] |
 
 - Components: every `AIronwakeShipPawn` (player and NPC) creates one `UIronwakeBowWave` and one `UIronwakeWake` in `BeginPlay`, attached to `HullBody` [src Source/IronwakeTest/IronwakeShipPawn.cpp:237-246]. Wake `Init(HullLengthM, MaxB, !HasSails())` where `MaxB` is the profile's maximum half-breadth; the third argument marks a steamer [src Source/IronwakeTest/IronwakeShipPawn.cpp:246].
 - Per-tick order in `Tick`: `TickWake`, `TickHullCosmetics`, then (unless sinking) `TickBowFX`, `TickWaterAudio` [src Source/IronwakeTest/IronwakeShipPawn.cpp:770-775].
-- Both components use absolute location/rotation/scale, no collision, no shadow, no overlap events, async cooking [src Source/IronwakeTest/IronwakeHydro.cpp:338-345] [src Source/IronwakeTest/IronwakeHydro.cpp:531-534]. Translucency sort priority: bow wave `12` [src Source/IronwakeTest/IronwakeHydro.cpp:361], wake `11` [src Source/IronwakeTest/IronwakeHydro.cpp:551].
-- Both meshes are built once with fixed topology (`CreateMeshSection_LinearColor`), then only vertices/colours are updated each tick via `UpdateMeshSection_LinearColor` [src Source/IronwakeTest/IronwakeHydro.cpp:540] [src Source/IronwakeTest/IronwakeHydro.cpp:642-643].
+- Both components use absolute location/rotation/scale, no collision, no shadow, no overlap events, async cooking [src Source/IronwakeTest/IronwakeHydro.cpp:338-345] [src Source/IronwakeTest/IronwakeHydro.cpp:531-534]. Translucency sort priority: bow wave `12` [src Source/IronwakeTest/IronwakeHydro.cpp:361], wake `11` [src Source/IronwakeTest/IronwakeHydro.cpp:567].
+- Both meshes are built once with fixed topology (`CreateMeshSection_LinearColor`), then only vertices/colours are updated each tick via `UpdateMeshSection_LinearColor` [src Source/IronwakeTest/IronwakeHydro.cpp:597] [src Source/IronwakeTest/IronwakeHydro.cpp:642-643].
 - Command-line kill switches: `-iwnobow`, -iwnosheet [src Source/IronwakeTest/IronwakeShipHydro.cpp:159]; -iwnowake [src Source/IronwakeTest/IronwakeShipPawn.cpp:857]; -iwnospume [src Source/IronwakeTest/IronwakeStorm.cpp:197]; debug logs `-iwwakedbg`, `-iwsmokedbg`, -iwcount [src Source/IronwakeTest/IronwakeHydro.cpp:644] [src Source/IronwakeTest/IronwakeShipHydro.cpp:166] [src Source/IronwakeTest/IronwakeShipHydro.cpp:206].
 
 ## 4.2 Kelvin wake trail (`UIronwakeWake`)
@@ -30,15 +30,15 @@ Three ribbons per ship: ribbon 0 = turbulent centre wake (prop boil on steamers)
 
 | Item | Value | Source |
 |---|---|---|
-| History rows `WakeN` [src Source/IronwakeTest/IronwakeHydro.cpp:545] | `160` [src Source/IronwakeTest/IronwakeHydro.cpp:545] | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
-| Base sample step `WakeStep` [src Source/IronwakeTest/IronwakeHydro.cpp:545] | `0.5` [src Source/IronwakeTest/IronwakeHydro.cpp:545] s | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
-| Verts across `WakeAcross` [src Source/IronwakeTest/IronwakeHydro.cpp:545] | `6` [src Source/IronwakeTest/IronwakeHydro.cpp:545] | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
-| Ribbons | `3` [src Source/IronwakeTest/IronwakeHydro.cpp:608] | [src Source/IronwakeTest/IronwakeHydro.cpp:608] |
+| History rows `WakeN` [src Source/IronwakeTest/IronwakeHydro.cpp:538] | `160` [src Source/IronwakeTest/IronwakeHydro.cpp:549] | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
+| Base sample step `WakeStep` [src Source/IronwakeTest/IronwakeHydro.cpp:508] | `0.5` [src Source/IronwakeTest/IronwakeHydro.cpp:520] s | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
+| Verts across `WakeAcross` [src Source/IronwakeTest/IronwakeHydro.cpp:556] | `6` [src Source/IronwakeTest/IronwakeHydro.cpp:549] | [src Source/IronwakeTest/IronwakeHydro.cpp:545] |
+| Ribbons | `3` [src Source/IronwakeTest/IronwakeHydro.cpp:604] | [src Source/IronwakeTest/IronwakeHydro.cpp:608] |
 | Kelvin half-angle | `19.47` [src Source/IronwakeTest/IronwakeShipWave.cpp:76] deg (`Kel = tan(19.47 deg)`) | [src Source/IronwakeTest/IronwakeShipWave.cpp:76] |
 | Vertices (derived) | 3 x 160 x 6 = 2880 | derived |
 | Triangles (derived) | 3 x 159 x 5 x 2 = 4770 | derived |
-| Lift above sea | `6.f` [src Source/IronwakeTest/IronwakeHydro.cpp:660] cm (arg to `Emit` [src Source/IronwakeTest/IronwakeHydro.cpp:660]; was `70` cm pre-P27) | [src Source/IronwakeTest/IronwakeHydro.cpp:660] |
-| UV | ribbon-local `(WkT[j], sL)` (`Emit(P, FVector2D(WkT[j], sL)` [src Source/IronwakeTest/IronwakeHydro.cpp:660]) | [src Source/IronwakeTest/IronwakeHydro.cpp:660] |
+| Lift above sea | `6.f` [src Source/IronwakeTest/IronwakeHydro.cpp:587] cm (arg to `Emit` [src Source/IronwakeTest/IronwakeHydro.cpp:587]; was `70` cm pre-P27) | [src Source/IronwakeTest/IronwakeHydro.cpp:660] |
+| UV | ribbon-local `(WkT[j], sL)` (`Emit(P, FVector2D(WkT[j], sL)` [src Source/IronwakeTest/IronwakeHydro.cpp:587]) | [src Source/IronwakeTest/IronwakeHydro.cpp:660] |
 | Normals / tangent | up / `(1,0,0)` | [src Source/IronwakeTest/IronwakeHydro.cpp:586] |
 | Across-profile T | `0, 0.2, 0.45, 0.65, 0.85, 1` | [src Source/IronwakeTest/IronwakeHydro.cpp:577] |
 | Across-profile alpha | `0, 0.45, 1, 0.8, 0.3, 0` (soft both edges) | [src Source/IronwakeTest/IronwakeHydro.cpp:578] |
@@ -50,7 +50,7 @@ Three ribbons per ship: ribbon 0 = turbulent centre wake (prop boil on steamers)
 
 - `Age += Dt; Acc += Dt` each tick [src Source/IronwakeTest/IronwakeHydro.cpp:554]. Each sample stores `{Stern xy, Bow xy, Fwd, T, V, F}` (stern/bow positions at hull-local X offsets `SternXM`, `BowXM` along the heading) [src Source/IronwakeTest/IronwakeHydro.h:107].
 - Called with `SternXM = HullProf.X0 + 2` and `BowXM = HullProf.X1 - 2` m [src Source/IronwakeTest/IronwakeShipPawn.cpp:858].
-- Adaptive step: `StepNow = clamp(WakeStep - TurnDeg * 0.12, 0.12, WakeStep)`, where `TurnDeg` is the angle between current heading and the newest sample's heading (0.5 s straight, 0.12 s at >= ~3.2 deg step) [src Source/IronwakeTest/IronwakeHydro.cpp:580]. A new sample is inserted at index 0 when `Acc >= StepNow` (or history empty); list capped at `WakeN` [src Source/IronwakeTest/IronwakeHydro.cpp:585].
+- Adaptive step: `StepNow = clamp(WakeStep - TurnDeg * 0.12, 0.12, WakeStep)`, where `TurnDeg` is the angle between current heading and the newest sample's heading (0.5 s straight, 0.12 s at >= ~3.2 deg step) [src Source/IronwakeTest/IronwakeHydro.cpp:580]. A new sample is inserted at index 0 when `Acc >= StepNow` (or history empty); list capped at `WakeN` [src Source/IronwakeTest/IronwakeHydro.cpp:589].
 - The live head sample `Hist[0]` is overwritten every frame with the current hull state [src Source/IronwakeTest/IronwakeHydro.cpp:570].
 - Teleport guard: if the stern moved farther than `max(6000, SpeedMS*100*1.5 + 3000)` cm from the last sample, history is cleared (no straight band across a respawn) [src Source/IronwakeTest/IronwakeHydro.cpp:559].
 - Rows beyond the stored history (`i >= Hist.Num()`) duplicate the oldest sample with alpha 0 [src Source/IronwakeTest/IronwakeHydro.cpp:595-596] [src Source/IronwakeTest/IronwakeHydro.cpp:630].
@@ -69,7 +69,7 @@ Common: `A0 = Age - S.T` (seconds since the sample); `Rt` = right vector of the 
 | Alpha | `Ac * SpeedOK * pow(clamp(1 - A0/Life, 0, 1), 1.4) * clamp(A0/0.6 + 0.3, 0, 1)` | `WkA[j] * 0.4 * SpeedOK * pow(clamp(1 - A0/Life, 0, 1), 1.3) * clamp(A0/2.5, 0, 1)` |
 | Density `R` | `Lerp(steamer ? 0.8 : 0.7, 0.25, clamp(A0/Life, 0, 1))` | `Lerp(0.55, 0.15, clamp(A0/Life, 0, 1))` |
 
-Sources (updated in P27 for LUT handoff): centre half width `(HalfBeamM * 0.34f + LwlM * 0.135f * FMath::Pow(sL, 0.42f))` [src Source/IronwakeTest/IronwakeHydro.cpp:637]; arm centre/spread/width [src Source/IronwakeTest/IronwakeHydro.cpp:648-652]; lifetimes `5.f` and `44.f` [src Source/IronwakeTest/IronwakeHydro.cpp:639], `4.f` and `35.f` [src Source/IronwakeTest/IronwakeHydro.cpp:653]; twin-screw profile `TwinA` (`0.90f` peak) [src Source/IronwakeTest/IronwakeHydro.cpp:640] and arm drive `0.42f` [src Source/IronwakeTest/IronwakeHydro.cpp:655]; alpha exponents `1.35f` [src Source/IronwakeTest/IronwakeHydro.cpp:644] and `1.3f` [src Source/IronwakeTest/IronwakeHydro.cpp:656]; straight-course LUT handoff `NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:642]. `Side` is `-1` for ribbon 1 and `+1` otherwise [src Source/IronwakeTest/IronwakeHydro.cpp:611]. `HalfBeamM` = the profile's max half-breadth passed at Init [src Source/IronwakeTest/IronwakeHydro.cpp:563].
+Sources (updated in P27/P34 for progressive LUT handoff): centre half width `(HalfBeamM * 0.34f + LwlM * 0.155f * FMath::Pow(sL, 0.45f))` [src Source/IronwakeTest/IronwakeHydro.cpp:562]; arm centre/spread/width [src Source/IronwakeTest/IronwakeHydro.cpp:574-578]; lifetimes `10.f` and `75.f` [src Source/IronwakeTest/IronwakeHydro.cpp:564], `8.f` and `62.f` [src Source/IronwakeTest/IronwakeHydro.cpp:579]; twin-screw profile `TwinA` (`0.78f` peak) [src Source/IronwakeTest/IronwakeHydro.cpp:565] and arm drive `0.38f` [src Source/IronwakeTest/IronwakeHydro.cpp:581]; alpha exponents `1.45f` [src Source/IronwakeTest/IronwakeHydro.cpp:570] and `1.40f` [src Source/IronwakeTest/IronwakeHydro.cpp:582]; straight-course LUT handoff `NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:568]. `Side` is `-1` for ribbon 1 and `+1` otherwise [src Source/IronwakeTest/IronwakeHydro.cpp:536]. `HalfBeamM` = the profile's max half-breadth passed at Init [src Source/IronwakeTest/IronwakeHydro.cpp:489].
 
 Derived examples at FULL (F=1, SpeedOK=1), ironclad (HalfBeam 12.89 m [src Source/IronwakeTest/IronwakeHydro.cpp:23]): centre half width at the stern row `12.89*0.85 = 10.96` m, growing `0.45` m per second of age (hull widths +). Arm lifetime 35 s, centre 45 s. A ship at 13 kn compressed speed is 13 x 0.5144 x 1.5 = 10.03 m/s (derived), so arm spread at age 35 s = 10.03 x 35 x 0.3535 = 124 m (derived).
 
@@ -94,7 +94,7 @@ Derived examples at FULL (F=1, SpeedOK=1), ironclad (HalfBeam 12.89 m [src Sourc
 | W3 | Kelvin trail replaces the flat stern plane; wider/longer hull churn | [src build/logs/W3.md:34-35] |
 | W4 | per-vertex `FastZ` [src build/logs/W4.md:12] + row query correction; density decays to 0.4 not 0.1; arm alpha up | [src build/logs/W4.md:12] |
 
-(P27 update: straight-course wake `0..4.1 L` is rendered directly in `M_IW_WaterRoot` via `T_IW_PropWashFoamLut` + `T_IW_CellularFoamTile`, while `UIronwakeWake` uses lit `M_IW_WakeLut` [src Source/IronwakeTest/IronwakeHydro.cpp:560] (`NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:642]) to carry curved turn trails and far-astern wake tails at `+6 cm` lift.)
+(P27 update: straight-course wake `0..4.1 L` is rendered directly in `M_IW_WaterRoot` via `T_IW_PropWashFoamLut` + `T_IW_CellularFoamTile`, while `UIronwakeWake` uses lit `M_IW_WakeLut` [src Source/IronwakeTest/IronwakeHydro.cpp:486] (`NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:583]) to carry curved turn trails and far-astern wake tails at `+6 cm` lift.)
 
 ## 4.3 Bow wave strip (`UIronwakeBowWave`)
 
@@ -108,8 +108,8 @@ A world-space procedural mesh rebuilt every tick from five ribbon kinds; all ver
 | `NStrip` [src Source/IronwakeTest/IronwakeHydro.cpp:373] (waterline-foam stations) | `40` [src Source/IronwakeTest/IronwakeHydro.cpp:373] | [src Source/IronwakeTest/IronwakeHydro.cpp:373] |
 | `NMound` [src Source/IronwakeTest/IronwakeHydro.cpp:373] (stem-mound stations) | `13` [src Source/IronwakeTest/IronwakeHydro.cpp:373] | [src Source/IronwakeTest/IronwakeHydro.cpp:373] |
 | `NAcross` [src Source/IronwakeTest/IronwakeHydro.cpp:373] (verts across each ribbon) | `4` [src Source/IronwakeTest/IronwakeHydro.cpp:373] | [src Source/IronwakeTest/IronwakeHydro.cpp:373] |
-| Curl-lip stations per side | `12` [src Source/IronwakeTest/IronwakeHydro.cpp:488] | [src Source/IronwakeTest/IronwakeHydro.cpp:488] |
-| Deck-wash stations | `8` [src Source/IronwakeTest/IronwakeHydro.cpp:525] | [src Source/IronwakeTest/IronwakeHydro.cpp:525] |
+| Curl-lip stations per side | `12` [src Source/IronwakeTest/IronwakeHydro.cpp:506] | [src Source/IronwakeTest/IronwakeHydro.cpp:488] |
+| Deck-wash stations | `8` [src Source/IronwakeTest/IronwakeHydro.cpp:523] | [src Source/IronwakeTest/IronwakeHydro.cpp:525] |
 | Across T | `0, 0.3, 0.6, 1` | [src Source/IronwakeTest/IronwakeHydro.cpp:375] |
 | Across alpha weights | `0.55, 1, 0.6, 0` | [src Source/IronwakeTest/IronwakeHydro.cpp:376] |
 | Across lift weights | `0.7, 1, 0.55, 0` | [src Source/IronwakeTest/IronwakeHydro.cpp:377] |
@@ -132,7 +132,7 @@ Per-vertex values in `AddRibbon`: `P2 = Lerp(In, Out, AcrossT[j])`; `z = Rendere
 There is no symbol named "cushion" in code; the P5c request "small raised bow wave / cushion at the stem with a foam cap" [src build/cards2/P5c_ship_water.md:14] is implemented by this stem mound, and SPEC.md's "bow cushion from 8 kn" [src SPEC.md:29] describes its visibility.
 
 - Arc: `13` stations at angles `-110`..`+110` deg around the stem [src Source/IronwakeTest/IronwakeHydro.cpp:424]; radii `R0 = 0.6*Scale` m to `R1 = (3.5 + 9*F)*Scale` m [src Source/IronwakeTest/IronwakeHydro.cpp:421].
-- Inner edge pushed sideways outside the hull if it falls inside (`|y| < Clear(x)` and `x < Stem + 0.3`) [src Source/IronwakeTest/IronwakeHydro.cpp:446]; outer edge keeps at least `0.8 * (R1 - R0)` lateral spread when `0.3f` [src Source/IronwakeTest/IronwakeHydro.cpp:448].
+- Inner edge pushed sideways outside the hull if it falls inside (`|y| < Clear(x)` and `x < Stem + 0.3`) [src Source/IronwakeTest/IronwakeHydro.cpp:446]; outer edge keeps at least `0.8 * (R1 - R0)` lateral spread when `0.3f` [src Source/IronwakeTest/IronwakeHydro.cpp:453].
 - Alpha at a station: `clamp((F - 0.25)*2, 0, 1) * (0.65 + 0.35*Ahead)`, Ahead = cos(angle) [src Source/IronwakeTest/IronwakeHydro.cpp:433]. Gate starts at F = 0.25 (3.25 kn) and is full at F = 0.75 (9.75 kn) (derived: F x 13).
 - Height (m): (0.2 + 2.0*F^2) * Scale * (0.5 + 0.5*max(Ahead, 0)) [src Source/IronwakeTest/IronwakeHydro.cpp:433]. P5c log: "stem mound height 0.2 + 2.0*F^2 (was 0.3 + 1.2F)" [src build/logs/P5c.md:6]. At FULL on the ironclad (Scale 1): crest `2.2` m. `LastStemCrestM = (0.2 + 2.0*F^2)*Scale` is stored for others to read [src Source/IronwakeTest/IronwakeHydro.cpp:436].
 - Derived heights at nominal speeds on the ironclad: 4 kn (F 0.31) 0.39 m, 8 kn (F 0.62) 0.96 m, 13 kn (F 1) 2.2 m; alpha at 4 kn 0.12, 8 kn 0.73 (derived).
@@ -156,7 +156,7 @@ Two strips hugging the hull, 40 stations from the shoulder to past the stern [sr
 
 ### 4.3.5 Ribbon 4: green water on the forecastle
 
-- Eight stations from the stem back `0.16 * L`: `X = Stem - 1 - U*0.16*L`, half width max(HalfBreadthAt(X) - 0.4, 0.3) [src Source/IronwakeTest/IronwakeHydro.cpp:527]; alpha `A*(1 - 0.7*U)`, height `0.25*A` m with A = clamp(DeckWash, 0, 1) [src Source/IronwakeTest/IronwakeHydro.cpp:523] [src Source/IronwakeTest/IronwakeHydro.cpp:529]; transformed by the (pitching) hull frame at deck height `BowDeckZ` [src Source/IronwakeTest/IronwakeHydro.cpp:531].
+- Eight stations from the stem back `0.16 * L`: `X = Stem - 1 - U*0.16*L`, half width max(HalfBreadthAt(X) - 0.4, 0.3) [src Source/IronwakeTest/IronwakeHydro.cpp:527]; alpha `A*(1 - 0.7*U)`, height `0.25*A` m with A = clamp(DeckWash, 0, 1) [src Source/IronwakeTest/IronwakeHydro.cpp:523] [src Source/IronwakeTest/IronwakeHydro.cpp:529]; transformed by the (pitching) hull frame at deck height `BowDeckZ` [src Source/IronwakeTest/IronwakeHydro.cpp:458].
 - `DeckWash` input: `0` below sea state 2.8, else clamp((BowSubmergeM + 0.6)/1.2, 0, 1) [src Source/IronwakeTest/IronwakeShipHydro.cpp:160]; `BowDeckZ = HullMeshZ + BowDeckM*100` (BowDeckM per hull: Devastation 3.2, Kracken 5.0, Goliath 2.5, Aglae 1.2, Frigate 6.0; see chapter 3 3.10.5).
 
 ### 4.3.6 Bow-foam material (`M_IW_BowFoam`)
@@ -195,7 +195,7 @@ Slam gate (P5c, then P5b original):
 
 ### 4.4.3 NPC behaviour
 
-- `TickBowFX` runs for NPCs too, but continuous sheets and the funnel-smoke scale are `!bIsNPC` [src Source/IronwakeTest/IronwakeShipHydro.cpp:165] [src Source/IronwakeTest/IronwakeShipHydro.cpp:181]; slam spray has no NPC check [src Source/IronwakeTest/IronwakeShipHydro.cpp:209].
+- `TickBowFX` runs for NPCs too, but continuous sheets and the funnel-smoke scale are `!bIsNPC` [src Source/IronwakeTest/IronwakeShipHydro.cpp:167] [src Source/IronwakeTest/IronwakeShipHydro.cpp:181]; slam spray has no NPC check [src Source/IronwakeTest/IronwakeShipHydro.cpp:209].
 - NPC ships get the bow-wave and wake components (same code, own profile Kracken) [src Source/IronwakeTest/IronwakeShipPawn.cpp:324].
 - Merchants (`AIronwakeMerchant`, not pawns) do not use these; they use one flat foam plane (below).
 
@@ -311,5 +311,10 @@ Vision scores jitter by +-1.5 between identical frames [src build/logs/P5c.md:13
 ## 4.10 P27: Turbulent twin-vortex prop-wash LUT, Voronoi cellular lace & zero hull-climbing foam (2026-11-13)
 
 - **Propulsion-aware turbulent boil (`M_IW_WaterRoot`, `IronwakeHydro.cpp`):** replaced the solid white `M_IW_Surf2` ribbon with `T_IW_PropWashFoamLut` (`R` = twin-vortex boil, `G` = echelon crest lace, `B` = conformal bow/shoulder contact) modulated by 3 distance-adaptive octaves (`2.6 m`, `11.5 m`, `36 m`) of periodic Voronoi cellular foam (`T_IW_CellularFoamTile`) and aerated turquoise subsurface scattering (`FLinearColor(0.055, 0.235, 0.255)`).
-- **Twin-screw vs single-screw vs pure sail:** `FIwShipWaveSrc` carries `ThrustSteam` [src Source/IronwakeTest/IronwakeShipWave.h:20] and `bTwinScrew` [src Source/IronwakeTest/IronwakeShipWave.h:23] (`ShipId == TEXT("ironclad")` [src Source/IronwakeTest/IronwakeShipPawn.cpp:875], `false` on single-screw steamers, `0.f` thrust on `TallBrig` and `Frigate` under pure sail). Twin-screw hulls emit two counter-rotating jets at `+/- 0.30 * B/2` spreading as `(1 + s * 0.85)^0.42`; sailing ships under canvas emit zero screw boil (`sheet_sail_vs_steam_p27.jpg` `9.5 / 10` [src build/logs/P27.md:7], prop wash `8.5 / 10` [src build/logs/P27.md:5]).
-- **Zero mid-body hull climb:** clamped `UIronwakeWake` vertex lift from `70` cm down to `6.f` cm [src Source/IronwakeTest/IronwakeHydro.cpp:660] with `SetCastShadow(false)` [src Source/IronwakeTest/IronwakeHydro.cpp:551] and `bReceivesDecals = false; bAffectDynamicIndirectLighting = false` [src Source/IronwakeTest/IronwakeHydro.cpp:552], switched curved turn ribbons to lit `M_IW_WakeLut` (`DepthFade = 45` cm, `VCR`/`VCA` scalar inputs), raised `M_IW_BowFoam` `DepthFade` from `8` cm to `65` cm, capped `UIronwakeBowWave` crest height at `0.55f` m [src Source/IronwakeTest/IronwakeHydro.cpp:473], shifted cutwater foam `+0.03 L` forward, and masked shader foam inside the conformal hull waterline (`d_outboard >= 0`, `sheet_hull_waterline_p19_vs_p27.jpg` `9.5 / 10` [src build/logs/P27.md:8]).
+- **Twin-screw vs single-screw vs pure sail:** `FIwShipWaveSrc` carries `ThrustSteam` [src Source/IronwakeTest/IronwakeShipWave.h:20] and `bTwinScrew` [src Source/IronwakeTest/IronwakeShipWave.h:27] (`ShipId == TEXT("ironclad")` [src Source/IronwakeTest/IronwakeShipPawn.cpp:875], `false` on single-screw steamers, `0.f` thrust on `TallBrig` and `Frigate` under pure sail). Twin-screw hulls emit two counter-rotating jets at `+/- 0.30 * B/2` spreading as `(1 + s * 0.85)^0.42`; sailing ships under canvas emit zero screw boil (`sheet_sail_vs_steam_p27.jpg` `9.5 / 10` [src build/logs/P27.md:7], prop wash `8.5 / 10` [src build/logs/P27.md:5]).
+- **Zero mid-body hull climb:** clamped `UIronwakeWake` vertex lift from `70` cm down to `6.f` cm [src Source/IronwakeTest/IronwakeHydro.cpp:587] with `SetCastShadow(false)` [src Source/IronwakeTest/IronwakeHydro.cpp:477] and `bReceivesDecals = false; bAffectDynamicIndirectLighting = false` [src Source/IronwakeTest/IronwakeHydro.cpp:478], switched curved turn ribbons to lit `M_IW_WakeLut` (`DepthFade = 45` cm, `VCR`/`VCA` scalar inputs), raised `M_IW_BowFoam` `DepthFade` from `8` cm to `65` cm, shifted cutwater foam `+0.03 L` forward, and masked shader foam inside the conformal hull waterline (`d_outboard >= 0`, `sheet_hull_waterline_p19_vs_p27.jpg` `9.5 / 10` [src build/logs/P27.md:8]).
+
+## 4.11 P34–P35: In-shader conformal bow wave & hull waterline, progressive wake handoff, lit per-pixel-fog ribbons & LWC world coordinates (2026-11-16)
+
+- **Sea-level bow & hull waterline integrated into `M_IW_WaterRoot`:** `UIronwakeBowWave` hides sea-level ribbon strips whenever forecastle green-water `DeckWash <= 0.02f` [src Source/IronwakeTest/IronwakeHydro.cpp:442], delegating 100% of sea-level bow peel, midbody trough, and streaming hull-side Voronoi lace to `M_IW_WaterRoot` (`SingleLayerWater`) with continuous finite-difference stencils (no `continue` jumps across the hull interior) and quad-uniform `ddx`/`ddy` gradient mips (`IW_ShipNormalK` `1.35f` [src Source/IronwakeTest/IronwakeShipWave.cpp:326]).
+- **Progressive straight-vs-turn ribbon handoff & per-pixel fog:** `UIronwakeWake` hands straight-course near-field churn (`0..8.5 * L`) cleanly to the 7-ship ocean shader while smoothly fading curved turn trails in via `NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:568]. Both `M_IW_WakeLut` and `M_IW_BowFoam` compile with `TLM_SURFACE` and `"compute_fog_per_pixel", True` [src Content/Python/iw_p27_water_lut.py:518] so ribbon transmittance matches coastal atmospheric scattering without grey unlit silhouettes, and sample GPU-native LWC `WSHackToFloat(GetWorldPosition(Parameters)).xy` [src Content/Python/iw_p27_water_lut.py:541] so Voronoi foam cells remain anchored in world space during rapid camera rotation.

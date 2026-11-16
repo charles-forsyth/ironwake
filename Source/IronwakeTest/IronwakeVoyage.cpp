@@ -28,6 +28,8 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "Engine/PostProcessVolume.h"
 #include "Engine/SkyLight.h"
+#include "WaterZoneActor.h"
+#include "WaterMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -249,6 +251,18 @@ void AIronwakeVoyage::BeginPlay()
 {
 	Super::BeginPlay();
 	if (GEngine) GEngine->Exec(GetWorld(), TEXT("DisableAllScreenMessages")); // E1: no dev "REFLECTION CAPTURES NEED TO BE REBUILT" text in the game
+	// P34: ensure WaterZone covers the full 36 km archipelago AND WaterMesh uses 1600 cm LOD0 tiles (~12.5 cm vertex spacing) so hull-waterline contacts are smooth everywhere!
+	for (TActorIterator<AWaterZone> WzIt(GetWorld()); WzIt; ++WzIt)
+	{
+		AWaterZone* Wz = *WzIt;
+		if (!Wz) continue;
+		if (Wz->GetZoneExtent().X < 3500000.f) Wz->SetZoneExtent(FVector2D(3600000.f, 3600000.f));
+		if (UWaterMeshComponent* Wm = Wz->GetWaterMeshComponent())
+		{
+			Wm->SetTileSize(1600.f);
+		}
+		Wz->MarkForRebuild(EWaterZoneRebuildFlags::All, this);
+	}
 	InitWorldPorts();
 	BuildHarbour();
 	BuildWreck();
@@ -687,9 +701,12 @@ void AIronwakeVoyage::CaptureWeatherBaseline()
 	if (ASkyLight* K = Sky.Get()) if (USkyLightComponent* L = K->GetLightComponent()) Day.SkyI = L->Intensity;
 	if (AExponentialHeightFog* F = Fog.Get()) if (UExponentialHeightFogComponent* C = F->GetComponent())
 	{
-		// E1: day fog 30 % thinner so the Needles (2.6 km) and St Brannoc still read through it (brief: readable at 2-4 km).
-		C->SetFogDensity(C->FogDensity * 0.7f);
-		Day.Fog = C->FogDensity; Day.FogC = C->FogInscatteringLuminance;
+		// P34: thin exponential height fog ~4.5x and push StartDistance out to 1.8 km with max opacity 0.42 so the sea & harbour
+		// are crystal-clear (15-25 km maritime visibility, zero grey "fog of war" curtain!).
+		C->SetFogDensity(C->FogDensity * 0.16f);
+		C->SetStartDistance(180000.f);
+		C->SetFogMaxOpacity(0.42f);
+		Day.Fog = C->FogDensity; Day.FogC = FLinearColor(0.42f, 0.56f, 0.78f);
 	}
 	if (APostProcessVolume* P = PPV.Get()) Day.Bias = P->Settings.AutoExposureBias;
 	Presets[0] = Day;
@@ -782,9 +799,12 @@ void AIronwakeVoyage::ApplyWeather(float Dt)
 		if (ASkyLight* K = Sky.Get()) if (USkyLightComponent* L = K->GetLightComponent()) L->SetIntensity(Cur.SkyI);
 		if (AExponentialHeightFog* F = Fog.Get()) if (UExponentialHeightFogComponent* C = F->GetComponent())
 		{
-			C->SetFogDensity(Cur.Fog);
+			const float EffFog = bHazeOff ? 0.00015f : Cur.Fog;
+			C->SetFogDensity(EffFog);
+			C->SetStartDistance(bHazeOff ? 900000.f : (LiveState >= 3 ? 35000.f : 180000.f));
+			C->SetFogMaxOpacity(bHazeOff ? 0.08f : (LiveState >= 3 ? 0.78f : 0.42f));
 			C->SetFogInscatteringColor(Cur.FogC);
-			const bool bVol = Cur.Night > 0.3f;
+			const bool bVol = Cur.Night > 0.3f && !bHazeOff;
 			if (C->bEnableVolumetricFog != bVol)
 			{
 				C->SetVolumetricFog(bVol);

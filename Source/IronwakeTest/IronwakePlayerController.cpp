@@ -713,7 +713,7 @@ void AIronwakePlayerController::SetupInputComponent()
 	}
 	// S1 Voyager keys: F photo, H help (P11; was helmsman), N next point, X anchor, G fast sail, L weather, K weather drift,
 	// J helmsman, T clock speed (Shift+T +3 h), F1 help, ] +3 h, O Captain's Logbook (P29).
-	const FKey VKeys[] = { EKeys::F, EKeys::H, EKeys::N, EKeys::X, EKeys::G, EKeys::L, EKeys::K, EKeys::J, EKeys::T, EKeys::F1, EKeys::RightBracket, EKeys::O };
+	const FKey VKeys[] = { EKeys::F, EKeys::H, EKeys::N, EKeys::X, EKeys::G, EKeys::L, EKeys::K, EKeys::J, EKeys::T, EKeys::F1, EKeys::RightBracket, EKeys::O, EKeys::V };
 	for (int32 i = 0; i < UE_ARRAY_COUNT(VKeys); ++i)
 	{
 		UInputAction* A = NewObject<UInputAction>(this, *FString::Printf(TEXT("IA_Voyage%d"), i));
@@ -834,6 +834,7 @@ void AIronwakePlayerController::OnVoyageKey(const FInputActionValue& V, int32 Wh
 			}
 		}
 		break;
+	case 12: Vy->ToggleClearHaze(); break;
 	default: break;
 	}
 }

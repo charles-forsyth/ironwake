@@ -429,96 +429,21 @@ void UIronwakeBowWave::UpdateWave(const FTransform& HullXf, float SpeedFrac, flo
 	SetWorldLocation(Origin);
 	V.Reset(); C.Reset(); UV.Reset(); N.Reset(); Tan.Reset();
 	if (!bBuilt) T.Reset();
-	// P27: outboard clearance expands dynamically with hull roll/heel so angled topsides never intersect waterline ribbons.
+	// P34: tight waterline contact clearance (12 cm + roll margin) so subtle bow-peel & quarter lace meet the hull cleanly without floating outboard as detached slabs!
 	const float RollRad = FMath::DegreesToRadians(FMath::Abs(HullXf.Rotator().Roll));
-	const float Margin = FMath::Max(0.65f * Scale, 0.35f) + FMath::Sin(RollRad) * FMath::Max(Hull.BowDeckM, 3.0f) * 0.75f;
+	const float Margin = 0.12f + FMath::Sin(RollRad) * FMath::Max(Hull.BowDeckM, 3.0f) * 0.65f;
 	auto Clear = [&](float X) { return Hull.HalfBreadthAt(X) + Margin; };
 	const float Stem = Hull.X1;
 	const float L = Hull.Length();
 
-	// 1) Stem V-peel collar: shifted ~0.03*L aft so it hugs the stem/cutwater cleanly with zero gap!
+	// 1-3) P34: M_IW_WaterRoot (SingleLayerWater ocean shader) renders 100% of sea-level bow, shoulder, and hull-waterline waves & foam directly IN the water surface so translucent ribbons NEVER create dark/sawtooth overlay seams!
+	LastStemCrestM = (0.2f + 1.4f * F * F) * Scale;
+	// 4) Green water on the forecastle ONLY when the stem buries in heavy storm seas (DeckWash > 0.02).
+	if (DeckWash <= 0.02f)
 	{
-		TArray<FSt> S;
-		const float StemCut = Stem - 0.032f * L;
-		for (int32 i = 0; i < NMound; ++i)
-		{
-			const float Phi = FMath::DegreesToRadians(FMath::Lerp(-112.f, 112.f, (float)i / (NMound - 1)));
-			const FVector2D Dir(FMath::Cos(Phi), FMath::Sin(Phi));
-			const float Ahead = FMath::Max(Dir.X, 0.f);
-			const float Flank = FMath::Abs(Dir.Y);
-			const float R0 = (0.25f + 0.30f * Flank) * Scale;
-			const float Span = (0.35f * Ahead + (1.3f + 2.4f * F) * Flank) * Scale;
-			FVector2D In(StemCut + Dir.X * R0, Dir.Y * R0);
-			const float Cl = Clear(In.X);
-			if (FMath::Abs(In.Y) < Cl && In.X < Stem + 0.1f) In.Y = FMath::Sign(Dir.Y == 0.f ? 1.f : Dir.Y) * Cl;
-			FVector2D Out = In + FVector2D(Dir.X * Span * 0.25f - Flank * Span * 0.50f, Dir.Y * Span);
-			S.Add({ In, Out, 0.f, FMath::Clamp((F - 0.28f) * 1.7f, 0.f, 1.f) * Flank * 0.58f, (0.02f + 0.10f * F * F) * Scale * Flank });
-		}
-		AddRibbon(W, Xf, Origin, S);
-		LastStemCrestM = (0.2f + 1.4f * F * F) * Scale;
+		SetVisibility(false);
+		return;
 	}
-	// 2) Compact bow-shoulder breaking cap (shifted ~0.03*L aft so it hugs the stem/shoulders cleanly with zero gap).
-	const float Kelvin = FMath::Tan(FMath::DegreesToRadians(IronwakeSea::WedgeHalfAngleDeg(SpeedMS / FMath::Sqrt(9.81f * FMath::Max(L, 10.f)))));
-	const float CrestLen = FMath::Lerp(0.12f, 0.24f, FMath::Clamp(F, 0.f, 1.f)) * L;
-	for (int32 Side = -1; Side <= 1; Side += 2)
-	{
-		TArray<FSt> S;
-		for (int32 i = 0; i < NCrest; ++i)
-		{
-			const float U = (float)i / (NCrest - 1);
-			const float Sx = U * CrestLen;
-			const float X = Stem - 0.032f * L - Sx;
-			const float W0 = (1.1f + 2.4f * F) * Scale * (0.65f + 0.85f * U);
-			const float Yk = 0.9f * Scale + Sx * Kelvin;
-			const float Yin = FMath::Max(Yk, Clear(X));
-			const float Fade = FMath::Clamp(U < 0.10f ? U / 0.10f : 1.f, 0.f, 1.f) * FMath::Pow(1.f - U, 2.2f);
-			S.Add({ FVector2D(X, Side * Yin), FVector2D(X - 0.2f * W0, Side * (Yin + W0)), 0.f, FMath::Clamp((F - 0.22f) * 1.25f, 0.f, 0.55f) * FMath::Sqrt(Fade), (0.02f + 0.09f * F * F) * Scale * (1.f - 0.8f * U) });
-		}
-		AddRibbon(W, Xf, Origin, S);
-	}
-	// 2b) Outer breaking shoulder lace (fixed mesh topology; compact at bow shoulder).
-	{
-		static const float LipA[NAcross] = { 0.f, 0.60f, 0.42f, 0.08f };
-		static const float LipH[NAcross] = { 0.4f, 1.0f, 0.7f, 0.2f };
-		for (int32 Side = -1; Side <= 1; Side += 2)
-		{
-			TArray<FSt> S;
-			for (int32 i = 0; i < 12; ++i)
-			{
-				const float U = (float)i / 11.f * 0.55f;
-				const float Sx = U * CrestLen;
-				const float X = Stem - 0.032f * L - Sx;
-				const float W0 = (1.1f + 2.4f * F) * Scale * (0.65f + 0.85f * U);
-				const float Yin = FMath::Max(0.9f * Scale + Sx * Kelvin, Clear(X));
-				const float Y0 = Yin + 0.15f * W0, Y1 = Yin + 0.75f * W0;
-				const float Fade = FMath::Clamp(U / 0.08f, 0.f, 1.f) * FMath::Square(1.f - U / 0.55f);
-				const float Hc = (0.02f + 0.10f * F * F) * Scale * (1.f - 0.8f * U);
-				S.Add({ FVector2D(X - 0.05f * W0, Side * Y0), FVector2D(X - 0.25f * W0, Side * Y1), 0.f, FMath::Clamp((F - 0.30f) * 1.4f, 0.f, 0.48f) * Fade, Hc });
-			}
-			AddRibbon(W, Xf, Origin, S, nullptr, 0.f, LipA, LipH);
-		}
-	}
-	// 3) Waterline shoulder/quarter froth strip: ends cleanly at 88% LWL (never wraps counter stern or twin-screw split!), clear in midbody trough!
-	for (int32 Side = -1; Side <= 1; Side += 2)
-	{
-		TArray<FSt> S;
-		for (int32 i = 0; i < NStrip; ++i)
-		{
-			const float U = (float)i / (NStrip - 1);
-			const float X = Stem - 2.5f * Scale - U * 0.88f * L;
-			const float Yin = Clear(X);
-			const float Wd = (1.0f + 1.8f * F) * Scale;
-			const float Speed = FMath::Pow(FMath::Clamp((F - 0.24f) * 1.45f, 0.f, 1.f), 1.5f);
-			const float BowD = FMath::Clamp(1.f - U / 0.18f, 0.f, 1.f), SternD = FMath::Clamp((U - 0.70f) / 0.18f, 0.f, 1.f) * (1.f - FMath::SmoothStep(0.82f, 0.98f, U)) * 0.65f;
-			const float Nz = 0.5f + 0.5f * FMath::Sin(i * 2.3f + Side * 1.7f + GFrameCounter * 0.02f) * FMath::Sin(i * 0.9f - Side * 0.6f + GFrameCounter * 0.013f);
-			const float Dens = FMath::Max(BowD, SternD) + (1.f - FMath::Max(BowD, SternD)) * 0.12f * Nz;
-			const float TrWin = FMath::Exp(-FMath::Square((U - 0.40f) / 0.20f));
-			const float A = 0.45f * Speed * Dens * (1.f - 0.96f * TrWin) * FMath::SmoothStep(0.025f, 0.075f, U);
-			S.Add({ FVector2D(X, Side * Yin), FVector2D(X, Side * (Yin + Wd * (0.45f + 0.45f * U))), 0.f, A, 0.01f * F * Scale });
-		}
-		AddRibbon(W, Xf, Origin, S);
-	}
-	// 4) Green water on the forecastle when the stem buries (DeckWash 0..1), from the stem back ~16 % of the length.
 	{
 		TArray<FSt> S;
 		const float A = FMath::Clamp(DeckWash, 0.f, 1.f);
@@ -634,26 +559,27 @@ void UIronwakeWake::UpdateWake(float Dt, const FTransform& HullXf, float SternXM
 				FVector2D P; float Al = 0.f, Drive = 0.f;
 				if (Rb == 0)
 				{
-					const float Half = (HalfBeamM * 0.34f + LwlM * 0.135f * FMath::Pow(sL, 0.42f)) * 100.f;
+					const float Half = (HalfBeamM * 0.34f + LwlM * 0.155f * FMath::Pow(sL, 0.45f)) * 100.f;
 					P = S.Stern + Rt * FMath::Lerp(-Half, Half, WkT[j]);
-					const float Life = FMath::Lerp(5.f, 44.f, FMath::Min(S.F, 1.f)) * SeaFoam;
-					static const float TwinA[WakeAcross] = { 0.f, 0.90f, 0.52f, 0.52f, 0.90f, 0.f };
+					const float Life = FMath::Lerp(10.f, 75.f, FMath::Min(S.F, 1.f)) * SeaFoam;
+					static const float TwinA[WakeAcross] = { 0.f, 0.78f, 0.46f, 0.46f, 0.78f, 0.f };
 					const float Ac = (bSteamer && bTwin_ ? TwinA[j] : WkA[j]);
-					const float NearHandoff = FMath::Max(TurnFade * FMath::SmoothStep(0.75f, 1.85f, sL), FMath::SmoothStep(4.1f, 5.5f, sL));
+					// P34: M_IW_WaterRoot handles straight-line wake out to 14.5 L! Ribbon only fills curved turning trails (>1.2 L astern) and ultra-far (>9 L) foam!
+					const float NearHandoff = FMath::Max(TurnFade * FMath::SmoothStep(1.2f, 2.5f, sL), FMath::SmoothStep(8.5f, 11.5f, sL));
 					Drive = bSteamer ? FMath::Clamp(FMath::Max(S.Thrust, 0.12f * SpeedOK), 0.f, 1.15f) : (0.06f * SpeedOK);
-					Al = Ac * NearHandoff * FMath::Pow(FMath::Clamp(1.f - A0 / Life, 0.f, 1.f), 1.35f);
+					Al = Ac * NearHandoff * FMath::Pow(FMath::Clamp(1.f - A0 / Life, 0.f, 1.f), 1.45f) * 0.62f;
 				}
 				else
 				{
 					const float Spread = DistM * Kel * 100.f;
 					const float LenK = FMath::Clamp(LengthM / 90.f, 0.4f, 1.3f);
-					const float Wd = (1.6f + 0.065f * DistM) * 100.f * LenK;
-					const float Off = FMath::Max(Spread, (HalfBeamM + 0.6f) * 100.f) + Wd * (WkT[j] - 0.15f);
+					const float Wd = (2.2f + 0.095f * DistM) * 100.f * LenK;
+					const float Off = FMath::Max(Spread, (HalfBeamM + 0.4f) * 100.f) + Wd * (WkT[j] - 0.18f);
 					P = S.Bow + Rt * Side * Off;
-					const float Life = FMath::Lerp(4.f, 35.f, FMath::Min(S.F, 1.f)) * SeaFoam;
-					const float NearHandoff = FMath::Max(TurnFade * FMath::SmoothStep(0.65f, 1.65f, sL), FMath::SmoothStep(4.0f, 5.4f, sL));
-					Drive = 0.42f * SpeedOK;
-					Al = WkA[j] * NearHandoff * FMath::Pow(FMath::Clamp(1.f - A0 / Life, 0.f, 1.f), 1.3f);
+					const float Life = FMath::Lerp(8.f, 62.f, FMath::Min(S.F, 1.f)) * SeaFoam;
+					const float NearHandoff = FMath::Max(TurnFade * FMath::SmoothStep(1.2f, 2.5f, sL), FMath::SmoothStep(8.5f, 11.5f, sL));
+					Drive = 0.38f * SpeedOK;
+					Al = WkA[j] * NearHandoff * FMath::Pow(FMath::Clamp(1.f - A0 / Life, 0.f, 1.f), 1.40f) * 0.55f;
 				}
 				if (!bHave) Al = 0.f;
 				// P27: clamped strictly to local wave surface + 6 cm (was +70 cm!) so wake ribbons never float over sterns or climb hulls!

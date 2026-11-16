@@ -36,7 +36,8 @@ AIronwakeStorm* AIronwakeStorm::Get(const UWorld* W)
 AIronwakeStorm::AIronwakeStorm()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = TG_PostPhysics;
+	// P35: run in TG_PostUpdateWork (AFTER Chaos physics AND APlayerCameraManager::UpdateCamera / CalcCamera!) so IW_CamPos and ship wave slots have ZERO 1-frame camera/physics lag!
+	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 }
 
@@ -109,7 +110,7 @@ float AIronwakeStorm::LandFade(const FVector& P) const
 		const float Dx = FMath::Max(FMath::Max(XMin - (float)Hf.X, 0.f), (float)Hf.X - XMax);
 		const float Dy = FMath::Max(FMath::Max(YMin - (float)Hf.Y, 0.f), (float)Hf.Y - YMax);
 		const float D = FMath::Sqrt(Dx * Dx + Dy * Dy);
-		F = FMath::Min(F, FMath::Lerp(1.f - 0.4f, 1.f, FMath::SmoothStep(0.f, 250.f, D)));
+		F = FMath::Min(F, FMath::Lerp(0.22f, 1.f, FMath::SmoothStep(0.f, 380.f, D)));
 	};
 	BasinFade(HarbourC, 45.f, -50.f, 150.f, -160.f, 170.f);
 	if (const AIronwakeVoyage* Vy = AIronwakeVoyage::Get(GetWorld()))

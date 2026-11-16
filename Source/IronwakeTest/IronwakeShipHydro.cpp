@@ -61,7 +61,8 @@ void AIronwakeShipPawn::TickHydro(float Dt, float DesiredYawRateDeg)
 		{
 			const float YM = j * HB * 0.8f;
 			const FVector P = Loc + Fwd * (XM * 100.f) + Right * (YM * 100.f);
-			const float Z = AIronwakeShell::WaterZAtWaves(W, P) + IronwakeSea::ShipWaveZ(P, this) * 0.5f;   // P19: other ships' waves rock this hull (own wave excluded)
+			// P34: full 1.15x wave coupling from other vessels' wakes so passing ships visibly roll & pitch in each other's Kelvin wakes!
+			const float Z = AIronwakeShell::WaterZAtWaves(W, P) + IronwakeSea::ShipWaveZ(P, this) * 1.15f;
 			const double Wt = HB * (j == 0 ? 2.0 : 1.0);
 			Sw += Wt; Sx += Wt * XM; Sy += Wt * YM; Sz += Wt * Z;
 			Sxx += Wt * XM * XM; Syy += Wt * YM * YM; Sxz += Wt * XM * Z; Syz += Wt * YM * Z;

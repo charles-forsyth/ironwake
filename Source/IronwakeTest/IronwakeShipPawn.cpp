@@ -876,6 +876,7 @@ void AIronwakeShipPawn::TickWake(float Dt)
 		Sw.ThrustSteam = bSteamActive ? FMath::Clamp(FMath::Max(SteamKn, Kn * 0.85f) / 13.f, 0.f, 1.15f) : 0.f;
 		if (bSteamActive && TelegraphIndex == 2 && SteamKn < 0.25f) Sw.ThrustSteam = 0.f; // STOP telegraph stops screw cavitation
 		Sw.RollOutM = FMath::Sin(FMath::DegreesToRadians(FMath::Abs(GetActorRotation().Roll))) * Sw.Freeboard * 0.65f;
+		Sw.LiveActor = this;
 		if (!bSinking) IronwakeSea::RegisterShipWave(this, Sw);
 		if (Wake3) Wake3->SetPropWash(bSteamActive, Sw.bTwinScrew, Sw.ThrustSteam);
 	}

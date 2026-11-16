@@ -94,11 +94,13 @@ public:
 	void SetWeather(int32 Preset, float BlendSeconds);   // legacy preset (tests, STORM AT SEA): leaves the living clock/weather
 	// ---- P11 living world: continuous clock + independent weather (IronwakeP11.cpp)
 	bool bLiving = false;
-	float ClockHour = 9.5f;        // game clock, hours 0..24
+	float ClockHour = 10.6f;       // P34: crisp mid-morning sun altitude (~21 deg) so harbour & islands sparkle clearly at launch
 	float DayLenMin = 48.f;        // real minutes per game day at x1 (-iwdaymin=)
 	int32 ClockSpeedIdx = 0;       // 0 x1, 1 x10, 2 pause
-	int32 LiveState = 1;           // target weather: 0 clear 1 fair 2 overcast 3 mist 4 rain 5 squall
+	int32 LiveState = 0;           // P34: launch in Clear air (0) instead of grey haze; L cycles weather, V toggles Clear Air (haze off)
 	bool bWxDrift = true;
+	bool bHazeOff = false;         // P34: 'V' toggles zero-haze crystal-clear visibility on demand
+	void ToggleClearHaze();
 	struct FLiveWx { float Cover = 0.3f, SunMul = 1.f, SkyMul = 1.f, FogMul = 1.f, Rain = 0.f, Sea = 1.f; };
 	void CycleClockSpeed();
 	void JumpHours(float H);

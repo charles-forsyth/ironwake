@@ -2,6 +2,7 @@
 #include "IronwakeShipWave.h"
 #include "IronwakeHydro.h"
 #include "IronwakeTest.h"
+#include "GameFramework/Actor.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/CommandLine.h"
@@ -77,11 +78,49 @@ namespace IronwakeSea
 
 	void RegisterShipWave(const void* Key, const FIwShipWaveSrc& S)
 	{
+		const double Now = FPlatformTime::Seconds();
 		FIwShipWaveSrc* D = nullptr;
 		for (FIwShipWaveSrc& E : GSrc) if (E.Key == Key) { D = &E; break; }
-		if (!D) D = &GSrc.AddDefaulted_GetRef();
-		*D = S; D->Key = Key; D->Stamp = FPlatformTime::Seconds();
-		GSrc.RemoveAll([](const FIwShipWaveSrc& E) { return FPlatformTime::Seconds() - E.Stamp > 5.0; });
+		float PrevDist = 0.f;
+		FVector2D PrevPos = S.PosCm;
+		bool bHadPrev = false;
+		if (D)
+		{
+			PrevDist = D->DevelopedDistM;
+			PrevPos = D->PrevPosCm;
+			bHadPrev = D->bHasPrev;
+		}
+		else D = &GSrc.AddDefaulted_GetRef();
+
+		*D = S;
+		D->Key = Key;
+		D->Stamp = Now;
+		if (bHadPrev)
+		{
+			const float StepM = FVector2D::Distance(S.PosCm, PrevPos) * 0.01f;
+			if (StepM > 140.f)
+			{
+				// Teleported! Only pre-seed developed wake if spawned directly at cruising speed (> 2.5 m/s in automated wake tests)
+				PrevDist = (S.V > 2.5f) ? (S.L * 14.f) : 0.f;
+			}
+			else if (S.V > 0.35f)
+			{
+				PrevDist = FMath::Min(PrevDist + StepM, S.L * 16.f);
+			}
+			else
+			{
+				// Wave energy dissipates smoothly when stopped
+				PrevDist = FMath::Max(PrevDist - 2.2f * 0.016f * S.L, 0.f);
+			}
+		}
+		else
+		{
+			PrevDist = (S.V > 2.5f) ? (S.L * 14.f) : 0.f;
+		}
+		D->DevelopedDistM = PrevDist;
+		D->PrevPosCm = S.PosCm;
+		D->bHasPrev = true;
+		GSrc.RemoveAll([Now](const FIwShipWaveSrc& E) { return Now - E.Stamp > 5.0; });
 	}
 	void UnregisterShipWave(const void* Key) { GSrc.RemoveAll([Key](const FIwShipWaveSrc& E) { return E.Key == Key; }); }
 
@@ -92,7 +131,8 @@ namespace IronwakeSea
 		const float L = FMath::Max(S.L, 1.f);
 		if (S.V < 0.15f) return 0.f;
 		const FVector2D Dm = (PCm - S.PosCm) * 0.01f;
-		if (Dm.SizeSquared() > 52.f * L * L) return 0.f;
+		// P34: extend propagating wake domain out to 14.5 * L astern and +/- 5.5 * L abeam so ship wakes roll smoothly outward and rock passing vessels!
+		if (Dm.SizeSquared() > 240.f * L * L) return 0.f;
 
 		EnsureKelvinLutLoaded();
 		const float Xl = Dm.X * S.CosH + Dm.Y * S.SinH;
@@ -103,74 +143,100 @@ namespace IronwakeSea
 		if (GLutBytes.Num() == LutRes * LutRes * 4)
 		{
 			const float XLut = 0.48f - 0.96f * (U / L);
-			if (XLut <= -6.45f || XLut >= 1.45f || Ay >= 2.95f * L) return 0.f;
+			if (XLut <= -14.5f || XLut >= 1.45f || Ay >= 5.6f * L) return 0.f;
 
 			const float Fn = S.V / FMath::Sqrt(G * L);
 			const float KnApprox = S.V / (0.514444f * 1.5f);
-			const float SpdGate = Smooth01(2.2f, 7.0f, KnApprox);
-			const float SpdFoam = FMath::Pow(Smooth01(3.2f, 13.5f, KnApprox), 1.55f);
-			const float Gk = FMath::Pow(FMath::Clamp(Fn / 0.32f, 0.f, 1.f), 1.30f) * SpdGate;
+			const float SpdGate = Smooth01(1.4f, 6.2f, KnApprox);
+			const float SpdFoam = FMath::Pow(Smooth01(3.0f, 13.5f, KnApprox), 1.50f);
+			const float Gk = FMath::Pow(FMath::Clamp(Fn / 0.32f, 0.f, 1.f), 1.25f) * SpdGate;
 			if (Gk < 0.0008f && FMath::Abs(S.ThrustSteam) < 0.02f) return 0.f;
 
+			// Progressive time-integrated wake growth from 0 behind stern up to 14 * L!
 			const float SAft = FMath::Max(-0.48f - XLut, 0.f);
-			const float MaxWakeL = FMath::Lerp(0.65f, 6.0f, Smooth01(2.0f, 13.0f, KnApprox));
-			const float AftFade = (XLut < -0.48f) ? (1.f - Smooth01(MaxWakeL * 0.58f, MaxWakeL, SAft)) : 1.f;
+			const float DevL = (S.DevelopedDistM > 0.01f) ? (S.DevelopedDistM / L) : 0.05f;
+			const float SpeedMaxL = FMath::Lerp(1.2f, 13.8f, Smooth01(1.5f, 13.0f, KnApprox));
+			const float ReachL = FMath::Min(DevL * 0.95f + 0.18f, SpeedMaxL);
+			// Natural r^-0.5 dispersive radiation decay + smooth leading wave-packet taper (NEVER a hard-cut triangle!)
+			const float RadDecay = 1.f / FMath::Sqrt(1.f + 0.38f * SAft);
+			const float AftFade = (XLut < -0.48f) ? (RadDecay * (1.f - Smooth01(ReachL * 0.45f, FMath::Max(ReachL, 0.22f), SAft))) : 1.f;
 			if (AftFade < 0.002f) return 0.f;
 
 			const float HB = FMath::Max(S.HalfBeam, 0.5f);
 			const float UH = FMath::Abs(XLut) * (1.f / 0.48f);
 			const float BLut = (UH < 1.f) ? (0.085f * FMath::Pow(FMath::Max(1.f - FMath::Pow(UH, 2.4f), 0.f), 0.65f)) : 0.f;
 			float HbReal = 0.f;
-			if (U >= -0.03f * L && U <= 1.03f * L)
+			if (U >= -0.04f * L && U <= 1.04f * L)
 			{
-				const float BowEnv = FMath::Pow(FMath::Clamp((U + 0.03f * L) / (0.14f * L), 0.f, 1.f), 0.42f);
-				const float StnEnv = 1.f - 0.25f * Smooth01(0.88f * L, 1.03f * L, U);
-				HbReal = HB * 1.04f * BowEnv * StnEnv + S.RollOutM + 0.25f;
+				const float BowEnv = FMath::Pow(FMath::Clamp((U + 0.04f * L) / (0.15f * L), 0.f, 1.f), 0.42f);
+				const float StnEnv = 1.f - 0.35f * Smooth01(0.84f * L, 1.02f * L, U);
+				HbReal = HB * 1.02f * BowEnv * StnEnv + S.RollOutM + 0.08f;
 			}
 
 			const float DOut = Ay - HbReal;
 			const float DOutL = FMath::Max(DOut, 0.f) / L;
 			const float WNear = 1.f / (1.f + 16.f * DOutL * DOutL);
-			const float YLutAbs = (DOut >= 0.f) ? FMath::Lerp(Ay / L, BLut + DOutL, WNear) : (BLut * FMath::Clamp(Ay / FMath::Max(HbReal, 0.1f), 0.f, 1.f));
+			const float BEdge = BLut + 0.032f * FMath::Clamp(1.f - UH * UH, 0.f, 1.f);
+			const float YLutAbs = FMath::Lerp(Ay / L, BEdge + DOutL, WNear);
 			const float YLut = (Yl >= 0.f ? 1.f : -1.f) * YLutAbs;
-			if (FMath::Abs(YLut) >= 2.95f) return 0.f;
 
 			const float SBow = FMath::Max(0.50f - XLut, 0.08f);
 			const float Ray = FMath::Abs(YLut) / SBow;
-			const float KelvinCone = (XLut < 0.15f) ? (1.f - Smooth01(0.365f, 0.435f, Ray)) : 1.f;
-			if (KelvinCone < 0.002f) return 0.f;
+			// Wide Gaussian angular feathering beyond the 19.47 deg cusp (smoothly decays out to ~32 deg instead of a razor straight-line clip!)
+			const float ExcessRay = FMath::Max(Ray - 0.355f, 0.f);
+			const float KelvinCone = (XLut < 0.18f) ? FMath::Exp(-Sq(ExcessRay / 0.145f)) : 1.f;
+			if (KelvinCone < 0.003f) return 0.f;
 
-			const float UvX = (YLut + 3.0f) * (1.f / 6.0f);
-			const float UvY = (XLut + 6.5f) * (1.f / 8.0f);
-			const float EnvX = Smooth01(-6.45f, -5.55f, XLut) * (1.f - Smooth01(1.05f, 1.40f, XLut));
-			const float EnvY = 1.f - Smooth01(2.40f, 2.95f, FMath::Abs(YLut));
-			const float Env = EnvX * EnvY * AftFade * KelvinCone;
+			float HNorm = 0.f;
+			float BreakMask = 0.f;
+			if (XLut > -5.6f && FMath::Abs(YLut) < 2.75f)
+			{
+				const float UvX = (YLut + 3.0f) * (1.f / 6.0f);
+				const float UvY = (XLut + 6.5f) * (1.f / 8.0f);
+				const FVector4f W4 = SampleLut256(UvX, UvY);
+				const float HzR = (W4.X - 0.50196078f) * 2.007874f;
+				const float HzG = (W4.Y - 0.50196078f) * 2.007874f;
+				const float HzB = (W4.Z - 0.50196078f) * 2.007874f;
+				const float W12 = FMath::Clamp((Fn - 0.15f) * (1.f / 0.09f), 0.f, 1.f);
+				const float W23 = FMath::Clamp((Fn - 0.22f) * (1.f / 0.10f), 0.f, 1.f);
+				HNorm = FMath::Lerp(FMath::Lerp(HzR, HzG, W12), HzB, W23);
+				BreakMask = W4.W;
+			}
+			// Seamless far-field dispersive Kelvin wave continuation from -4.8 L out to -14.5 L (rocks other boats as your wake rolls past them!)
+			if (XLut < -4.5f)
+			{
+				const float FarBlend = Smooth01(-4.5f, -5.8f, XLut);
+				const float K0 = 1.f / FMath::Max(Fn * Fn, 0.035f);
+				const float CuspEnv = FMath::Exp(-Sq((Ray - 0.342f) / 0.095f));
+				const float TransEnv = FMath::Exp(-Sq(Ray / 0.26f));
+				const float PhaseDiv = K0 * (0.58f * SBow - 1.55f * FMath::Abs(YLut));
+				const float PhaseTr = K0 * 0.92f * SBow * FMath::Sqrt(FMath::Max(1.f - 0.65f * Ray * Ray, 0.2f));
+				const float HFar = 0.52f * CuspEnv * FMath::Cos(PhaseDiv) + 0.28f * TransEnv * FMath::Cos(PhaseTr);
+				HNorm = FMath::Lerp(HNorm, HFar, FarBlend);
+				BreakMask *= (1.f - FarBlend);
+			}
 
-			const FVector4f W4 = SampleLut256(UvX, UvY);
-			const float HzR = (W4.X - 0.50196078f) * 2.007874f;
-			const float HzG = (W4.Y - 0.50196078f) * 2.007874f;
-			const float HzB = (W4.Z - 0.50196078f) * 2.007874f;
-			const float W12 = FMath::Clamp((Fn - 0.15f) * (1.f / 0.09f), 0.f, 1.f);
-			const float W23 = FMath::Clamp((Fn - 0.22f) * (1.f / 0.10f), 0.f, 1.f);
-			const float HNorm = FMath::Lerp(FMath::Lerp(HzR, HzG, W12), HzB, W23);
+			const float EnvAhead = 1.f - Smooth01(0.95f, 1.38f, XLut);
+			const float Env = EnvAhead * AftFade * KelvinCone;
 
-			const float CuspBoost = (XLut < -0.52f) ? FMath::Lerp(0.76f, 1.26f, Smooth01(0.18f, 0.30f, Ray)) : 1.f;
-			const float HbAmp = S.CrestK * S.Freeboard * Gk * 1.40f;
-			const float TrAmp = S.TroughK * S.Draft * Gk * 1.25f;
+			const float CuspBoost = (XLut < -0.52f) ? FMath::Lerp(0.75f, 1.30f, Smooth01(0.16f, 0.30f, Ray)) : 1.f;
+			const float HbAmp = FMath::Min(S.CrestK * S.Freeboard * Gk * 1.15f, S.Freeboard * 0.62f + 0.35f);
+			const float TrAmp = FMath::Min(S.TroughK * S.Draft * Gk * 0.72f, S.Draft * 0.32f + 0.25f);
 			const float MidWin = FMath::Exp(-Sq((XLut - 0.02f) / 0.36f)) * FMath::Exp(-Sq(DOutL / 0.22f));
 			const float AftWin = Smooth01(0.20f, -0.55f, XLut);
-			const float PosScale = FMath::Lerp(HbAmp, HbAmp * FMath::Max(S.WedgeK, 0.70f) * 1.28f * CuspBoost, AftWin);
-			const float NegScale = FMath::Lerp(HbAmp * FMath::Max(S.WedgeK, 0.70f) * 1.10f * CuspBoost, TrAmp, MidWin);
+			const float PosScale = FMath::Lerp(HbAmp, HbAmp * FMath::Max(S.WedgeK, 0.75f) * 1.28f * CuspBoost, AftWin);
+			const float NegScale = FMath::Lerp(HbAmp * FMath::Max(S.WedgeK, 0.75f) * 0.95f * CuspBoost, TrAmp, MidWin);
 			const float Fp = FpCm > 0.f ? FpCm : 60.f;
 			const float BandLim = 1.f / (1.f + Sq(Fp / FMath::Max(L * 18.0f, 45.0f)));
 			const float HiM = (HNorm >= 0.f ? HNorm * PosScale : HNorm * NegScale) * Env * BandLim;
-			const float HullSuppress = (UH < 1.00f && DOut < 0.15f) ? Smooth01(-0.85f, 0.15f, DOut) : 1.f;
+			const float SternRel = Smooth01(-0.34f, -0.48f, XLut);
+			const float HullSuppress = FMath::Lerp(Smooth01(-2.40f, -0.25f, DOut), 1.f, SternRel);
 			const float FinalM = HiM * HullSuppress;
 
 			if (OutFoam)
 			{
 				const float OutGate = (UH < 1.04f) ? Smooth01(0.05f, 0.55f, DOut) : 1.f;
-				*OutFoam = FMath::Clamp(W4.W * SpdFoam * OutGate * Env, 0.f, 1.f);
+				*OutFoam = FMath::Clamp(BreakMask * SpdFoam * OutGate * Env, 0.f, 1.f);
 			}
 			if (OutParts)
 			{
@@ -223,9 +289,17 @@ namespace IronwakeSea
 		const FVector2D C2(Cam.X, Cam.Y);
 		const FIwShipWaveSrc* PlayerSrc = nullptr;
 		TArray<const FIwShipWaveSrc*> Others;
-		for (const FIwShipWaveSrc& S : GSrc)
+		for (FIwShipWaveSrc& S : GSrc)
 		{
 			if (Now - S.Stamp > Ttl) continue;
+			if (const AActor* Act = S.LiveActor.Get())
+			{
+				const FVector Lc = Act->GetActorLocation();
+				const FVector Fw = Act->GetActorForwardVector().GetSafeNormal2D();
+				S.PosCm = FVector2D(Lc.X, Lc.Y);
+				if (!Fw.IsNearlyZero()) { S.CosH = Fw.X; S.SinH = Fw.Y; }
+				S.RollOutM = FMath::Sin(FMath::DegreesToRadians(FMath::Abs(Act->GetActorRotation().Roll))) * S.Freeboard * 0.65f;
+			}
 			if (S.V < 0.15f && FMath::Abs(S.ThrustSteam) < 0.02f) continue;
 			if (S.bPlayer && !PlayerSrc) PlayerSrc = &S;
 			else Others.Add(&S);
@@ -249,6 +323,7 @@ namespace IronwakeSea
 
 		static const bool bOff = FParse::Param(FCommandLine::Get(), TEXT("iwnoshipwave"));
 		GActiveSlots = bOff ? 0 : Chosen.Num();
+		MID->SetScalarParameterValue(TEXT("IW_ShipNormalK"), 1.35f);
 		for (int32 i = 0; i < 7; ++i)
 		{
 			FLinearColor A(0, 0, 1, 0), B(0, 0, 0, 0), Cc(0, 0, 0, 0), D(0, 0, 0, 0);
@@ -256,10 +331,11 @@ namespace IronwakeSea
 			{
 				const FIwShipWaveSrc& S = *Chosen[i];
 				const float SignedThrust = (S.ThrustSteam > 0.005f && S.bTwinScrew) ? -S.ThrustSteam : S.ThrustSteam;
+				const float DevL = FMath::Clamp(S.DevelopedDistM / FMath::Max(S.L, 1.f), 0.04f, 16.f);
 				A = FLinearColor(S.PosCm.X, S.PosCm.Y, S.CosH, S.SinH);
 				B = FLinearColor(S.V, S.L, S.X1, S.HalfBeam);
 				Cc = FLinearColor(S.Draft, S.Freeboard, S.CrestK, S.TroughK);
-				D = FLinearColor(S.QuarterK, S.WedgeK, SignedThrust, S.RollOutM);
+				D = FLinearColor(DevL, S.WedgeK, SignedThrust, S.RollOutM);
 			}
 			MID->SetVectorParameterValue(*FString::Printf(TEXT("IW_SA%d"), i), A);
 			MID->SetVectorParameterValue(*FString::Printf(TEXT("IW_SB%d"), i), B);

@@ -615,7 +615,7 @@ void AIronwakeNpcShip::StepHydro(float Dt, float DesYR)
 	const FVector P(Pos2.X, Pos2.Y, 0.f);
 	const FVector Fw = FRotator(0.f, Yaw, 0.f).Vector(), Rt(-Fw.Y, Fw.X, 0.f);
 	const float L = Prof.Length() * 100.f, HB = FMath::Max(Prof.HalfBreadthAt(0.f), 0.5f) * 100.f * 0.8f;
-	auto Zs = [&](const FVector& Q) { return IronwakeSea::FastZ(W, Q) + IronwakeSea::ShipWaveZ(Q, this) * 0.5f; };
+	auto Zs = [&](const FVector& Q) { return IronwakeSea::FastZ(W, Q) + IronwakeSea::ShipWaveZ(Q, this) * 1.25f; };
 	const float Zc = Zs(P), Zb = Zs(P + Fw * L * 0.32f), Zst = Zs(P - Fw * L * 0.32f), Zp = Zs(P - Rt * HB), Zsb = Zs(P + Rt * HB);
 	const float SeaZ = (2.f * Zc + Zb + Zst + Zp + Zsb) / 6.f;
 	const float SeaPitch = FMath::RadiansToDegrees(FMath::Atan2(Zb - Zst, L * 0.64f));
@@ -660,6 +660,7 @@ void AIronwakeNpcShip::StepHydro(float Dt, float DesYR)
 		Sw.bTwinScrew = (D.Id == TEXT("ironclad"));
 		Sw.ThrustSteam = NpcThrust;
 		Sw.RollOutM = FMath::Sin(FMath::DegreesToRadians(FMath::Abs(RollDeg))) * Sw.Freeboard * 0.65f;
+		Sw.LiveActor = this;
 		IronwakeSea::RegisterShipWave(this, Sw);
 	}
 	else IronwakeSea::UnregisterShipWave(this);

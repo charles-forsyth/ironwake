@@ -79,14 +79,16 @@ namespace IronwakeSettings
 		SetCVar(TEXT("r.VSync"), TEXT("1"));
 		SetCVar(TEXT("r.DynamicRes.OperationMode"), TEXT("2"));
 		SetCVar(TEXT("r.DynamicRes.FrameTimeBudget"), L == 2 ? TEXT("33.3") : TEXT("15.0"));
-		SetCVar(TEXT("r.DynamicRes.MinScreenPercentage"), L == 0 ? TEXT("45") : TEXT("50"));
-		SetCVar(TEXT("r.DynamicRes.MaxScreenPercentage"), L == 0 ? TEXT("70") : L == 1 ? TEXT("85") : TEXT("100"));
+		SetCVar(TEXT("r.DynamicRes.MinScreenPercentage"), L == 0 ? TEXT("55") : TEXT("70"));
+		SetCVar(TEXT("r.DynamicRes.MaxScreenPercentage"), L == 0 ? TEXT("75") : L == 1 ? TEXT("92") : TEXT("100"));
 		SetCVar(TEXT("r.VolumetricCloud.SampleMinCount"), L == 2 ? TEXT("2") : TEXT("2"));
 		SetCVar(TEXT("r.VolumetricCloud.ViewRaySampleMaxCount"), L == 0 ? TEXT("12") : L == 1 ? TEXT("16") : TEXT("64"));
 		SetCVar(TEXT("r.VolumetricCloud.ReflectionRaySampleMaxCount"), L == 2 ? TEXT("16") : TEXT("8"));
 		SetCVar(TEXT("r.VolumetricCloud.SkyAO"), L == 2 ? TEXT("1") : TEXT("0"));
 		SetCVar(TEXT("r.VolumetricRenderTarget.Mode"), L == 2 ? TEXT("0") : TEXT("2"));
-		SetCVar(TEXT("r.Water.WaterMesh.TessFactorBias"), L == 0 ? TEXT("-2") : L == 1 ? TEXT("-1") : TEXT("0"));
+		// P34: keep full sub-40cm water mesh tessellation across the 36 km zone (MaxDimensionInTiles=2048 prevents UE's 256-tile coarse auto-downscale!)
+		SetCVar(TEXT("r.Water.WaterMesh.MaxDimensionInTiles"), TEXT("2048"));
+		SetCVar(TEXT("r.Water.WaterMesh.TessFactorBias"), L == 0 ? TEXT("0") : TEXT("1"));
 		// LOW drops Lumen (GI -> none + sky light, reflections -> SSR) and virtual shadow maps.
 		SetCVar(TEXT("r.DynamicGlobalIlluminationMethod"), L == 0 ? TEXT("0") : TEXT("1"));
 		SetCVar(TEXT("r.ReflectionMethod"), L == 0 ? TEXT("2") : TEXT("1"));

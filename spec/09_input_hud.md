@@ -80,7 +80,7 @@ Rudder details: release zeroes `RudderInput`; with auto-centre ON the step goes 
 
 ## 9.3 Binding table: menu/voyage context (`IMC_Menu`, priority 10)
 
-All Pressed. The 11 "voyage" actions are `IA_Voyage0..10` indexed in the order of the key array; the 4 autopilot actions are `IA_Ap0..3`.
+All Pressed. The 13 "voyage" actions are `IA_Voyage0..12` indexed in the order of `VKeys[]` (`IA_Arrive` handles `E` / gamepad bottom face button); the 4 autopilot actions are `IA_Ap0..3`.
 
 | Key | Index | Handler | Effect | Source |
 |---|---|---|---|---|
@@ -97,7 +97,9 @@ All Pressed. The 11 "voyage" actions are `IA_Voyage0..10` indexed in the order o
 | `EKeys::J` | Voyage 7 | | `ToggleHelm()` helmsman steers for next point | `Vy->ToggleHelm()` [src Source/IronwakeTest/IronwakePlayerController.cpp:809] |
 | `EKeys::T` | Voyage 8 | | live world: `CycleClockSpeed()`; with Shift held `JumpHours(3)` and it also leaves the scope | `IsInputKeyDown(EKeys::LeftShift)` [src Source/IronwakeTest/IronwakePlayerController.cpp:811], `Vy->CycleClockSpeed()` [src Source/IronwakeTest/IronwakePlayerController.cpp:816] |
 | `EKeys::F1` | Voyage 9 | | `ToggleHelp()` | `case 9: ToggleHelp()` [src Source/IronwakeTest/IronwakePlayerController.cpp:818] |
-| `EKeys::RightBracket` | Voyage 10 | | live world: `JumpHours(3)` | `case 10` [src Source/IronwakeTest/IronwakePlayerController.cpp:819] |
+| `EKeys::RightBracket` | Voyage 10 | | live world: `JumpHours(3)` | `case 10` [src Source/IronwakeTest/IronwakePlayerController.cpp:820] |
+| `EKeys::O` | Voyage 11 | | open/close Captain's Logbook (`UIronwakeDockWidget`) | `EKeys::O, EKeys::V` [src Source/IronwakeTest/IronwakePlayerController.cpp:716], `CAPTAIN'S LOGBOOK` [src Source/IronwakeTest/IronwakePlayerController.cpp:829] |
+| `EKeys::V` | Voyage 12 | | `ToggleClearHaze()` (clear air — toggle haze off) | `EKeys::V` [src Source/IronwakeTest/IronwakePlayerController.cpp:716], `case 12: Vy->ToggleClearHaze()` [src Source/IronwakeTest/IronwakePlayerController.cpp:837] |
 | `EKeys::P` | Ap 0 | `OnApKey` | `CycleAutopilot()` (works in photo mode) | `EKeys::P, EKeys::M` [src Source/IronwakeTest/IronwakePlayerController.cpp:736], `Vy->CycleAutopilot()` [src Source/IronwakeTest/IronwakePlayerController.cpp:850] |
 | `EKeys::M` | Ap 1 | | `ToggleChart()` (not in photo mode) | `Vy->ToggleChart()` [src Source/IronwakeTest/IronwakePlayerController.cpp:851] |
 | `EKeys::Enter` | Ap 2 | | `ChartStart()` only while the chart is open | `Vy->ChartStart()` [src Source/IronwakeTest/IronwakePlayerController.cpp:853] |
@@ -120,7 +122,7 @@ W/S still set telegraph with the chart open (comment at [src Source/IronwakeTest
 | Key(s) | Action | Effect | Source |
 |---|---|---|---|
 | `W A S D Q E Up Down Left Right Mouse2D LeftMouseButton RightMouseButton R LeftShift SpaceBar LeftControl` | IA_PhotoSink (Axis2D, no handler) | swallows the ship's keys so only the free camera moves | `EKeys::W, EKeys::A, EKeys::S, EKeys::D, EKeys::Q, EKeys::E` [src Source/IronwakeTest/IronwakePlayerController.cpp:761], `EKeys::R, EKeys::LeftShift, EKeys::SpaceBar, EKeys::LeftControl` [src Source/IronwakeTest/IronwakePlayerController.cpp:762] |
-| `MouseWheelAxis` | IA_PhotoWheel (Axis1D) | accumulates `PhotoFovDelta`; each notch changes FOV by `3` deg, clamp `15`..`100` deg | `EKeys::MouseWheelAxis` [src Source/IronwakeTest/IronwakePlayerController.cpp:755], `15.f, 100.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:970] |
+| `MouseWheelAxis` | IA_PhotoWheel (Axis1D) | accumulates `PhotoFovDelta`; each notch changes FOV by `3` deg, clamp `15`..`100` deg | `EKeys::MouseWheelAxis` [src Source/IronwakeTest/IronwakePlayerController.cpp:755], `15.f, 100.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:989] |
 | `T` | IA_PhotoTime (Pressed) | sets `bPhotoTimeCycle` (photo slow-mo / time cycle) | `EKeys::T` [src Source/IronwakeTest/IronwakePlayerController.cpp:769] |
 
 Photo-mode movement is polled in `PlayerTick` with `IsInputKeyDown`: W/S forward-back, D/A strafe, E/Q up-down, LeftShift = fast [src Source/IronwakeTest/IronwakePlayerController.cpp:868-869]. Mouse look in photo mode = mouse delta x `0.6f` [src Source/IronwakeTest/IronwakePlayerController.cpp:923].
@@ -191,16 +193,16 @@ Stats line `Shots %d   Hits %d   Hull %.0f%%` [src Source/IronwakeTest/IronwakeP
 
 ## 9.10 Help (CONTROLS) panel
 
-Opened by H, F1 or the menu CONTROLS button; closed by H, F1 or Esc/Tab. Centred (anchor `0.5,0.5`), three columns separated by `44` px, backdrop alpha `0.90`, padding `40`/`28` [src Source/IronwakeTest/IronwakeP11.cpp:313-338]. Z-order `AddToViewport(60)` [src Source/IronwakeTest/IronwakePlayerController.cpp:1058]; widget is `HitTestInvisible`. While open the HUD draws nothing [src Source/IronwakeTest/IronwakeHUD.cpp:20]. Title `CONTROLS` Bold size `30` [src Source/IronwakeTest/IronwakeP11.cpp:324], footer `H / F1 / Esc: close` [src Source/IronwakeTest/IronwakeP11.cpp:386].
+Opened by H, F1 or the menu CONTROLS button; closed by H, F1 or Esc/Tab. Centred (anchor `0.5,0.5`), three columns separated by `44` px, backdrop alpha `0.90`, padding `40`/`28` [src Source/IronwakeTest/IronwakeP11.cpp:313-338]. Z-order `AddToViewport(60)` [src Source/IronwakeTest/IronwakePlayerController.cpp:1058]; widget is `HitTestInvisible`. While open the HUD draws nothing [src Source/IronwakeTest/IronwakeHUD.cpp:20]. Title `CONTROLS` Bold size `30` [src Source/IronwakeTest/IronwakeP11.cpp:339], footer `H / F1 / Esc: close` [src Source/IronwakeTest/IronwakeP11.cpp:402].
 
 | Column | Section | Exact content (mono text) | Source |
 |---|---|---|---|
-| 1 | HELM | `W / S`: telegraph, one step per press (sailing ship: sail plan); `A / D` hold to turn the wheel; `Q / E` rudder midships; `J` helmsman steers to next point; `X` drop / weigh anchor; `G` fast sail x4 (peaceful) | `HELM` [src Source/IronwakeTest/IronwakeP11.cpp:340] |
-| 1 | ENGINE & SAILS | `B` auxiliary steam (sailing ship); can't sail within `40` deg of wind; `R` damage control (fires); Left click fire when guns READY and ON | `ENGINE & SAILS` [src Source/IronwakeTest/IronwakeP11.cpp:348], `can't sail within 40 deg of wind` [src Source/IronwakeTest/IronwakeP11.cpp:350] |
-| 2 | NAVIGATION | `M` chart: left-click add waypoint, right-click remove, Enter start, Backspace clear, L loop route; `P` autopilot off / hold course / waypoints / tour (hold: A / D nudge course `5` deg); `N` next point of interest | `NAVIGATION` [src Source/IronwakeTest/IronwakeP11.cpp:353], `nudge course 5 deg` [src Source/IronwakeTest/IronwakeP11.cpp:359] |
-| 2 | CAMERA | Mouse orbit camera / aim the guns; Wheel camera zoom; Shift binoculars (wheel = zoom), Shift or right-click exits; `C` / Mid hold free look; `F` photo mode: WASD / QE fly, wheel FOV, T slow-mo, Shift fast | `CAMERA` [src Source/IronwakeTest/IronwakeP11.cpp:364] |
-| 3 | VIEW & WORLD | `T` clock speed x1 / x10 / pause; `Shift+T` jump forward 3 hours (also `]`); `L` next weather; `K` weather drift on / off; `H / F1` this help; `Tab / Esc` pause menu | `VIEW & WORLD` [src Source/IronwakeTest/IronwakeP11.cpp:374] |
-| 3 | GAMEPAD | D-pad telegraph / rudder; R trigger fire, R stick look; L trigger exit binoculars | `GAMEPAD` [src Source/IronwakeTest/IronwakeP11.cpp:381] |
+| 1 | HELM | `W / S`: telegraph, one step per press (sailing ship: sail plan); `A / D` hold to turn the wheel; `Q / E` rudder midships; `J` helmsman steers to next point; `X` drop / weigh anchor; `G` fast sail x4 (peaceful) | `HELM` [src Source/IronwakeTest/IronwakeP11.cpp:355] |
+| 1 | ENGINE & SAILS | `B` auxiliary steam (sailing ship); can't sail within `40` deg of wind; `R` damage control (fires); Left click fire when guns READY and ON | `ENGINE & SAILS` [src Source/IronwakeTest/IronwakeP11.cpp:363], `can't sail within 40 deg of wind` [src Source/IronwakeTest/IronwakeP11.cpp:365] |
+| 2 | NAVIGATION | `M` chart: left-click add waypoint, right-click remove, Enter start, Backspace clear, L loop route; `P` autopilot off / hold course / waypoints / tour (hold: A / D nudge course `5` deg); `N` next point of interest | `NAVIGATION` [src Source/IronwakeTest/IronwakeP11.cpp:368], `nudge course 5 deg` [src Source/IronwakeTest/IronwakeP11.cpp:374] |
+| 2 | CAMERA | Mouse orbit camera / aim the guns; Wheel camera zoom; Shift binoculars (wheel = zoom), Shift or right-click exits; `C` / Mid hold free look; `F` photo mode: WASD / QE fly, wheel FOV, T slow-mo, Shift fast | `CAMERA` [src Source/IronwakeTest/IronwakeP11.cpp:379] |
+| 3 | VIEW & WORLD | `T` clock speed x1 / x10 / pause; `Shift+T` jump forward 3 hours (also `]`); `L` next weather; `K` weather drift on / off; `V` clear air (toggle haze off); `H / F1` this help; `Tab / Esc` pause menu | `VIEW & WORLD` [src Source/IronwakeTest/IronwakeP11.cpp:389], `V          clear air (toggle haze off)` [src Source/IronwakeTest/IronwakeP11.cpp:394] |
+| 3 | GAMEPAD | D-pad telegraph / rudder; R trigger fire, R stick look; L trigger exit binoculars | `GAMEPAD` [src Source/IronwakeTest/IronwakeP11.cpp:397] |
 
 Check against bindings: every key in the panel matches 9.2-9.4 (verified against the tables above). Not listed in the panel but bound: Up/Down/Left/Right arrow keys (telegraph/rudder aliases), RightShift (scope), Gamepad_Special_Right (pause), `Right bracket` (listed as `]` inside the Shift+T line).
 
@@ -255,17 +257,17 @@ Called after the ship block [src Source/IronwakeTest/IronwakeHUD.cpp:127]; if th
 
 | Element | Description | Source |
 |---|---|---|
-| Compass tape | top centre, width `640*S`, height `34*S`, top `18*S`; shows +/-`60` deg around the camera yaw (`120` deg across), tick every `5` deg, labels at majors; POI diamonds (next POI highlighted, visited dim); ship-heading caret; heading text right of the tape | `TapeW = 640.f * S, TapeH = 34.f * S, TY = 18.f * S` [src Source/IronwakeTest/IronwakeVoyage.cpp:1212], `PxPerDeg = TapeW / 120.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1214] |
-| NEXT line | `NEXT  <name>   <km> km   brg <deg>  (<dead ahead\|N deg to port/starboard>)` plus `[HELMSMAN]` when J is on | `NEXT  %s   %.1f km   brg %03.0f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1271] |
-| AUTOPILOT chip | `AUTOPILOT: <label>`; labels `HOLD COURSE %03.0f`, `WAYPOINTS n/m` (+` LOOP`), tour, `WAYPOINTS (planning: M chart)`; teal when on | `AUTOPILOT: %s` [src Source/IronwakeTest/IronwakeVoyage.cpp:1279], `HOLD COURSE %03.0f` [src Source/IronwakeTest/IronwakeAutopilot.cpp:195] |
-| Status chips | `ANCHORED`, `FAST SAIL x4`, and (living world) clock + weather text e.g. `09:30 morning   Fair   sea slight`; extra debug (`[preset]`, `SEA: ... m`) only with `-iwdebug` | `ANCHORED   ` [src Source/IronwakeTest/IronwakeVoyage.cpp:1291], `FAST SAIL x4   ` [src Source/IronwakeTest/IronwakeVoyage.cpp:1292], `iwdebug` [src Source/IronwakeTest/IronwakeVoyage.cpp:1288] |
-| Minimap | bottom right, side `230*S`, +/-`4` km, north up, merchants as grey squares, airship `~`, POIs as squares | `MS = 230.f * S` [src Source/IronwakeTest/IronwakeVoyage.cpp:1328] |
-| Hint line | bottom-left under the ship block: `H: help   M: chart   P: autopilot   Esc: menu` | `H: help   M: chart   P: autopilot   Esc: menu` [src Source/IronwakeTest/IronwakeVoyage.cpp:1388] |
-| Toast | centred at `0.30` of screen height, backdrop alpha `0.55`; default duration `4` s | `ClipY * 0.30f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1394], `Seconds = 4.f` [src Source/IronwakeTest/IronwakeVoyage.h:128] |
+| Compass tape | top centre, width `640*S`, height `34*S`, top `18*S`; shows +/-`60` deg around the camera yaw (`120` deg across), tick every `5` deg, labels at majors; POI diamonds (next POI highlighted, visited dim); ship-heading caret; heading text right of the tape | `TapeW = 640.f * S, TapeH = 34.f * S, TY = 18.f * S` [src Source/IronwakeTest/IronwakeVoyage.cpp:1231], `PxPerDeg = TapeW / 120.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1233] |
+| NEXT line | `NEXT  <name>   <km> km   brg <deg>  (<dead ahead\|N deg to port/starboard>)` plus `[HELMSMAN]` when J is on | `NEXT  %s   %.1f km   brg %03.0f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1290] |
+| AUTOPILOT chip | `AUTOPILOT: <label>`; labels `HOLD COURSE %03.0f`, `WAYPOINTS n/m` (+` LOOP`), tour, `WAYPOINTS (planning: M chart)`; teal when on | `AUTOPILOT: %s` [src Source/IronwakeTest/IronwakeVoyage.cpp:1298], `HOLD COURSE %03.0f` [src Source/IronwakeTest/IronwakeAutopilot.cpp:195] |
+| Status chips | `ANCHORED`, `FAST SAIL x4`, and (living world) clock + weather text e.g. `09:30 morning   Fair   sea slight`; extra debug (`[preset]`, `SEA: ... m`) only with `-iwdebug` | `ANCHORED   ` [src Source/IronwakeTest/IronwakeVoyage.cpp:1310], `FAST SAIL x4   ` [src Source/IronwakeTest/IronwakeVoyage.cpp:1311], `iwdebug` [src Source/IronwakeTest/IronwakeVoyage.cpp:1307] |
+| Minimap | bottom right, side `230*S`, +/-`4` km, north up, merchants as grey squares, airship `~`, POIs as squares | `MS = 230.f * S` [src Source/IronwakeTest/IronwakeVoyage.cpp:1347] |
+| Hint line | bottom-left under the ship block: `H: help   M: chart   P: autopilot   Esc: menu` | `H: help   M: chart   P: autopilot   Esc: menu` [src Source/IronwakeTest/IronwakeVoyage.cpp:1408] |
+| Toast | centred at `0.30` of screen height, backdrop alpha `0.55`; default duration `4` s | `ClipY * 0.30f` [src Source/IronwakeTest/IronwakeVoyage.cpp:1414], `Seconds = 4.f` [src Source/IronwakeTest/IronwakeVoyage.h:128] |
 
 Clock strings (`ClockString`): parts of day `small hours` (<`4.5`), `dawn` (<`7`), `morning` (<`11`), `noon` (<`13.5`), `afternoon` (<`15.5`), `dusk` (<`18`), `evening` (<`21`), `night`; speed suffix ``, ` x10`, ` (paused)` [src Source/IronwakeTest/IronwakeP11.cpp:67-70]. Weather names: Clear, Fair, Overcast, Mist, Rain, Squall; sea words calm (<`0.3`), slight (<`0.8`), moderate (<`1.5`), rough (<`2.4`), very rough [src Source/IronwakeTest/IronwakeP11.cpp:43,76].
 
-Toasts raised by gameplay (examples with source): `COLLISION: <tag> (<kn> kn)` for `2.5` s [src Source/IronwakeTest/IronwakeShipCollision.cpp:79]; `AGROUND - engines astern to back off` [src Source/IronwakeTest/IronwakeShipCollision.cpp:133]; `Weather: %s` [src Source/IronwakeTest/IronwakeVoyage.cpp:733]; `Weather drifts on its own` / `Weather held (L changes it)` [src Source/IronwakeTest/IronwakeVoyage.cpp:741]; `Clock x1|x10|paused` and `Time: <clock>` [src Source/IronwakeTest/IronwakeP11.cpp:100,108].
+Toasts raised by gameplay (examples with source): `COLLISION: <tag> (<kn> kn)` for `2.5` s [src Source/IronwakeTest/IronwakeShipCollision.cpp:79]; `AGROUND - engines astern to back off` [src Source/IronwakeTest/IronwakeShipCollision.cpp:133]; `Weather: %s` [src Source/IronwakeTest/IronwakeVoyage.cpp:749]; `Weather drifts on its own` / `Weather held (L changes it)` [src Source/IronwakeTest/IronwakeVoyage.cpp:757]; `Clock x1|x10|paused` and `Time: <clock>` [src Source/IronwakeTest/IronwakeP11.cpp:100,108].
 
 ## 9.13 Saved settings
 
@@ -299,10 +301,10 @@ Store: `GGameUserSettingsIni`, section `Ironwake` [src Source/IronwakeTest/Ironw
 | `r.VolumetricCloud.ReflectionRaySampleMaxCount` | `8` | `8` | `16` | `r.VolumetricCloud.ReflectionRaySampleMaxCount` [src Source/IronwakeTest/IronwakeSettings.cpp:84] |
 | `r.VolumetricCloud.SkyAO` | `0` | `0` | `1` | `r.VolumetricCloud.SkyAO` [src Source/IronwakeTest/IronwakeSettings.cpp:85] |
 | `r.VolumetricRenderTarget.Mode` | `2` | `2` | `0` | `r.VolumetricRenderTarget.Mode` [src Source/IronwakeTest/IronwakeSettings.cpp:86] |
-| `r.Water.WaterMesh.TessFactorBias` | `-2` | `-1` | `0` | `r.Water.WaterMesh.TessFactorBias` [src Source/IronwakeTest/IronwakeSettings.cpp:87] |
-| `r.DynamicGlobalIlluminationMethod` | `0` (none + sky light) | `1` (Lumen) | `1` | `r.DynamicGlobalIlluminationMethod` [src Source/IronwakeTest/IronwakeSettings.cpp:89] |
-| `r.ReflectionMethod` | `2` (SSR) | `1` (Lumen) | `1` | `r.ReflectionMethod` [src Source/IronwakeTest/IronwakeSettings.cpp:90] |
-| `r.Shadow.Virtual.Enable` | `0` | `1` | `1` | `r.Shadow.Virtual.Enable` [src Source/IronwakeTest/IronwakeSettings.cpp:91] |
+| `r.Water.WaterMesh.TessFactorBias` | `-2` | `-1` | `0` | `r.Water.WaterMesh.TessFactorBias` [src Source/IronwakeTest/IronwakeSettings.cpp:90] |
+| `r.DynamicGlobalIlluminationMethod` | `0` (none + sky light) | `1` (Lumen) | `1` | `r.DynamicGlobalIlluminationMethod` [src Source/IronwakeTest/IronwakeSettings.cpp:92] |
+| `r.ReflectionMethod` | `2` (SSR) | `1` (Lumen) | `1` | `r.ReflectionMethod` [src Source/IronwakeTest/IronwakeSettings.cpp:93] |
+| `r.Shadow.Virtual.Enable` | `0` | `1` | `1` | `r.Shadow.Virtual.Enable` [src Source/IronwakeTest/IronwakeSettings.cpp:94] |
 
 Notes: every level has a `60` fps cap with vsync; dynamic resolution (TSR upscale) holds the GPU frame budget; the volumetric cloud deck measured `40` of `57` ms GPU at 1600x900 before the presets (comment cites build/logs/H1.md) [src Source/IronwakeTest/IronwakeSettings.cpp:75]. `FrameTimeBudget` is `33.3` only on HIGH, so HIGH allows a ~30 fps frame time; the cloud `SampleMinCount` line is written as `L == 2 ? "2" : "2"` (identical branches, no effect) [src Source/IronwakeTest/IronwakeSettings.cpp:82]. Per-preset measured fps is chapter 11.
 
@@ -320,7 +322,7 @@ Notes: every level has a `60` fps cap with vsync; dynamic resolution (TSR upscal
 - Pause/title menu button `CAMERA MOTION: OFF / LOW / MEDIUM` cycles the setting; saved as `[Ironwake] CameraMotion` in GameUserSettings (default LOW, `-iwcammotion=N` overrides) [src Source/IronwakeTest/IronwakeSettings.cpp:GetCameraMotion].
 - LOW: camera follows low-passed ship pitch/roll/heave, gain `0.15`, tau `2.5` s, caps roll `1.5` deg, pitch `1.0` deg, heave `0.3` m. MEDIUM: gain `0.30`, tau `2.0` s, caps `3`/`2` deg, `0.6` m. OFF: fully steady [src Source/IronwakeTest/IronwakeShipPawn.cpp:CalcCamera].
 - Binoculars: zero sway. Photo mode: own camera, unaffected. Impact shake unchanged; no FOV or blur coupling.
-- Help panel CAMERA section lists `CAMERA MOTION OFF / LOW / MEDIUM` [src Source/IronwakeTest/IronwakeP11.cpp:370]; the menu CONTROLS text has the same line [src Source/IronwakeTest/IronwakePlayerController.cpp:92].
+- Help panel CAMERA section lists `CAMERA MOTION OFF / LOW / MEDIUM` [src Source/IronwakeTest/IronwakeP11.cpp:385]; the menu CONTROLS text has the same line [src Source/IronwakeTest/IronwakePlayerController.cpp:92].
 - Measured (ironclad, sea 2.5, LOW): hull roll p2p `7.96` deg, camera roll p2p `0.48` deg, camera pitch sway p2p `0.48` deg, camera Z p2p `0.33` m [src build/logs/P16.md].
 
 ## 9.x P18 Menu that fits every screen + AUDIO tab (2026-11-11)

@@ -141,28 +141,28 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwtour` | GameMode, LivingSea | start the cinematic tour (also via `Saved/iw_tour.txt`); LivingSea appends `quit` so the app exits at the end | `iwtour` [src Source/IronwakeTest/IronwakeGameMode.cpp:48], `iwtour` [src Source/IronwakeTest/IronwakeLivingSea.cpp:358] |
 | `-iwtourshots` | LivingSea | tour saves screenshots | `iwtourshots` [src Source/IronwakeTest/IronwakeLivingSea.cpp:359] |
 | `-iwcredits` | PlayerController BeginPlay | title menu with credits card, screenshot `R_credits`, quit after `11` s | `iwcredits` [src Source/IronwakeTest/IronwakePlayerController.cpp:685] |
-| `-iwstorm` | Voyage / GameMode | start with the storm at sea (no enemy) | `iwstorm` [src Source/IronwakeTest/IronwakeVoyage.cpp:331], `iwstorm` [src Source/IronwakeTest/IronwakeGameMode.cpp:51] |
-| `-iwlegacywx` | Voyage | use the old preset weather instead of the living clock/weather (`StartLiving` skipped) | `iwlegacywx` [src Source/IronwakeTest/IronwakeVoyage.cpp:343] |
+| `-iwstorm` | Voyage / GameMode | start with the storm at sea (no enemy) | `iwstorm` [src Source/IronwakeTest/IronwakeVoyage.cpp:344], `iwstorm` [src Source/IronwakeTest/IronwakeGameMode.cpp:51] |
+| `-iwlegacywx` | Voyage | use the old preset weather instead of the living clock/weather (`StartLiving` skipped) | `iwlegacywx` [src Source/IronwakeTest/IronwakeVoyage.cpp:356] |
 | `-iwship=<id>` | Fleet `GetSelected` | force the ship (cutter, frigate, ironclad...); also the player's saved choice fallback | `iwship=` [src Source/IronwakeTest/IronwakeFleet.cpp:144] |
 | `-iwunlockall` | Fleet `IsUnlocked` | every roster ship unlocked | `iwunlockall` [src Source/IronwakeTest/IronwakeFleet.cpp:164] |
 | `-iwgfx=N` | Settings `GetGraphics` | override saved graphics level (0..2) for the run | `iwgfx=` [src Source/IronwakeTest/IronwakeSettings.cpp:54] |
-| `-iwdebug` | Voyage HUD | adds preset and sea-state debug text to the status chips | `iwdebug` [src Source/IronwakeTest/IronwakeVoyage.cpp:1288] |
+| `-iwdebug` | Voyage HUD | adds preset and sea-state debug text to the status chips | `iwdebug` [src Source/IronwakeTest/IronwakeVoyage.cpp:1307] |
 | `?iwrestart`, `?iwpeaceful=1` (URL options, not switches) | GameMode StartPlay | restart skips the title menu and keeps the mode | `iwrestart` [src Source/IronwakeTest/IronwakeGameMode.cpp:58], `iwpeaceful` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
 
 ### Test-director arming
 
 | Flag | Read at | Modes (13.6) / effect | Source |
 |---|---|---|---|
-| `-iws2=<mode>` / `-iws2quit` | Voyage / S2Test | S2 director; no enemy; `progress` mode makes the voyage tick while paused | `iws2=` [src Source/IronwakeTest/IronwakeVoyage.cpp:332], `iws2quit` [src Source/IronwakeTest/IronwakeS2Test.cpp:70] |
-| `-iww2=<mode>` / `-iww2quit` | Voyage / W2Test | W2 storm director; no enemy | `iww2=` [src Source/IronwakeTest/IronwakeVoyage.cpp:330], `iww2quit` [src Source/IronwakeTest/IronwakeW2Test.cpp:61] |
-| `-iwp8=<mode>` / `-iwp8quit` | Voyage / P8 | sky/town shot director | `iwp8=` [src Source/IronwakeTest/IronwakeVoyage.cpp:326], `iwp8quit` [src Source/IronwakeTest/IronwakeP8.cpp:380] |
-| `-iwp9=<mode>` / `-iwp9quit` | Voyage / P9Test | collision director | `iwp9=` [src Source/IronwakeTest/IronwakeVoyage.cpp:325], `iwp9quit` [src Source/IronwakeTest/IronwakeP9Test.cpp:34] |
-| `-iwp11=<mode>` / `-iwp11quit` | Voyage / P11 | living-world shot director | `iwp11=` [src Source/IronwakeTest/IronwakeVoyage.cpp:341], `iwp11quit` [src Source/IronwakeTest/IronwakeP11.cpp:506] |
-| `-iwp12=<mode>` / `-iwp12quit` | Voyage / P12 | town camera director | `iwp12=` [src Source/IronwakeTest/IronwakeVoyage.cpp:335], `iwp12quit` [src Source/IronwakeTest/IronwakeP12.cpp:1031] |
-| `-iwa1=<mode>` / `-iwa1quit` | Voyage, GameMode / Autopilot | autopilot director; every mode except `fire` is peaceful | `iwa1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:324], `iwa1quit` [src Source/IronwakeTest/IronwakeAutopilot.cpp:899], `!= TEXT("fire")` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
-| `-iwe1=<mode>` / `-iwe1quit` | Voyage | E1 world-asset shot director (modes incl. `bench`, `bench_island`) | `iwe1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:328], `iwe1quit` [src Source/IronwakeTest/IronwakeVoyage.cpp:1588] |
+| `-iws2=<mode>` / `-iws2quit` | Voyage / S2Test | S2 director; no enemy; `progress` mode makes the voyage tick while paused | `iws2=` [src Source/IronwakeTest/IronwakeVoyage.cpp:345], `iws2quit` [src Source/IronwakeTest/IronwakeS2Test.cpp:70] |
+| `-iww2=<mode>` / `-iww2quit` | Voyage / W2Test | W2 storm director; no enemy | `iww2=` [src Source/IronwakeTest/IronwakeVoyage.cpp:343], `iww2quit` [src Source/IronwakeTest/IronwakeW2Test.cpp:61] |
+| `-iwp8=<mode>` / `-iwp8quit` | Voyage / P8 | sky/town shot director | `iwp8=` [src Source/IronwakeTest/IronwakeVoyage.cpp:339], `iwp8quit` [src Source/IronwakeTest/IronwakeP8.cpp:380] |
+| `-iwp9=<mode>` / `-iwp9quit` | Voyage / P9Test | collision director | `iwp9=` [src Source/IronwakeTest/IronwakeVoyage.cpp:338], `iwp9quit` [src Source/IronwakeTest/IronwakeP9Test.cpp:34] |
+| `-iwp11=<mode>` / `-iwp11quit` | Voyage / P11 | living-world shot director | `iwp11=` [src Source/IronwakeTest/IronwakeVoyage.cpp:354], `iwp11quit` [src Source/IronwakeTest/IronwakeP11.cpp:522] |
+| `-iwp12=<mode>` / `-iwp12quit` | Voyage / P12 | town camera director | `iwp12=` [src Source/IronwakeTest/IronwakeVoyage.cpp:348], `iwp12quit` [src Source/IronwakeTest/IronwakeP12.cpp:1021] |
+| `-iwa1=<mode>` / `-iwa1quit` | Voyage, GameMode / Autopilot | autopilot director; every mode except `fire` is peaceful | `iwa1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:337], `iwa1quit` [src Source/IronwakeTest/IronwakeAutopilot.cpp:899], `!= TEXT("fire")` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
+| `-iwe1=<mode>` / `-iwe1quit` | Voyage | E1 world-asset shot director (modes incl. `bench`, `bench_island`) | `iwe1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:341], `iwe1quit` [src Source/IronwakeTest/IronwakeVoyage.cpp:1608] |
 | `-iwi1=<mode>` / `-iwi1quit` | Archipelago | I1 islands director (`shots`, `bench`) | `iwi1=` [src Source/IronwakeTest/IronwakeArchipelago.cpp:257], `iwi1quit` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1294] |
-| `-iww1`, `-iww1clip`, `-iww1quit` | GameMode, ShipPawn, ShipHydro | W1 handling/waves director (`clip` = 300-frame clip at `-benchmark -fps=30`); peaceful | `iww1` [src Source/IronwakeTest/IronwakeGameMode.cpp:50], `iww1clip` [src Source/IronwakeTest/IronwakeShipPawn.cpp:248], `iww1quit` [src Source/IronwakeTest/IronwakeShipHydro.cpp:434] |
+| `-iww1`, `-iww1clip`, `-iww1quit` | GameMode, ShipPawn, ShipHydro | W1 handling/waves director (`clip` = 300-frame clip at `-benchmark -fps=30`); peaceful | `iww1` [src Source/IronwakeTest/IronwakeGameMode.cpp:50], `iww1clip` [src Source/IronwakeTest/IronwakeShipPawn.cpp:248], `iww1quit` [src Source/IronwakeTest/IronwakeShipHydro.cpp:436] |
 | `-iwh1`, `-iwh1quit` | ShipPawn | H1 handling/camera test (also `Saved/iw_h1.txt`) | `iwh1` [src Source/IronwakeTest/IronwakeShipPawn.cpp:255], `iwh1quit` [src Source/IronwakeTest/IronwakeShipPawn.cpp:259] |
 | `-iwr1` | LivingSea | R1 capture director (hides on-screen messages) | `iwr1` [src Source/IronwakeTest/IronwakeLivingSea.cpp:367] |
 
@@ -174,7 +174,7 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwsea=<scale>` | S2Test | sea scale (default `0.25` p5b, `0.9` p5cwide) | `iwsea=` [src Source/IronwakeTest/IronwakeS2Test.cpp:481] |
 | `-iwhold=<s>` | S2Test | hold time (default `50`) | `iwhold=` [src Source/IronwakeTest/IronwakeS2Test.cpp:482] |
 | `-iwtag=<tag>` | S2Test, W2Test | shot-name tag | `iwtag=` [src Source/IronwakeTest/IronwakeS2Test.cpp:470], `iwtag=` [src Source/IronwakeTest/IronwakeW2Test.cpp:218] |
-| `-iwcount` | S2Test, ShipHydro | log slam statistics | `iwcount` [src Source/IronwakeTest/IronwakeS2Test.cpp:483], `iwcount` [src Source/IronwakeTest/IronwakeShipHydro.cpp:206] |
+| `-iwcount` | S2Test, ShipHydro | log slam statistics | `iwcount` [src Source/IronwakeTest/IronwakeS2Test.cpp:483], `iwcount` [src Source/IronwakeTest/IronwakeShipHydro.cpp:208] |
 | `-iwfast` | S2Test | `SpeedCompression = 6` in the fxshot run | `iwfast` [src Source/IronwakeTest/IronwakeS2Test.cpp:459] |
 | `-iwslow` | S2Test | warm-up cruise `6` kn instead of `8` | `iwslow` [src Source/IronwakeTest/IronwakeS2Test.cpp:586] |
 | `-iwturn` | S2Test | p5cwide adds a turn | `iwturn` [src Source/IronwakeTest/IronwakeS2Test.cpp:527] |
@@ -190,15 +190,15 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwskyhour=<h>` | P11, P8 | fixed hour and clock paused (`ClockSpeedIdx = 2`); P8 dome holds the hour | `iwskyhour=` [src Source/IronwakeTest/IronwakeP11.cpp:87], `iwskyhour=` [src Source/IronwakeTest/IronwakeP8.cpp:51] |
 | `-iwwx=<0-5>` | P11 | start weather state (clamped; default fair `1`) | `iwwx=` [src Source/IronwakeTest/IronwakeP11.cpp:88] |
 | `-iwnodrift` | P11 | weather drift off | `iwnodrift` [src Source/IronwakeTest/IronwakeP11.cpp:90] |
-| `-iwday=a,b,c` | P11 | P14 noon-lift triple (sky gain default `2.2`, sun `1.2`, bias `0.5`) | `iwday=` [src Source/IronwakeTest/IronwakeP11.cpp:191] |
-| `-iwtintdawn=r,g,b`, `-iwtintdusk=r,g,b` | P11 | atmosphere tints at twilight | `iwtintdawn=` [src Source/IronwakeTest/IronwakeP11.cpp:226], `iwtintdusk=` [src Source/IronwakeTest/IronwakeP11.cpp:227] |
-| `-iwozone=<x>` | P11 | ozone absorption multiplier (default `3`) | `iwozone=` [src Source/IronwakeTest/IronwakeP11.cpp:228] |
-| `-iwtw=a,b,c,d,e` | P11 | twilight grade constants (5 values) | `iwtw=` [src Source/IronwakeTest/IronwakeP11.cpp:236] |
-| `-iwmoon=<x>` | P11 | max moonlight intensity (default `4`) | `iwmoon=` [src Source/IronwakeTest/IronwakeP11.cpp:268] |
-| `-iwmoonnoshadow` | P11 | moon light casts no shadows | `iwmoonnoshadow` [src Source/IronwakeTest/IronwakeP11.cpp:265] |
-| `-iwwater=<x>` | P11 | night-water gain | `iwwater=` [src Source/IronwakeTest/IronwakeP11.cpp:277] |
-| `-iwev=<ev>` | Voyage | clear-night exposure (default `0.4`) | `iwev=` [src Source/IronwakeTest/IronwakeVoyage.cpp:801] |
-| `-iwnolamps` | Voyage | night lamps off | `iwnolamps` [src Source/IronwakeTest/IronwakeVoyage.cpp:828] |
+| `-iwday=a,b,c` | P11 | P14 noon-lift triple (sky gain default `2.2`, sun `1.2`, bias `0.5`) | `iwday=` [src Source/IronwakeTest/IronwakeP11.cpp:206] |
+| `-iwtintdawn=r,g,b`, `-iwtintdusk=r,g,b` | P11 | atmosphere tints at twilight | `iwtintdawn=` [src Source/IronwakeTest/IronwakeP11.cpp:241], `iwtintdusk=` [src Source/IronwakeTest/IronwakeP11.cpp:242] |
+| `-iwozone=<x>` | P11 | ozone absorption multiplier (default `3`) | `iwozone=` [src Source/IronwakeTest/IronwakeP11.cpp:243] |
+| `-iwtw=a,b,c,d,e` | P11 | twilight grade constants (5 values) | `iwtw=` [src Source/IronwakeTest/IronwakeP11.cpp:251] |
+| `-iwmoon=<x>` | P11 | max moonlight intensity (default `4`) | `iwmoon=` [src Source/IronwakeTest/IronwakeP11.cpp:283] |
+| `-iwmoonnoshadow` | P11 | moon light casts no shadows | `iwmoonnoshadow` [src Source/IronwakeTest/IronwakeP11.cpp:280] |
+| `-iwwater=<x>` | P11 | night-water gain | `iwwater=` [src Source/IronwakeTest/IronwakeP11.cpp:292] |
+| `-iwev=<ev>` | Voyage | clear-night exposure (default `0.4`) | `iwev=` [src Source/IronwakeTest/IronwakeVoyage.cpp:820] |
+| `-iwnolamps` | Voyage | night lamps off | `iwnolamps` [src Source/IronwakeTest/IronwakeVoyage.cpp:847] |
 | `-iwskyday=<0-364>`, `-iwskyrate=`, `-iwstargain=`, `-iwmoongain=`, `-iwptth=`, `-iwskygamma=`, `-iwptgain=`, `-iwglow=`, `-iwglowmip=` | P8 night sky | sky day, clock rate, star/moon gain, point threshold, gamma, point gain, glow gain/mip | `iwskyday=` [src Source/IronwakeTest/IronwakeP8.cpp:50], `iwskyrate=` [src Source/IronwakeTest/IronwakeP8.cpp:52], `iwstargain=` [src Source/IronwakeTest/IronwakeP8.cpp:53], `iwmoongain=` [src Source/IronwakeTest/IronwakeP8.cpp:54], `iwptth=` [src Source/IronwakeTest/IronwakeP8.cpp:55], `iwskygamma=` [src Source/IronwakeTest/IronwakeP8.cpp:56], `iwptgain=` [src Source/IronwakeTest/IronwakeP8.cpp:57], `iwglow=` [src Source/IronwakeTest/IronwakeP8.cpp:58], `iwglowmip=` [src Source/IronwakeTest/IronwakeP8.cpp:59] |
 | `-iwskypo=`, `-iwskyyo=` | P8 test | pitch / yaw offset of the sky aim | `iwskypo=` [src Source/IronwakeTest/IronwakeP8.cpp:345], `iwskyyo=` [src Source/IronwakeTest/IronwakeP8.cpp:345] |
 
@@ -206,15 +206,15 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 
 | Flag | Read at | Effect | Source |
 |---|---|---|---|
-| `-iwnobow` / `-iwnosheet` | ShipHydro | disable bow wave / spray sheets and slams | `iwnobow` [src Source/IronwakeTest/IronwakeShipHydro.cpp:159], `iwnosheet` [src Source/IronwakeTest/IronwakeShipHydro.cpp:159] |
+| `-iwnobow` / `-iwnosheet` | ShipHydro | disable bow wave / spray sheets and slams | `iwnobow` [src Source/IronwakeTest/IronwakeShipHydro.cpp:161], `iwnosheet` [src Source/IronwakeTest/IronwakeShipHydro.cpp:161] |
 | `-iwnowake` | ShipPawn | disable the wake | `iwnowake` [src Source/IronwakeTest/IronwakeShipPawn.cpp:860] |
 | `-iwnospume` | Storm | disable spume | `iwnospume` [src Source/IronwakeTest/IronwakeStorm.cpp:206] |
-| `-iwsmokedbg` | ShipHydro | log funnel-smoke state every `3` s | `iwsmokedbg` [src Source/IronwakeTest/IronwakeShipHydro.cpp:166] |
-| `-iwwakedbg` | Hydro | wake debug log every `5` s | `iwwakedbg` [src Source/IronwakeTest/IronwakeHydro.cpp:673] |
+| `-iwsmokedbg` | ShipHydro | log funnel-smoke state every `3` s | `iwsmokedbg` [src Source/IronwakeTest/IronwakeShipHydro.cpp:168] |
+| `-iwwakedbg` | Hydro | wake debug log every `5` s | `iwwakedbg` [src Source/IronwakeTest/IronwakeHydro.cpp:600] |
 | `-iwcovk=`, `-iwfoamdbg=`, `-iwstreakk=`, `-iwfoammode=`, `-iwlacek=`, `-iwplanebias=` | Hydro | whitecap coverage, whitecap, streak, debug mode, lace, plane-bias multipliers (default `1`, mode `0`, bias `0`) | `iwcovk=` [src Source/IronwakeTest/IronwakeHydro.cpp:114], `iwfoamdbg=` [src Source/IronwakeTest/IronwakeHydro.cpp:181], `iwstreakk=` [src Source/IronwakeTest/IronwakeHydro.cpp:183], `iwfoammode=` [src Source/IronwakeTest/IronwakeHydro.cpp:186], `iwlacek=` [src Source/IronwakeTest/IronwakeHydro.cpp:190], `iwplanebias=` [src Source/IronwakeTest/IronwakeHydro.cpp:197] |
 | `-iwnocoll` | ShipCollision | disable ship collision | `iwnocoll` [src Source/IronwakeTest/IronwakeShipCollision.cpp:20] |
 | `-iwground=<k>` | P12 | harbour ground tint factor (default `3.0`) | `iwground=` [src Source/IronwakeTest/IronwakeP12.cpp:50] |
-| `-iwnoveg` | P12 | skip town vegetation | `iwnoveg` [src Source/IronwakeTest/IronwakeP12.cpp:282] |
+| `-iwnoveg` | P12 | skip town vegetation | `iwnoveg` [src Source/IronwakeTest/IronwakeP12.cpp:272] |
 
 Count: 81 distinct `-iw*` switches plus the `?iwrestart`/`?iwpeaceful` URL options. Counted by listing every `TEXT("iw...")` string passed to `FParse`/`Contains` in `Source/IronwakeTest/` (`grep -rno 'TEXT("-\?iw[a-z0-9_]*=\?")'`).
 
@@ -226,7 +226,7 @@ Count: 81 distinct `-iw*` switches plus the `?iwrestart`/`?iwpeaceful` URL optio
 | `iw_autodemo.txt` | GameMode, ShipPawn | scripted voyage; first line is the shot prefix; counts as automation (no title menu) | `iw_autodemo.txt` [src Source/IronwakeTest/IronwakeShipPawn.cpp:277] |
 | `iw_combatdemo.txt` | GameMode, Combat | combat demo; counts as automation | `iw_combatdemo.txt` [src Source/IronwakeTest/IronwakeCombat.cpp:158] |
 | `iw_p1.txt` | PlayerController | P1 mode `idle`, `title`, `sink`, `sinkmenu`, `afterrestart`, `fight`; deleted after read | `iw_p1.txt` [src Source/IronwakeTest/IronwakePlayerController.cpp:693] |
-| `iw_s1.txt` | Voyage | S1 test mode (e.g. `look`, `progress`); deleted after read | `iw_s1.txt` [src Source/IronwakeTest/IronwakeVoyage.cpp:314] |
+| `iw_s1.txt` | Voyage | S1 test mode (e.g. `look`, `progress`); deleted after read | `iw_s1.txt` [src Source/IronwakeTest/IronwakeVoyage.cpp:327] |
 | `iw_h1.txt` | ShipPawn | arms the H1 test; deleted | `iw_h1.txt` [src Source/IronwakeTest/IronwakeShipPawn.cpp:255] |
 
 ## 13.6 Test directors and modes
@@ -239,16 +239,16 @@ All run only when armed by their flag; each logs a tagged line family (grep pref
 | W2 (storm sea) | `-iww2=` / `w2run.sh` | `gauge` `gauge` [src Source/IronwakeTest/IronwakeW2Test.cpp:101], `bench`/`clip` `bench` [src Source/IronwakeTest/IronwakeW2Test.cpp:147], `layers` `layers` [src Source/IronwakeTest/IronwakeW2Test.cpp:170], `discs` `discs` [src Source/IronwakeTest/IronwakeW2Test.cpp:213], `w4cov` `w4cov` [src Source/IronwakeTest/IronwakeW2Test.cpp:225], `w3`/`w3storm` `w3storm` [src Source/IronwakeTest/IronwakeW2Test.cpp:255], `storm`/`quick` `quick` [src Source/IronwakeTest/IronwakeW2Test.cpp:329] | `IWW2`, `IWW3` |
 | P9 (collision) | `-iwp9=` / `p9run.sh <hull> <mode>` | `all` or one of `beach`, `stack`, `breakwater`, `moored`, `ship`, `autopilot` `beach` [src Source/IronwakeTest/IronwakeP9Test.cpp:37] | `IWP9` |
 | P8 (sky/town shots) | `-iwp8=` / `p10run.sh` | `sky` `sky` [src Source/IronwakeTest/IronwakeP8.cpp:314], `skyq` `skyq` [src Source/IronwakeTest/IronwakeP8.cpp:315], `town` `town` [src Source/IronwakeTest/IronwakeP8.cpp:316], `bench` `bench` [src Source/IronwakeTest/IronwakeP8.cpp:317] | `IWP8`, `IWP10` |
-| P11 (living world) | `-iwp11=` / `p11run.sh`, `p14run.sh` | `day` (5 shots dawn..small hours), `wx` (6 weather states), `harbour` (4), `help` (hint and help panel), `tw` (4 twilight shots), `p14` (7 shots), `bench`; selection at `P11Mode == TEXT("p14")` [src Source/IronwakeTest/IronwakeP11.cpp:453] | `IWP11`, `IWP13` |
-| P12 (town cameras) | `-iwp12=` / `p12run.sh` | `shots`, `day`, `night`, `bench` `iwp12=shots|day|night` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `day` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `night` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `bench` [src Source/IronwakeTest/IronwakeP12.cpp:1111] | `IWP12` |
+| P11 (living world) | `-iwp11=` / `p11run.sh`, `p14run.sh` | `day` (5 shots dawn..small hours), `wx` (6 weather states), `harbour` (4), `help` (hint and help panel), `tw` (4 twilight shots), `p14` (7 shots), `bench`; selection at `P11Mode == TEXT("p14")` [src Source/IronwakeTest/IronwakeP11.cpp:469] | `IWP11`, `IWP13` |
+| P12 (town cameras) | `-iwp12=` / `p12run.sh` | `shots`, `day`, `night`, `bench` `iwp12=shots|day|night` [src Source/IronwakeTest/IronwakeP12.cpp:1021], `day` [src Source/IronwakeTest/IronwakeP12.cpp:1038], `night` [src Source/IronwakeTest/IronwakeP12.cpp:1021], `bench` [src Source/IronwakeTest/IronwakeP12.cpp:1101] | `IWP12` |
 | A1 (autopilot) | `-iwa1=` / `a1run.sh` | `hold` `hold` [src Source/IronwakeTest/IronwakeAutopilot.cpp:912], `route` `route` [src Source/IronwakeTest/IronwakeAutopilot.cpp:867], `voyage` `voyage` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1059], `tour` `tour` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1034], `waterline` `waterline` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1155], `fire` `fire` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1195] | `IWA1` |
-| E1 (world assets) | `-iwe1=` | `bench`, `bench_island` `bench_island` [src Source/IronwakeTest/IronwakeVoyage.cpp:1630] and shot modes | `IWE1` |
+| E1 (world assets) | `-iwe1=` | `bench`, `bench_island` `bench_island` [src Source/IronwakeTest/IronwakeVoyage.cpp:1650] and shot modes | `IWE1` |
 | I1 (islands) | `-iwi1=` / `i1run.sh` | `shots`, `bench` (modes beginning `bench` hold the `3+ islands` view) `bench` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1152] | `IWI1` |
 | W1 (handling/waves) | `-iww1` / `w1run.sh` | stages 0-9 (rest draft, short chop, long swell, settle, FULL AHEAD, bow shots); `-iww1clip` = clip mode | `IWW1` |
 | H1 (handling/camera) | `-iwh1` / `h1run.sh` | scripted handling + camera captures | `IWH1` |
 | R1 (ship captures) | `-iwr1` / `r1run.sh` | capture director | `IWR1` |
 | P1 (loop) | `iw_p1.txt` / `p1run.sh` | `idle`, `title`, `sink`, `sinkmenu`, `afterrestart`, `fight` `idle` [src Source/IronwakeTest/IronwakePlayerController.cpp:1312], `fight` [src Source/IronwakeTest/IronwakePlayerController.cpp:1312] | `IWP1`, `IWEND` |
-| S1 (voyage) | `iw_s1.txt` / `s1run.sh` | `look`, `progress`, tours `look` [src Source/IronwakeTest/IronwakeVoyage.cpp:1436] | `IWS1` |
+| S1 (voyage) | `iw_s1.txt` / `s1run.sh` | `look`, `progress`, tours `look` [src Source/IronwakeTest/IronwakeVoyage.cpp:1456] | `IWS1` |
 
 P11 shot timing: each step waits `12` s (`18` s for rain/squall) before the shot and `1.5` s after [src Source/IronwakeTest/IronwakeP11.cpp:483-490]. P11 `bench` stands at `330` m, hour `12`, drift off [src Source/IronwakeTest/IronwakeP11.cpp:459].
 

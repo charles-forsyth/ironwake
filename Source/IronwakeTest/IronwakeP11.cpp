@@ -48,12 +48,12 @@ namespace
 		AIronwakeVoyage::FLiveWx W;
 		switch (S)
 		{
-		case 0: W.Cover = 0.02f; W.SunMul = 1.25f; W.SkyMul = 1.0f; W.FogMul = 0.6f; W.Rain = 0.f; W.Sea = 0.55f; break; // clear: slight
-		case 1: W.Cover = 0.30f; W.SunMul = 1.1f;  W.SkyMul = 1.0f; W.FogMul = 0.9f; W.Rain = 0.f; W.Sea = 0.95f; break; // fair: slight to moderate
-		case 2: W.Cover = 0.88f; W.SunMul = 0.45f; W.SkyMul = 0.9f; W.FogMul = 0.9f; W.Rain = 0.f; W.Sea = 1.7f; break;  // overcast: moderate to rough
-		case 3: W.Cover = 0.65f; W.SunMul = 0.6f;  W.SkyMul = 0.9f; W.FogMul = 4.5f; W.Rain = 0.f; W.Sea = 0.3f; break;  // mist: calm, glassy
-		case 4: W.Cover = 0.92f; W.SunMul = 0.3f;  W.SkyMul = 0.8f; W.FogMul = 2.5f; W.Rain = 0.7f; W.Sea = 2.35f; break; // rain: rough
-		default: W.Cover = 0.97f; W.SunMul = 0.18f; W.SkyMul = 0.7f; W.FogMul = 2.4f; W.Rain = 1.f; W.Sea = 3.0f; break;   // squall: very rough (gale)
+		case 0: W.Cover = 0.04f; W.SunMul = 1.25f; W.SkyMul = 1.05f; W.FogMul = 0.45f; W.Rain = 0.f; W.Sea = 0.55f; break; // clear: crisp sunlit maritime horizon
+		case 1: W.Cover = 0.25f; W.SunMul = 1.15f; W.SkyMul = 1.00f; W.FogMul = 0.65f; W.Rain = 0.f; W.Sea = 0.90f; break; // fair: slight to moderate
+		case 2: W.Cover = 0.78f; W.SunMul = 0.60f; W.SkyMul = 0.95f; W.FogMul = 0.85f; W.Rain = 0.f; W.Sea = 1.65f; break; // overcast: moderate to rough
+		case 3: W.Cover = 0.65f; W.SunMul = 0.60f; W.SkyMul = 0.90f; W.FogMul = 3.20f; W.Rain = 0.f; W.Sea = 0.30f; break; // mist: calm, misty
+		case 4: W.Cover = 0.92f; W.SunMul = 0.35f; W.SkyMul = 0.82f; W.FogMul = 2.00f; W.Rain = 0.7f; W.Sea = 2.35f; break; // rain: rough
+		default: W.Cover = 0.97f; W.SunMul = 0.22f; W.SkyMul = 0.72f; W.FogMul = 2.10f; W.Rain = 1.f; W.Sea = 3.0f; break;   // squall: very rough (gale)
 		}
 		return W;
 	}
@@ -86,7 +86,7 @@ void AIronwakeVoyage::StartLiving()
 	if (FParse::Value(FCommandLine::Get(), TEXT("iwhour="), V)) ClockHour = FMath::Fmod(V + 24.f, 24.f);
 	if (FParse::Value(FCommandLine::Get(), TEXT("iwskyhour="), V)) { ClockHour = FMath::Fmod(V + 24.f, 24.f); ClockSpeedIdx = 2; }
 	if (FParse::Value(FCommandLine::Get(), TEXT("iwwx="), V)) LiveState = FMath::Clamp((int32)V, 0, 5);
-	else LiveState = 1;
+	else LiveState = 0;
 	if (FParse::Param(FCommandLine::Get(), TEXT("iwnodrift"))) bWxDrift = false;
 	LiveCur = LiveFrom = LiveTo = StateWx(LiveState);
 	LiveBlendT = 1.f; WxHoldT = 0.f; WxNextIn = WxRng.FRandRange(10.f, 30.f);
@@ -120,8 +120,24 @@ void AIronwakeVoyage::ForceWeatherState(int32 S, float BlendSeconds)
 
 void AIronwakeVoyage::CycleWeatherLive()
 {
-	ForceWeatherState(LiveState + 1, 8.f);
+	bHazeOff = false;
+	ForceWeatherState(LiveState + 1, 6.f);
 	ShowToast(FString::Printf(TEXT("Weather: %s"), GStateNames[LiveState]), 3.f);
+}
+
+void AIronwakeVoyage::ToggleClearHaze()
+{
+	bHazeOff = !bHazeOff;
+	if (bHazeOff)
+	{
+		bWxDrift = false;
+		ForceWeatherState(0, 0.5f);
+		ShowToast(TEXT("Clear Air ON (haze off, weather held)"), 3.5f);
+	}
+	else
+	{
+		ShowToast(TEXT("Natural maritime atmosphere restored"), 3.f);
+	}
 }
 
 void AIronwakeVoyage::TickLiving(float Dt)
@@ -241,12 +257,12 @@ void AIronwakeVoyage::TickLiving(float Dt)
 				static FVector4 S0, G0; static float C0 = 1.12f, T0 = 0.55f; static bool bI = false;
 				if (!bI) { bI = true; S0 = PV->Settings.ColorSaturation; C0 = PV->Settings.ColorContrast.X; T0 = PV->Settings.FilmToe; }
 				const float Tk = Tw * (0.4f + 0.6f * Clear);
-				// clear/fair day: lift the storm-grey grade so the sky reads blue (overcast, mist, rain keep the grey)
-				const float Dk = Wd * FMath::Clamp(1.f - (LiveCur.Cover - 0.15f) / 0.5f, 0.f, 1.f) * (1.f - Tw);
-				PV->Settings.ColorSaturation = FVector4(L(L((float)S0.X, K[0], Tk), 1.05f, Dk), L(L((float)S0.Y, K[0], Tk), 1.05f, Dk), L(L((float)S0.Z, K[0], Tk), 1.12f, Dk), 1.f);
+				// clear/fair day: lift the storm-grey grade so the sky & water read natural colour across all daytime states
+				const float Dk = Wd * FMath::Clamp(1.f - (LiveCur.Cover - 0.35f) / 0.55f, 0.25f, 1.f) * (1.f - Tw);
+				PV->Settings.ColorSaturation = FVector4(L(L((float)S0.X, K[0], Tk), 1.06f, Dk), L(L((float)S0.Y, K[0], Tk), 1.06f, Dk), L(L((float)S0.Z, K[0], Tk), 1.12f, Dk), 1.f);
 				PV->Settings.ColorContrast = FVector4(L(C0, K[1], Tk), L(C0, K[1], Tk), L(C0, K[1], Tk), 1.f);
 				PV->Settings.FilmToe = L(T0, K[2], Tk);
-				Cur.Bias += K[4] * Tk + 0.7f * Dk;
+				Cur.Bias += K[4] * Tk + 0.75f * Dk;
 			}
 		}
 		const float TwLumK = [] { float V = 5.0f; FString F; if (FParse::Value(FCommandLine::Get(), TEXT("iwtw="), F, false)) { TArray<FString> Pp; F.ParseIntoArray(Pp, TEXT(",")); if (Pp.Num() > 3) V = FCString::Atof(*Pp[3]); } return V; }();
@@ -375,6 +391,7 @@ TSharedRef<SWidget> UIronwakeHelpWidget::RebuildWidget()
 			TEXT("T          clock speed: x1 / x10 / pause\n")
 			TEXT("Shift+T    jump forward 3 hours (also ])\n")
 			TEXT("L          next weather\n")
+			TEXT("V          clear air (toggle haze off)\n")
 			TEXT("K          weather drift on / off\n")
 			TEXT("H / F1     this help\n")
 			TEXT("Tab / Esc  pause menu"));

@@ -11,6 +11,7 @@
 #include "IronwakeTest.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraActor.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -71,6 +72,214 @@ void AIronwakeVoyage::TickP28Test(float RealDt)
 	auto RecByDef = [&](FName DefId) -> FNpcRec* { return Nd->FindByDef(DefId, 0); };
 	const FTransform HfT(FRotator(0.f, 45.f, 0.f), FVector(HarbourC.X, HarbourC.Y, AIronwakeShell::WaterZAt(W, HarbourC) + AIronwakeShell::RenderedSeaOffsetCm));
 	auto HPos = [&](float Xm, float Ym, float Zm) -> FVector { return HfT.TransformPosition(FVector(Xm * 100.f, Ym * 100.f, Zm * 100.f)); };
+
+	if (P28Mode == TEXT("p34"))
+	{
+		// P34 Verification Suite:
+		//  Step 0: EXACT player spawn (-3000, -2700 m) looking back SW toward Greyhaven harbour (3 sequential frames 0.25s apart to prove ZERO water flickering & ZERO grey haze!) + look NE across clear archipelago!
+		//  Step 1: Progressive wake growth from standstill (t=2s small eddy, t=10s medium wake, t=24s full 12+L dispersive Kelvin wake fading gradually outward — NO instant giant triangle!).
+		//  Step 2: Close bow wave & hull-side waterline view at 13.5 kn (clean white Voronoi peel & streaming lace, NO grey detached collar slab or dark seam!).
+		//  Step 3: Wake ship-rocking test: steam player Ironclad past stationary NPC Chapman Sloop 32 m abeam and log/capture NPC roll response!
+		switch (P28Step)
+		{
+		case 0:
+		{
+			if (P28T < 3.0f) return;
+			if (!C->bStarted) C->StartGame(true);
+			C->ConsoleCommand(TEXT("r.DynamicRes.OperationMode 0"));
+			C->ConsoleCommand(TEXT("r.ScreenPercentage 100"));
+			// Place at exact spawn (-300000, -270000) heading 45 deg at FULL STOP (Telegraph 2)
+			S2Place(FVector(-300000.f, -270000.f, 150.f), 45.f, false);
+			P->IWTelegraph(2);
+			Next();
+			return;
+		}
+		case 1: // Look-back toward Greyhaven harbour from start spawn (3 frames 0.25s apart -> pixel-diff proves 0 flicker!) + Look-ahead NE
+		{
+			const FVector Loc = P->GetActorLocation();
+			if (P28Sub < 3)
+			{
+				const FVector Eye = Loc + FVector(3200.f, 3200.f, 1850.f);
+				const FVector Look = FVector(HarbourC.X, HarbourC.Y, 600.f);
+				View(Eye, Look, 58.f);
+				if (Since > 3.5f && ReadyForNextShot(0.25f))
+				{
+					Shot(FString::Printf(TEXT("P34_start_lookback_%d"), P28Sub));
+					++P28Sub;
+				}
+			}
+			else if (P28Sub == 3)
+			{
+				const FVector Eye = Loc - FVector(2800.f, 2800.f, -1950.f);
+				const FVector Look = Loc + FVector(180000.f, 160000.f, 1200.f);
+				View(Eye, Look, 58.f);
+				if (Since > 5.0f && ReadyForNextShot(0.4f))
+				{
+					Shot(TEXT("P34_start_clear_horizon"));
+					Next();
+				}
+			}
+			return;
+		}
+		case 2: // Progressive wake growth from standstill (0 kn -> FULL AHEAD: capture at 2.5s, 9.5s, 22.0s)
+		{
+			if (P28Sub == 0)
+			{
+				if (bPhoto) TogglePhoto();
+				S2Place(FVector(-120000.f, -120000.f, 150.f), 45.f, false);
+				if (P->HullBody) P->HullBody->SetPhysicsLinearVelocity(FVector::ZeroVector);
+				P->bAuxSteam = true;
+				P->IWTelegraph(2);
+				P28Sub = 1; P28Mark = P28T; return;
+			}
+			if (P28Sub == 1 && Since > 1.2f)
+			{
+				P->IWTelegraph(6); // Order Flank Ahead from standstill!
+				P28Sub = 2; P28Mark = P28T; return;
+			}
+			const FVector Loc = P->GetActorLocation();
+			const FVector Fw = P->GetActorForwardVector(), Rt = P->GetActorRightVector();
+			// High chase-quarter camera showing stern + 600 m wake trail behind ship
+			View(Loc - Fw * 15500.f + Rt * 6500.f + FVector(0.f, 0.f, 7800.f), Loc - Fw * 6500.f + FVector(0.f, 0.f, 100.f), 58.f);
+			if (P28Sub == 2 && Since >= 2.5f && ReadyForNextShot(0.3f))
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP34 WAKE_GROW t=2.5s kn=%.2f"), P->GetSpeedKnots());
+				Shot(TEXT("P34_wake_grow_02s"));
+				P28Sub = 3;
+			}
+			else if (P28Sub == 3 && Since >= 9.5f && ReadyForNextShot(0.3f))
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP34 WAKE_GROW t=9.5s kn=%.2f"), P->GetSpeedKnots());
+				Shot(TEXT("P34_wake_grow_10s"));
+				P28Sub = 4;
+			}
+			else if (P28Sub == 4 && Since >= 23.0f && ReadyForNextShot(0.3f))
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP34 WAKE_GROW t=23.0s kn=%.2f"), P->GetSpeedKnots());
+				Shot(TEXT("P34_wake_grow_23s"));
+				Next();
+			}
+			return;
+		}
+		case 3: // Close Bow Wave & Hull-Side Waterline Flow at 13.5+ kn
+		{
+			const FVector Loc = P->GetActorLocation();
+			const FVector Fw = P->GetActorForwardVector(), Rt = P->GetActorRightVector();
+			const float X1 = P->GetHullX1() * 100.f;
+			if (P28Sub == 0)
+			{
+				View(Loc + Fw * (X1 + 2900.f) + Rt * 2400.f + FVector(0.f, 0.f, 680.f), Loc + Fw * (X1 - 950.f) + FVector(0.f, 0.f, 120.f), 52.f);
+				if (Since >= 2.0f && ReadyForNextShot(0.3f)) { Shot(TEXT("P34_bow_wave_close")); P28Sub = 1; P28Mark = P28T; }
+			}
+			else if (P28Sub == 1)
+			{
+				View(Loc + Fw * 600.f + Rt * 3600.f + FVector(0.f, 0.f, 760.f), Loc - Fw * 400.f + FVector(0.f, 0.f, 90.f), 54.f);
+				if (Since >= 2.0f && ReadyForNextShot(0.3f)) { Shot(TEXT("P34_hull_waterline_side")); Next(); }
+			}
+			return;
+		}
+		case 4: // Wake-to-Ship Rocking Proof: Steam Ironclad at 14 kn 34 m past stationary NPC Cutter in deep open sea and measure peak roll!
+		{
+			FNpcRec* R = RecByDef(TEXT("cutter"));
+			if (!R) R = RecByDef(TEXT("schooner"));
+			if (!R && Nd->Recs.Num() > 0) R = &Nd->Recs[0];
+			static float PeakNpcRoll = 0.f;
+			if (P28Sub == 0)
+			{
+				PeakNpcRoll = 0.f;
+				C->bPeaceful = true;
+				for (TActorIterator<AIronwakeShipPawn> It(W); It; ++It) if (*It != P) It->Destroy();
+				P->HP = P->MaxHP;
+				const FVector Base(140000.f, -240000.f, 0.f); // Deep open sea 1.4 km E, 2.4 km S of origin — zero islands or reefs!
+				S2Place(Base, 0.f, true);
+				P->bAuxSteam = true; P->IWTelegraph(6);
+				if (R)
+				{
+					Nd->TeleportRec(*R, Base + FVector(16500.f, 3400.f, 0.f), 0.f, ENpcState::Work, 0.f);
+					R->bHold = true; R->SpeedKn = 0.f; R->DesKn = 0.f;
+					Nd->SpawnBody(*R);
+				}
+				P28Sub = 1; P28Mark = P28T; return;
+			}
+			AIronwakeNpcShip* B = R ? R->Body.Get() : nullptr;
+			if (B)
+			{
+				PeakNpcRoll = FMath::Max(PeakNpcRoll, FMath::Abs(B->RollDeg));
+				const FVector NLoc(B->Pos2.X, B->Pos2.Y, B->HeaveZ);
+				View(NLoc + FVector(-5200.f, 4200.f, 1450.f), NLoc + FVector(400.f, -800.f, 220.f), 54.f);
+			}
+			if (Since >= 16.5f && P28Sub == 1 && ReadyForNextShot(0.3f))
+			{
+				Shot(TEXT("P34_wake_rocks_npc"));
+				P28Sub = 2;
+			}
+			if (Since >= 20.0f)
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP34 WAKE_ROCK peak_npc_roll_deg=%.2f %s"), PeakNpcRoll, PeakNpcRoll >= 0.8f ? TEXT("PASS") : TEXT("LOW"));
+				P28Mode.Empty();
+				if (bQuit) UKismetSystemLibrary::QuitGame(this, C, EQuitPreference::Quit, false);
+			}
+			return;
+		}
+		}
+		return;
+	}
+
+	if (P28Mode == TEXT("p35cam"))
+	{
+		// P35 Fast-Camera-Whip Verification:
+		// Tests REAL gameplay camera (PlayerCameraManager + CalcCamera, bPhoto=false) whipping at 360 deg/sec across Yaw=135 deg vs stationary at Yaw=135 deg!
+		switch (P28Step)
+		{
+		case 0:
+			if (P28T < 3.0f) return;
+			if (!C->bStarted) C->StartGame(true);
+			C->bPeaceful = true;
+			for (TActorIterator<AIronwakeShipPawn> It(W); It; ++It) if (*It != P) It->Destroy();
+			C->ConsoleCommand(TEXT("r.DynamicRes.OperationMode 0"));
+			C->ConsoleCommand(TEXT("r.ScreenPercentage 100"));
+			if (bPhoto) TogglePhoto();
+			S2Place(FVector(140000.f, -240000.f, 0.f), 0.f, true);
+			P->bAuxSteam = true; P->IWTelegraph(6); P->ZoomIndex = 2;
+			C->SetControlRotation(FRotator(-16.f, 15.f, 0.f));
+			Next();
+			return;
+		case 1: // Settle full 14 kn wake for 6.0 s, then whip camera at 360 deg/s from Yaw=15 -> 135 deg and snap mid-whip!
+			if (Since < 6.0f)
+			{
+				C->SetControlRotation(FRotator(-16.f, 15.f, 0.f));
+			}
+			else
+			{
+				const float WhipT = Since - 6.0f;
+				const float CurYaw = 15.f + WhipT * 360.f; // 360 deg/sec fast camera whip!
+				C->SetControlRotation(FRotator(-16.f, CurYaw, 0.f));
+				if (CurYaw >= 135.f && P28Sub == 0 && !FScreenshotRequest::IsScreenshotRequested())
+				{
+					UE_LOG(LogIronwake, Display, TEXT("IWP35 CAM_WHIP_FAST yaw=%.1f cam=%s ship=%s"), CurYaw, *C->PlayerCameraManager->GetCameraLocation().ToString(), *P->GetActorLocation().ToString());
+					Shot(TEXT("P35_camwhip_fast"));
+					P28Sub = 1;
+				}
+				if (CurYaw >= 210.f) Next();
+			}
+			return;
+		case 2: // Now hold camera completely STILL at the exact same Yaw=135 deg for 1.5 s and snap reference!
+			C->SetControlRotation(FRotator(-16.f, 135.f, 0.f));
+			if (Since >= 1.5f && P28Sub == 0 && !FScreenshotRequest::IsScreenshotRequested())
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP35 CAM_WHIP_STILL yaw=135.0 cam=%s ship=%s"), *C->PlayerCameraManager->GetCameraLocation().ToString(), *P->GetActorLocation().ToString());
+				Shot(TEXT("P35_camwhip_still"));
+				P28Sub = 1;
+			}
+			if (Since >= 2.6f)
+			{
+				P28Mode.Empty();
+				if (bQuit) UKismetSystemLibrary::QuitGame(this, C, EQuitPreference::Quit, false);
+			}
+			return;
+		}
+		return;
+	}
 
 	switch (P28Step)
 	{

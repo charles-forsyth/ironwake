@@ -243,19 +243,8 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 			PrevZ = T[w].Z;
 		}
 	}
-	// ---- P14: sheltered basin: a glassy slab just above the mean sea inside the breakwaters. It hides the open-sea chop when the sea is
-	// moderate or worse, so the basin reads calm next to the full state outside (the ocean is one global spectrum). Visibility via IronwakeSetBasinCalm.
-	{
-		if (UStaticMeshComponent* Bs = Block(-48.f, 140.f, -150.f, 158.f, 0.05f, 0.42f, TEXT("MI_IW_Setts")))
-		{
-			// the ocean's own material on a flat slab: same colour, ripple normals and sky reflection, but no Gerstner height or crest foam
-			UMaterialInterface* Wm = MatOf(TEXT("MI_IW_WaterInst")); if (!Wm) Wm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Ironwake/Water/MI_IW_WaterInst.MI_IW_WaterInst"));
-			if (Wm) Bs->SetMaterial(0, Wm);
-			else { UMaterialInstanceDynamic* Mi = VTintP12(this, FLinearColor(0.004f, 0.012f, 0.022f)); if (Mi) Bs->SetMaterial(0, Mi); }
-			Bs->SetCollisionEnabled(ECollisionEnabled::NoCollision); Bs->SetCastShadow(false); Bs->SetVisibility(false);
-			GBasinSlab = Bs;
-		}
-	}
+	// ---- P34: GBasinSlab permanently disabled (sitting 5-42 cm above mean sea caused harsh coplanar Z-fighting/wave-clipping flicker in front of Greyhaven harbour; AIronwakeStorm::BasinFade already shelters the wave spectrum smoothly).
+	GBasinSlab = nullptr;
 	// ---- glow: one dynamic material for windows + lamp bulbs (On = night factor); brighter than P10 so it reads at 700 m
 	if (UMaterialInterface* GlowM = MatOf(TEXT("MI_IW_Window")))
 	{

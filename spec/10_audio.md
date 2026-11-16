@@ -82,25 +82,25 @@ Called every tick for each non-sinking ship [src Source/IronwakeTest/IronwakeShi
 
 | Component | Asset | Attach point | Source |
 |---|---|---|---|
-| `SndBow` | `bow_wash_loop` | bow, `X1*100` | `bow_wash_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:278] |
-| `SndWake` | `hull_wake_loop` | stern, `X0*100` | `hull_wake_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:279] |
-| `SndLap` | `slow_lap_loop` | origin | `slow_lap_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:280] |
-| `SndRush` | `bow_rush_proc` | bow | `bow_rush_proc` [src Source/IronwakeTest/IronwakeShipHydro.cpp:282] |
-| `SndHiss` | `hull_hiss_proc` | origin | `hull_hiss_proc` [src Source/IronwakeTest/IronwakeShipHydro.cpp:283] |
+| `SndBow` | `bow_wash_loop` | bow, `X1*100` | `bow_wash_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:280] |
+| `SndWake` | `hull_wake_loop` | stern, `X0*100` | `hull_wake_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:281] |
+| `SndLap` | `slow_lap_loop` | origin | `slow_lap_loop` [src Source/IronwakeTest/IronwakeShipHydro.cpp:282] |
+| `SndRush` | `bow_rush_proc` | bow | `bow_rush_proc` [src Source/IronwakeTest/IronwakeShipHydro.cpp:284] |
+| `SndHiss` | `hull_hiss_proc` | origin | `hull_hiss_proc` [src Source/IronwakeTest/IronwakeShipHydro.cpp:285] |
 
 Attenuation (per ship): spatialised, inner shape extent `40000` cm (400 m) for the player, `4000` cm (40 m) for NPCs; falloff distance `120000` cm player, `60000` cm NPC [src Source/IronwakeTest/IronwakeShipHydro.cpp:261-262].
 
-Gain curves (`Kn` = speed in knots clamped >= 0; `Frac = clamp(Kn/13, 0, 1.2)`, 13 kn = FULL AHEAD; `Own` = `1` player, `0.45f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:289] NPC):
+Gain curves (`Kn` = speed in knots clamped >= 0; `Frac = clamp(Kn/13, 0, 1.2)`, 13 kn = FULL AHEAD; `Own` = `1` player, `0.45f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:291] NPC):
 
 | Layer | Volume multiplier | Pitch multiplier | Source |
 |---|---|---|---|
-| Slow lap | `clamp(1 - Kn/4, 0.15, 1) * 0.7 * Own` (never fully silent; `0.105` floor) | none | `Kn / 4.f, 0.15f, 1.f) * 0.7f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:290] |
-| Bow wash | `(SmoothStep(0.05, 0.9, Frac)*0.95 + clamp(BowSubmergeM+1, 0, 2)*0.15*Frac) * Own` | `0.95 + 0.1*clamp(Frac,0,1)` (+/-5 %) | `SmoothStep(0.05f, 0.9f, Frac) * 0.95f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:291], `0.95f + 0.1f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:293] |
-| Wake | `SmoothStep(0.1, 1, Frac) * 0.8 * Own` | `0.95 + 0.1*clamp(Frac,0,1)` | `SmoothStep(0.1f, 1.f, Frac) * 0.8f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:292] |
-| Bow rush | `clamp(Kn/10,0,1) * 0.9 * Own * Dr1` (0 at rest, full at 10 kn) | `0.9 + 0.2*clamp(Kn/12,0,1)` | `Kn / 10.f, 0.f, 1.f) * 0.9f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:299] |
-| Hull hiss | `clamp(Kn/8,0,1) * 0.7 * Own * Dr2` (full at 8 kn) | none | `Kn / 8.f, 0.f, 1.f) * 0.7f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:300] |
+| Slow lap | `clamp(1 - Kn/4, 0.15, 1) * 0.7 * Own` (never fully silent; `0.105` floor) | none | `Kn / 4.f, 0.15f, 1.f) * 0.7f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:292] |
+| Bow wash | `(SmoothStep(0.05, 0.9, Frac)*0.95 + clamp(BowSubmergeM+1, 0, 2)*0.15*Frac) * Own` | `0.95 + 0.1*clamp(Frac,0,1)` (+/-5 %) | `SmoothStep(0.05f, 0.9f, Frac) * 0.95f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:293], `0.95f + 0.1f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:295] |
+| Wake | `SmoothStep(0.1, 1, Frac) * 0.8 * Own` | `0.95 + 0.1*clamp(Frac,0,1)` | `SmoothStep(0.1f, 1.f, Frac) * 0.8f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:294] |
+| Bow rush | `clamp(Kn/10,0,1) * 0.9 * Own * Dr1` (0 at rest, full at 10 kn) | `0.9 + 0.2*clamp(Kn/12,0,1)` | `Kn / 10.f, 0.f, 1.f) * 0.9f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:301] |
+| Hull hiss | `clamp(Kn/8,0,1) * 0.7 * Own * Dr2` (full at 8 kn) | none | `Kn / 8.f, 0.f, 1.f) * 0.7f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:302] |
 
-Random drift so loops do not repeat audibly: `Dr1 = 0.88 + 0.12*sin(t*0.23+1.3)*sin(t*0.071)`, `Dr2` the same form with `0.17f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:298] and `0.053f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:298]. All volume values are floored at `0.001` (never exactly zero, so the loops keep playing).
+Random drift so loops do not repeat audibly: `Dr1 = 0.88 + 0.12*sin(t*0.23+1.3)*sin(t*0.071)`, `Dr2` the same form with `0.17f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:300] and `0.053f` [src Source/IronwakeTest/IronwakeShipHydro.cpp:300]. All volume values are floored at `0.001` (never exactly zero, so the loops keep playing).
 
 There is **no** dependency on sea state, weather or rain in these five layers except `BowSubmergeM` in the bow wash term. Sea state affects audio only through the storm layers (10.5).
 
@@ -126,7 +126,7 @@ Pitch is not modulated on any storm layer. Wind speed per weather/sea state is c
 
 | Sound | Where / when | Volume / pitch | Attenuation (inner extent, falloff) | Source |
 |---|---|---|---|---|
-| `harbour_lap_proc` at the dock (Voyage) | `HarbourC + (0,0,800)`, started at BeginPlay of the harbour build | volume `1.6`, pitch `0.95` | `20000` cm, `160000` cm | `1.6f, 0.95f` [src Source/IronwakeTest/IronwakeVoyage.cpp:497], `FalloffDistance = 160000.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:496] |
+| `harbour_lap_proc` at the dock (Voyage) | `HarbourC + (0,0,800)`, started at BeginPlay of the harbour build | volume `1.6`, pitch `0.95` | `20000` cm, `160000` cm | `1.6f, 0.95f` [src Source/IronwakeTest/IronwakeVoyage.cpp:510], `FalloffDistance = 160000.f` [src Source/IronwakeTest/IronwakeVoyage.cpp:509] |
 | `harbour_lap_proc` at the island (LivingSea) | `IslandCentre + (0,0,1500)` | volume `1.4`, pitch `1.0` | `35000` cm, `280000` cm | `MakeAtten(this, 35000.f, 280000.f)` [src Source/IronwakeTest/IronwakeLivingSea.cpp:666] |
 | `surf_proc` per island | `I.C + (0,0,300)`, random start offset `0..25` s | volume `1.4`, pitch `1.0` | extent `max(R*0.8, 6000)`, falloff `150000` | `FalloffDistance = 150000.f` [src Source/IronwakeTest/IronwakeArchipelago.cpp:474], `1.4f, 1.f, Rng.FRandRange(0.f, 25.f)` [src Source/IronwakeTest/IronwakeArchipelago.cpp:475] |
 | `foghorn_sfx` from a random merchant | every `FRandRange(70, 140)` s, at the merchant + `(0,0,2500)` | volume `1.6`, pitch `FRandRange(0.85, 1.0)` | `40000` cm, `900000` cm | `FRandRange(70.f, 140.f)` [src Source/IronwakeTest/IronwakeLivingSea.cpp:679], `MakeAtten(this, 40000.f, 900000.f)` [src Source/IronwakeTest/IronwakeLivingSea.cpp:684] |

@@ -1,4 +1,4 @@
-"""P27 (Pass 3): Pre-solved Hydrodynamic Kelvin & Prop-Wash LUTs + multi-scale (34m / 12m / 3.8m) Voronoi Cellular Foam -> /Game/Ironwake/Water.
+"""P27 (Pass 3): Ursa Hydrodynamic Kelvin & Prop-Wash LUTs + multi-scale (34m / 12m / 3.8m) Voronoi Cellular Foam -> /Game/Ironwake/Water.
 Fixes verified against Pass-2 vision judge:
  - Glassy 3-kn crawl (SpdGate = smoothstep(2.0, 7.5, Kn), IW_ShipNormalK = 12.0 -> zero 3-kn transverse ribcage)
  - Echelon ray-angle gate (ray = |y_lut| / s_bow in [0.20..0.42]) so whitecap lace sits strictly along the ~19 deg feathered echelon cusp arms & bow shoulder, NEVER as animal-spine brackets across interior transverse waves
@@ -11,7 +11,7 @@ MEL = unreal.MaterialEditingLibrary
 EAL = unreal.EditorAssetLibrary
 AT = unreal.AssetToolsHelpers.get_asset_tools()
 
-SRC_DIR = os.environ.get("IRONWAKE_WATER_LUT", os.path.join(os.path.dirname(__file__), "..", "Data"))
+SRC_DIR = os.path.expanduser("~/Projects/game-concepts/ironwake/models/water_lut")
 PROJ_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 DEST = "/Game/Ironwake/Water"
 
@@ -41,7 +41,8 @@ def import_tex(full_path, dest_name, clamp_addr=True):
 
 
 SHIPWAVE_BODY = r"""
-float3 AP = (WP - Cam) + CamAbs.xyz;
+// P35: exact GPU-resolved LWC world position (zero 1-frame C++ IW_CamPos lag when orbiting/whipping the camera fast!)
+float3 AP = WSHackToFloat(GetWorldPosition(Parameters)) + (WP - Cam + CamAbs.xyz) * 0.0;
 float fp = 50.0;
 #if PIXELSHADER
 fp = max(max(length(ddx(AP.xy)), length(ddy(AP.xy))), 1.0);
@@ -56,6 +57,14 @@ float foam = 0.0;
 float aerAcc = 0.0;
 const float G = 9.81;
 
+// Hoisted uniform ddx/ddy of undisplaced AP.xy BEFORE any branch so mip gradients are 100% quad-uniform!
+float2 dAP_dx = float2(0.0, 0.0);
+float2 dAP_dy = float2(0.0, 0.0);
+#if PIXELSHADER
+dAP_dx = ddx(AP.xy) * 0.01;
+dAP_dy = ddy(AP.xy) * 0.01;
+#endif
+
 [unroll] for (int s = 0; s < NS; ++s)
 {
   float2 Pq = AP.xy + (s == 1 ? float2(eps, 0.0) : (s == 2 ? float2(0.0, eps) : float2(0.0, 0.0)));
@@ -66,7 +75,8 @@ const float G = 9.81;
     float L = max(SB[i].y, 1.0);
     if (V < 0.15) continue;
     float2 Dm = (Pq - SA[i].xy) * 0.01;
-    if (dot(Dm, Dm) > 52.0 * L * L) continue;
+    // P34: extend propagating wake domain out to 14.5 * L astern and +/- 5.6 * L abeam (never clips into a small triangle!)
+    if (dot(Dm, Dm) > 240.0 * L * L) continue;
 
     float X1 = SB[i].z;
     float HB = max(SB[i].w, 0.5);
@@ -74,107 +84,127 @@ const float G = 9.81;
     float Yl = -Dm.x * SA[i].w + Dm.y * SA[i].z;
     float U = X1 - Xl; // metres aft of stem (0 = stem, L = stern)
     float x_lut = 0.48 - 0.96 * (U / L);
-    if (x_lut <= -6.45 || x_lut >= 1.45) continue;
+    if (x_lut <= -14.5 || x_lut >= 1.45) continue;
 
     float Ay = abs(Yl);
-    if (Ay >= 2.95 * L) continue;
+    if (Ay >= 5.6 * L) continue;
 
     float Dr = SC[i].x; float Fb = SC[i].y; float CK = SC[i].z; float TK = SC[i].w;
-    float QK = SD[i].x; float WK = SD[i].y; float RawThrust = SD[i].z; float RollOut = SD[i].w;
+    float DevL = max(SD[i].x, 0.04); float WK = SD[i].y; float RawThrust = SD[i].z; float RollOut = SD[i].w;
     float AbsThrust = abs(RawThrust);
     bool bTwin = (RawThrust < -0.01);
 
     float Fn = V / sqrt(G * L);
     float KnApprox = V / (0.514444 * 1.5);
-    // Strict crawl gate: glassy/gentle at 0-3.5 kn, moderate swell + light lace at 8 kn, full breaking boil at 13-15 kn!
-    float SpdGate = smoothstep(2.2, 7.0, KnApprox);
-    float SpdFoam = pow(smoothstep(3.2, 13.5, KnApprox), 1.55);
-    float Gk = pow(saturate(Fn / 0.32), 1.30) * SpdGate;
+    float SpdGate = smoothstep(1.4, 6.2, KnApprox);
+    float SpdFoam = pow(smoothstep(3.0, 13.5, KnApprox), 1.50);
+    float Gk = pow(saturate(Fn / 0.32), 1.25) * SpdGate;
     if (Gk < 0.0008 && AbsThrust < 0.02) continue;
 
-    // Speed-scaled wake length: short 0.65 L eddy at crawl -> full 6.0 L at speed
+    // P34: progressive time-integrated wake growth from 0 behind stern (DevL) + natural r^-0.5 dispersive radiation decay!
     float s_aft = max(-0.48 - x_lut, 0.0);
-    float maxWakeL = lerp(0.65, 6.0, smoothstep(2.0, 13.0, KnApprox));
-    float aftFade = (x_lut < -0.48) ? (1.0 - smoothstep(maxWakeL * 0.58, maxWakeL, s_aft)) : 1.0;
-    if (aftFade < 0.002) continue;
+    float speedMaxL = lerp(1.2, 13.8, smoothstep(1.5, 13.0, KnApprox));
+    float reachL = min(DevL * 0.95 + 0.25, speedMaxL);
+    float radDecay = rsqrt(1.0 + 0.38 * s_aft);
+    float aftFade = (x_lut < -0.48) ? (radDecay * (1.0 - smoothstep(reachL * 0.45, max(reachL, 0.30), s_aft))) : 1.0;
 
-    // Real hull half-breadth + dynamic roll/heel outboard clearance + 25 cm safety skin
+    // Smooth, C1-continuous hull-footprint envelope (NO hard 'continue' inside the finite-difference stencil, so (hh[1]-hh[0])/eps NEVER spikes into black sawtooth normals!)
     float u_h = abs(x_lut) * (1.0 / 0.48);
     float b_lut = (u_h < 1.0) ? (0.085 * pow(max(1.0 - pow(u_h, 2.4), 0.0), 0.65)) : 0.0;
     float HbReal = 0.0;
-    if (U >= -0.03 * L && U <= 1.03 * L)
+    if (U >= -0.04 * L && U <= 1.04 * L)
     {
-      float bowEnv = pow(saturate((U + 0.03 * L) / (0.14 * L)), 0.42);
-      float stnEnv = 1.0 - 0.25 * smoothstep(0.88 * L, 1.03 * L, U);
-      HbReal = HB * 1.04 * bowEnv * stnEnv + RollOut + 0.25;
+      float bowEnv = pow(saturate((U + 0.04 * L) / (0.15 * L)), 0.42);
+      float stnEnv = 1.0 - 0.35 * smoothstep(0.84 * L, 1.02 * L, U);
+      HbReal = HB * 1.02 * bowEnv * stnEnv + RollOut + 0.08;
     }
 
     float d_out = Ay - HbReal;
     float d_out_L = max(d_out, 0.0) / L;
     float w_near = 1.0 / (1.0 + 16.0 * d_out_L * d_out_L);
-    float y_lut_abs = (d_out >= 0.0) ? lerp(Ay / L, b_lut + d_out_L, w_near) : (b_lut * saturate(Ay / max(HbReal, 0.1)));
+    // Outboard of hull (d_out >= 0), sample LUT outside its own slender beam (b_lut + 0.03) so we NEVER pull the LUT's internal -1.0 hull pit onto the exterior waterline!
+    float b_edge = b_lut + 0.032 * saturate(1.0 - u_h * u_h);
+    float y_lut_abs = lerp(Ay / L, b_edge + d_out_L, w_near);
     float y_lut = (Yl >= 0.0 ? 1.0 : -1.0) * y_lut_abs;
-    if (abs(y_lut) >= 2.95) continue;
 
-    // Ray slope from stem (tan(19.47 deg) = 0.3536): separates outer echelon cusp arms from interior transverse waves
     float s_bow = max(0.50 - x_lut, 0.08);
     float ray = abs(y_lut) / s_bow;
-    // Clamp strictly to physical Kelvin envelope (<= 21 deg = 0.384) behind bow shoulder so wake NEVER fans wider than ~19.5 deg!
-    float kelvinCone = (x_lut < 0.15) ? (1.0 - smoothstep(0.365, 0.435, ray)) : 1.0;
-    if (kelvinCone < 0.002) continue;
+    // Wide Gaussian angular feathering beyond the 19.47 deg cusp (decays organically to ~32 deg — zero razor diagonal cutoff!)
+    float excessRay = max(ray - 0.355, 0.0);
+    float kelvinCone = (x_lut < 0.18) ? exp(-pow(excessRay / 0.145, 2.0)) : 1.0;
 
-    float2 luv = float2((y_lut + 3.0) * (1.0 / 6.0), (x_lut + 6.5) * (1.0 / 8.0));
+    float2 luv = float2(saturate((y_lut + 3.0) * (1.0 / 6.0)), saturate((x_lut + 6.5) * (1.0 / 8.0)));
+    float2 duv_dx = float2((-dAP_dx.x * SA[i].w + dAP_dx.y * SA[i].z) / (6.0 * L), -(dAP_dx.x * SA[i].z + dAP_dx.y * SA[i].w) * 0.96 / (8.0 * L));
+    float2 duv_dy = float2((-dAP_dy.x * SA[i].w + dAP_dy.y * SA[i].z) / (6.0 * L), -(dAP_dy.x * SA[i].z + dAP_dy.y * SA[i].w) * 0.96 / (8.0 * L));
 
-    float envX = smoothstep(-6.45, -5.55, x_lut) * (1.0 - smoothstep(1.05, 1.40, x_lut));
-    float envY = 1.0 - smoothstep(2.40, 2.95, abs(y_lut));
-    float env = envX * envY * aftFade * kelvinCone;
-
-    float4 w4;
+    float h_norm = 0.0;
+    float breakMask = 0.0;
+    if (x_lut > -5.6 && abs(y_lut) < 2.75)
+    {
+      float4 w4;
 #if PIXELSHADER
-    float2 duv_dx = float2((-ddx(Dm.x) * SA[i].w + ddx(Dm.y) * SA[i].z) / (6.0 * L), -(ddx(Dm.x) * SA[i].z + ddx(Dm.y) * SA[i].w) * 0.96 / (8.0 * L));
-    float2 duv_dy = float2((-ddy(Dm.x) * SA[i].w + ddy(Dm.y) * SA[i].z) / (6.0 * L), -(ddy(Dm.x) * SA[i].z + ddy(Dm.y) * SA[i].w) * 0.96 / (8.0 * L));
-    w4 = Texture2DSampleGrad(KelvinLut, KelvinLutSampler, luv, duv_dx, duv_dy);
+      w4 = Texture2DSampleGrad(KelvinLut, KelvinLutSampler, luv, duv_dx, duv_dy);
 #else
-    w4 = Texture2DSampleLevel(KelvinLut, KelvinLutSampler, luv, 0);
+      w4 = Texture2DSampleLevel(KelvinLut, KelvinLutSampler, luv, 0);
 #endif
-    float3 hz = (w4.rgb - 0.50196078) * 2.007874;
-    float w12 = saturate((Fn - 0.15) * (1.0 / 0.09));
-    float w23 = saturate((Fn - 0.22) * (1.0 / 0.10));
-    float h_norm = lerp(lerp(hz.r, hz.g, w12), hz.b, w23);
+      float3 hz = (w4.rgb - 0.50196078) * 2.007874;
+      float w12 = saturate((Fn - 0.15) * (1.0 / 0.09));
+      float w23 = saturate((Fn - 0.22) * (1.0 / 0.10));
+      h_norm = lerp(lerp(hz.r, hz.g, w12), hz.b, w23);
+      breakMask = w4.a;
+    }
+    // Seamless far-field dispersive Kelvin wave continuation from -4.5 L out to -14.5 L (waves continue rolling outward and get smaller & smaller!)
+    if (x_lut < -4.5)
+    {
+      float farBlend = smoothstep(-4.5, -5.8, x_lut);
+      float k0 = 1.0 / max(Fn * Fn, 0.035);
+      float cuspEnv = exp(-pow((ray - 0.342) / 0.095, 2.0));
+      float transEnv = exp(-pow(ray / 0.26, 2.0));
+      float phaseDiv = k0 * (0.58 * s_bow - 1.55 * abs(y_lut));
+      float phaseTr = k0 * 0.92 * s_bow * sqrt(max(1.0 - 0.65 * ray * ray, 0.2));
+      float hFar = 0.52 * cuspEnv * cos(phaseDiv) + 0.28 * transEnv * cos(phaseTr);
+      h_norm = lerp(h_norm, hFar, farBlend);
+      breakMask *= (1.0 - farBlend);
+    }
 
-    // Keep clear 3D transverse wave troughs (0.76x) while boosting outer ~19 deg echelon cusp ridges (1.26x)
-    float cuspBoost = (x_lut < -0.52) ? lerp(0.76, 1.26, smoothstep(0.18, 0.30, ray)) : 1.0;
-    float HbAmp = CK * Fb * Gk * 1.40;
-    float TrAmp = TK * Dr * Gk * 1.25;
+    float envAhead = 1.0 - smoothstep(0.95, 1.38, x_lut);
+    float env = envAhead * aftFade * kelvinCone;
+
+    // Smoothly cap bow mound at +0.62*Fb (never buries ram/stem in a steep wall) and lift wave right along hull waterline so red boot-top has natural 3D crest/trough modulation!
+    float cuspBoost = (x_lut < -0.52) ? lerp(0.75, 1.30, smoothstep(0.16, 0.30, ray)) : 1.0;
+    float HbAmp = min(CK * Fb * Gk * 1.15, Fb * 0.62 + 0.35);
+    float TrAmp = min(TK * Dr * Gk * 0.72, Dr * 0.32 + 0.25);
     float midWin = exp(-pow((x_lut - 0.02) / 0.36, 2.0)) * exp(-pow(d_out_L / 0.22, 2.0));
     float aftWin = smoothstep(0.20, -0.55, x_lut);
-    float posScale = lerp(HbAmp, HbAmp * max(WK, 0.70) * 1.28 * cuspBoost, aftWin);
-    float negScale = lerp(HbAmp * max(WK, 0.70) * 1.10 * cuspBoost, TrAmp, midWin);
+    float posScale = lerp(HbAmp, HbAmp * max(WK, 0.75) * 1.28 * cuspBoost, aftWin);
+    float negScale = lerp(HbAmp * max(WK, 0.75) * 0.95 * cuspBoost, TrAmp, midWin);
     float bandLim = 1.0 / (1.0 + pow(fp / max(L * 18.0, 45.0), 2.0));
     float hi_m = (h_norm >= 0.0 ? h_norm * posScale : h_norm * negScale) * env * bandLim;
-    float hullInteriorSuppress = (u_h < 1.00 && d_out < 0.15) ? smoothstep(-0.85, 0.15, d_out) : 1.0;
+    float sternRel = smoothstep(-0.34, -0.48, x_lut);
+    float hullInteriorSuppress = lerp(smoothstep(-2.40, -0.25, d_out), 1.0, sternRel);
     h += hi_m * hullInteriorSuppress * 100.0;
 
 #if PIXELSHADER
     if (s == 0)
     {
-      float4 f4 = Texture2DSampleGrad(FoamLut, FoamLutSampler, luv, duv_dx, duv_dy);
+      float lutFade = (1.0 - smoothstep(-5.0, -5.85, x_lut)) * (1.0 - smoothstep(2.35, 2.85, abs(y_lut)));
+      float4 f4 = (lutFade > 0.002) ? (Texture2DSampleGrad(FoamLut, FoamLutSampler, luv, duv_dx, duv_dy) * lutFade) : float4(0.0, 0.0, 0.0, 0.0);
       float hbRatio = 0.085 / max(HB / L, 0.055);
       float2 luv_prop = float2(min(max((Yl / L) * hbRatio * (1.0 / 6.0) + 0.5, 0.005), 0.995), luv.y);
-      float propLut = Texture2DSampleGrad(FoamLut, FoamLutSampler, luv_prop, duv_dx * float2(hbRatio, 1.0), duv_dy * float2(hbRatio, 1.0)).r;
+      float propLut = (x_lut > -5.85) ? lerp(0.55, Texture2DSampleGrad(FoamLut, FoamLutSampler, luv_prop, duv_dx * float2(hbRatio, 1.0), duv_dy * float2(hbRatio, 1.0)).r, lutFade) : 0.55;
 
-      float outGate = (u_h < 1.03) ? smoothstep(0.06, 0.52, d_out) : 1.0;
+      float outGate = lerp(smoothstep(-0.20, 0.35, d_out), 1.0, sternRel);
 
       // 3-Octave Ship-Aligned Periodic Voronoi Cellular Foam (36 m aerial + 12 m chase + 3.8 m close) so lacy polygons read at EVERY altitude!
       float2 fwd = SA[i].zw;
       float2 rt = float2(-fwd.y, fwd.x);
-      float s_m = max(U - 0.96 * L, 0.0);
+      float s_m = max(U - 0.88 * L, 0.0);
       float spinSign = (Yl >= 0.0 ? 1.0 : -1.0) * (bTwin ? 1.0 : 0.5);
       float2 vortWarp = float2(sin(Yl * 0.22 + s_m * 0.07 - Time * 0.95), cos(s_m * 0.11 - Yl * 0.19 * spinSign + Time * 0.75)) * 0.075;
 
       float2 wXY = float2(Xl, Yl);
-      float2 dxW = float2(dot(ddx(Dm), fwd), dot(ddx(Dm), rt));
-      float2 dyW = float2(dot(ddy(Dm), fwd), dot(ddy(Dm), rt));
+      float2 dxW = float2(dot(dAP_dx, fwd), dot(dAP_dx, rt));
+      float2 dyW = float2(dot(dAP_dy, fwd), dot(dAP_dy, rt));
       float4 ca4 = Texture2DSampleGrad(CellTex, CellTexSampler, wXY / 36.0 + float2(Time * 0.06 * (0.3 + AbsThrust), spinSign * Time * 0.015) + vortWarp * 0.7, dxW / 36.0, dyW / 36.0);
       float4 cm4 = Texture2DSampleGrad(CellTex, CellTexSampler, wXY / 11.5 + float2(Time * 0.16 * (0.3 + AbsThrust), -spinSign * Time * 0.03) + vortWarp, dxW / 11.5, dyW / 11.5);
       float4 cf4 = Texture2DSampleGrad(CellTex, CellTexSampler, wXY / 3.6 + float2(Time * 0.36 * (0.3 + AbsThrust), spinSign * Time * 0.05) - vortWarp * 1.3, dxW / 3.6, dyW / 3.6);
@@ -187,9 +217,9 @@ const float G = 9.81;
       float vorWeb = lerp(vorNear, vorFar, farW);
       float eddyCluster = lerp(0.25 + 0.75 * cm4.b, 0.22 + 0.78 * ca4.b, farW);
 
-      // Physical Twin-Screw vs Single-Screw Kolmogorov s^0.42 momentum jets (moderate cruise wash at 8 kn, full boil at 14 kn!)
-      float propGate = smoothstep(0.94 * L, 1.01 * L, U) * ((u_h < 1.01) ? outGate : 1.0);
-      float propStrength = pow(AbsThrust, 1.35) * pow(smoothstep(2.5, 13.5, KnApprox), 1.35) * propGate;
+      // Physical Twin-Screw vs Single-Screw Kolmogorov s^0.42 momentum jets: emerges right from beneath the stern counter (0.86 L) with zero dark gap!
+      float propGate = smoothstep(0.85 * L, 0.96 * L, U);
+      float propStrength = pow(AbsThrust, 1.25) * pow(smoothstep(2.0, 13.0, KnApprox), 1.30) * propGate;
       float jetCore = 0.0;
       float subJet = 0.0;
       if (propStrength > 0.005)
@@ -222,22 +252,25 @@ const float G = 9.81;
       float nearBoil = exp(-s_aft * 1.45) * jetCore * propStrength * 0.32;
       float fProp = saturate((vorWeb * 1.34 + nearBoil + totJet * 0.32 - 0.64) * 2.75) * saturate(totJet * 2.05);
 
-      // FEATHERED ~19.47 DEG ECHELON CUSP ARMS ONLY (attenuates downstream via exp(-s_aft * 0.28) instead of repeating uniformly!)
-      float crestPeak = smoothstep(0.08, 0.32, h_norm);
+      // CONTINUOUS ~19.47 DEG KELVIN DIVERGENT WAVE ARMS (from bow shoulders all the way to -13 L astern — NEVER breaks into detached islands!)
+      float crestPeak = smoothstep(0.04, 0.28, h_norm);
       float cuspEnvelope = (x_lut < -0.15)
-        ? (smoothstep(0.21, 0.285, ray) * (1.0 - smoothstep(0.36, 0.42, ray)))
-        : (smoothstep(0.06, 0.18, abs(y_lut)) * (1.0 - smoothstep(0.38, 0.46, ray)));
-      float cuspRidge = saturate((f4.g * 2.85 + w4.a * 0.85) * crestPeak * cuspEnvelope) * exp(-s_aft * 0.28);
-      float cuspVor = saturate((vorWeb * 1.28 - 0.24) * 2.10);
-      float fKelv = cuspRidge * (0.28 + 0.92 * cuspVor) * pow(SpdFoam, 1.15) * outGate;
+        ? exp(-pow((ray - 0.335) / 0.075, 2.0))
+        : (smoothstep(0.05, 0.16, abs(y_lut)) * (1.0 - smoothstep(0.38, 0.48, ray)));
+      float cuspBase = lerp(saturate(f4.g * 2.2 + breakMask * 0.65 + 0.32), 0.58, smoothstep(-4.2, -5.6, x_lut));
+      float cuspRidge = saturate(cuspBase * (0.28 + 0.85 * crestPeak) * cuspEnvelope) * rsqrt(1.0 + 0.42 * s_aft);
+      float cuspVor = saturate((vorWeb * 1.28 - 0.22) * 2.05);
+      float fKelv = cuspRidge * (0.32 + 0.88 * cuspVor) * pow(SpdFoam, 1.12) * outGate;
 
-      // Shift bow foam lookup ~0.03*L aft so shoulder foam hugs stem/cutwater cleanly with zero gap
-      float2 luv_bow = float2(luv.x, min(luv.y + 0.029 / 8.0, 0.995));
-      float bowB = Texture2DSampleGrad(FoamLut, FoamLutSampler, luv_bow, duv_dx, duv_dy).b;
-      float stemGlassy = smoothstep(0.46, 0.415, x_lut);
-      float troughClear = 1.0 - 0.88 * exp(-pow((x_lut - 0.10) / 0.16, 2.0));
-      float contactGate = (u_h < 1.04) ? smoothstep(0.08, 0.46, d_out) : 1.0;
-      float fCont = bowB * 0.88 * SpdFoam * contactGate * stemGlassy * troughClear * cuspVor;
+      // Natural in-shader bow moustache peel + crisp hull-waterline streaming lace (replaces translucent ribbon mesh -> ZERO dark/sawtooth seams!)
+      float2 luv_bow = float2(luv.x, min(luv.y + 0.024 / 8.0, 0.995));
+      float bowB = (lutFade > 0.002) ? (Texture2DSampleGrad(FoamLut, FoamLutSampler, luv_bow, duv_dx, duv_dy).b * lutFade) : 0.0;
+      float SpdSkin = pow(smoothstep(2.4, 11.5, KnApprox), 1.25);
+      float bowPeel = exp(-pow((x_lut - 0.36) / 0.14, 2.0)) * exp(-pow(max(d_out, 0.0) / max(0.055 * L, 1.5), 1.5)) * smoothstep(-0.85, -0.05, d_out);
+      float hullSkin = (u_h < 0.98) ? (exp(-pow(max(d_out, 0.0) / max(0.022 * L, 0.95), 1.4)) * smoothstep(-0.85, -0.05, d_out) * (0.45 + 0.55 * smoothstep(0.45, 0.85, u_h))) : 0.0;
+      float troughClear = 1.0 - 0.55 * exp(-pow((x_lut - 0.06) / 0.18, 2.0));
+      float contactGate = lerp(smoothstep(-0.85, -0.05, d_out), 1.0, sternRel);
+      float fCont = saturate(bowB * 0.88 * troughClear + bowPeel * 0.82 + hullSkin * 0.62) * SpdSkin * contactGate * (0.28 + 0.85 * cuspVor);
 
       float fShip = max(fProp, max(fKelv, fCont)) * env;
       fShip = (fShip * 1.45) / (1.0 + fShip * 1.45);
@@ -255,7 +288,7 @@ const float G = 9.81;
 """
 
 PIXEL_TAIL = r"""
-float2 g = float2(hh[1] - hh[0], hh[2] - hh[0]) / eps;
+float2 g = clamp(float2(hh[1] - hh[0], hh[2] - hh[0]) / eps, -0.32, 0.32);
 float m = saturate(foam * FoamK);
 return float4(g.x, g.y, m, saturate(aerAcc));
 """
@@ -288,6 +321,14 @@ def patch_water_root(kelvin_tex, foam_tex, cell_tex):
     exprs = MEL.get_material_expressions(m)
 
     cu_foam = [e for e in exprs if isinstance(e, unreal.MaterialExpressionCustom) and str(e.get_editor_property("description")) == "IW_Foam"][0]
+    foam_code = str(cu_foam.get_editor_property("code"))
+    if "float3 AP = (WP - Cam) + CamAbs.xyz;" in foam_code:
+        foam_code = foam_code.replace(
+            "float3 AP = (WP - Cam) + CamAbs.xyz;",
+            "#if PIXELSHADER\nfloat3 AP = WSHackToFloat(GetWorldPosition_NoMaterialOffsets(Parameters)) + (WP - Cam + CamAbs.xyz) * 0.0;\n#else\nfloat3 AP = WSHackToFloat(GetWorldPosition(Parameters)) + (WP - Cam + CamAbs.xyz) * 0.0;\n#endif"
+        )
+        cu_foam.set_editor_property("code", foam_code)
+        L("patched IW_Foam to exact GPU LWC GetWorldPosition (zero camera-orbit slide!)")
     ins_f = MEL.get_inputs_for_material_expression(m, cu_foam)
     names_f = [str(n) for n in MEL.get_material_expression_input_names(cu_foam)]
     src_f = dict(zip(names_f, ins_f))
@@ -405,7 +446,7 @@ float3 brightAqua = float3(0.10, 0.52, 0.57);
 float3 whiteFroth = float3(0.92, 0.95, 0.96);
 float3 subCol = lerp(deepTurq, brightAqua, saturate(aer * 1.15));
 float3 wakeCol = lerp(subCol, whiteFroth, smoothstep(0.16, 0.65, m));
-return lerp(BC, wakeCol, shipAct * saturate(max(aer * 0.90, m)));
+return lerp(BC, wakeCol, shipAct * saturate(max(aer * 0.72, m * 0.88)));
 """
         )
         MEL.connect_material_expressions(br, "BaseColor", aer_bc, "BC")
@@ -419,7 +460,7 @@ return lerp(BC, wakeCol, shipAct * saturate(max(aer * 0.90, m)));
 float m = PX.z;
 float aer = PX.w;
 float subW = saturate(aer * (1.0 - m * 0.62));
-return EM + float3(0.022, 0.16, 0.20) * subW;
+return EM + float3(0.009, 0.068, 0.088) * subW;
 """
         )
         MEL.connect_material_expressions(br, "EmissiveColor", aer_em, "EM")
@@ -452,9 +493,13 @@ return lerp(RG, max(RG, 0.40), saturate(m * 0.85 + aer * 0.35));
         MEL.connect_material_expressions(aer_rg, "", top, "Roughness")
         L("wired IW_ShipAerBC/EM/OP/RG into MakeMaterialAttributes")
 
-    # Balanced 3D wave slope normal tilt so both transverse waves and echelon arms catch clean sky highlights without harsh SSR voids
+    # True physical slope tilt (1.35x, clamped <= 0.43 rad in IW_ShipNormal) so waves catch natural sky highlights with ZERO black SSR/Lumen voids!
     if "IW_ShipNormalK" in sparams:
-        sparams["IW_ShipNormalK"].set_editor_property("default_value", 17.5)
+        sparams["IW_ShipNormalK"].set_editor_property("default_value", 1.35)
+    for e in exprs:
+        if isinstance(e, unreal.MaterialExpressionCustom) and str(e.get_editor_property("description")) == "IW_ShipNormal":
+            e.set_editor_property("code", "float2 g = clamp(G.xy * min(K, 2.0), -0.45, 0.45); return normalize(N + float3(-g.x, -g.y, 0.0));")
+            L("clamped IW_ShipNormal to physical slope [-0.45, 0.45]")
 
     errs = MEL.recompile_material(m)
     L(f"M_IW_WaterRoot recompile: {errs}")
@@ -469,7 +514,8 @@ def build_wake_lut_material(foam_tex, cell_tex):
     m.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
     m.set_editor_property("two_sided", True)
     try:
-        m.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_VOLUMETRIC_NON_DIRECTIONAL)
+        m.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE)
+        m.set_editor_property("compute_fog_per_pixel", True)
     except Exception:
         pass
 
@@ -492,10 +538,11 @@ def build_wake_lut_material(foam_tex, cell_tex):
         (lambda c, n: (c.set_editor_property("input_name", n), c)[1])(unreal.CustomInput(), n) for n in names
     ])
     cu.set_editor_property("code", r"""
-float2 dx1 = ddx(WP.xy) / 3400.0, dy1 = ddy(WP.xy) / 3400.0;
-float2 dx2 = ddx(WP.xy) / 1150.0, dy2 = ddy(WP.xy) / 1150.0;
-float4 ca4 = Texture2DSampleGrad(CellTex, CellTexSampler, WP.xy / 3400.0 + float2(Time * 0.02, -Time * 0.015), dx1, dy1);
-float4 cm4 = Texture2DSampleGrad(CellTex, CellTexSampler, WP.xy / 1150.0 + float2(-Time * 0.04, Time * 0.03), dx2, dy2);
+float2 WPosXY = WSHackToFloat(GetWorldPosition(Parameters)).xy + WP.xy * 0.0;
+float2 dx1 = ddx(WPosXY) / 3400.0, dy1 = ddy(WPosXY) / 3400.0;
+float2 dx2 = ddx(WPosXY) / 1150.0, dy2 = ddy(WPosXY) / 1150.0;
+float4 ca4 = Texture2DSampleGrad(CellTex, CellTexSampler, WPosXY / 3400.0 + float2(Time * 0.02, -Time * 0.015), dx1, dy1);
+float4 cm4 = Texture2DSampleGrad(CellTex, CellTexSampler, WPosXY / 1150.0 + float2(-Time * 0.04, Time * 0.03), dx2, dy2);
 float vorWeb = saturate(ca4.r * 0.68 + cm4.r * 0.55 * (0.30 + 0.70 * ca4.b));
 
 float drive = VCR * VCA * (0.30 + 0.70 * ca4.b);
@@ -539,17 +586,86 @@ return float4(col, saturate(op));
     L("saved M_IW_WakeLut")
 
 
-def fix_bow_foam_depthfade():
+def fix_bow_foam_depthfade(cell_tex):
     p = "/Game/Ironwake/FX/M_IW_BowFoam"
-    m = unreal.load_asset(p)
-    if not m:
-        return
-    for e in MEL.get_material_expressions(m):
-        if isinstance(e, unreal.MaterialExpressionDepthFade):
-            e.set_editor_property("fade_distance_default", 46.0)
-            L("M_IW_BowFoam DepthFade -> 46.0 cm")
+    m = unreal.load_asset(p) if EAL.does_asset_exist(p) else AT.create_asset("M_IW_BowFoam", "/Game/Ironwake/FX", unreal.Material, unreal.MaterialFactoryNew())
+    MEL.delete_all_material_expressions(m)
+    m.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
+    m.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
+    m.set_editor_property("two_sided", True)
+    try:
+        m.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE)
+        m.set_editor_property("compute_fog_per_pixel", True)
+    except Exception:
+        pass
+
+    def E(cls, x, y):
+        return MEL.create_material_expression(m, cls, x, y)
+
+    wp = E(unreal.MaterialExpressionWorldPosition, -950, 0)
+    tm = E(unreal.MaterialExpressionTime, -950, 120)
+    uv = E(unreal.MaterialExpressionTextureCoordinate, -950, 220)
+    vc = E(unreal.MaterialExpressionVertexColor, -950, 320)
+    ct = E(unreal.MaterialExpressionTextureObjectParameter, -950, 440)
+    ct.set_editor_property("parameter_name", "CellTex")
+    ct.set_editor_property("texture", cell_tex)
+    op_param = E(unreal.MaterialExpressionScalarParameter, -950, 620)
+    op_param.set_editor_property("parameter_name", "Opacity")
+    op_param.set_editor_property("default_value", 1.0)
+
+    cu = E(unreal.MaterialExpressionCustom, -520, 140)
+    cu.set_editor_property("output_type", unreal.CustomMaterialOutputType.CMOT_FLOAT4)
+    cu.set_editor_property("description", "IW_BowLaceVoronoi")
+    names = ["WP", "Time", "UV", "VCA", "OpMul", "CellTex"]
+    cu.set_editor_property("inputs", [
+        (lambda c, n: (c.set_editor_property("input_name", n), c)[1])(unreal.CustomInput(), n) for n in names
+    ])
+    cu.set_editor_property("code", r"""
+// UV.x runs 0 -> ~4 along hull/ribbon, UV.y runs 0 -> 1 across ribbon width
+float2 WPosXY = WSHackToFloat(GetWorldPosition(Parameters)).xy + WP.xy * 0.0;
+float2 flowUV1 = WPosXY / 980.0 + float2(UV.x * 0.35 - Time * 0.14, Time * 0.04);
+float2 flowUV2 = WPosXY / 290.0 + float2(UV.x * 0.85 - Time * 0.32, -Time * 0.08);
+float4 c1 = Texture2DSampleGrad(CellTex, CellTexSampler, flowUV1, ddx(WPosXY) / 980.0, ddy(WPosXY) / 980.0);
+float4 c2 = Texture2DSampleGrad(CellTex, CellTexSampler, flowUV2, ddx(WPosXY) / 290.0, ddy(WPosXY) / 290.0);
+float vor = saturate(c1.r * 0.62 + c2.r * 0.68 * (0.30 + 0.70 * c1.b));
+float drive = saturate(VCA * OpMul);
+//Thresholded lacy sea-foam: transparent gaps where drive is low, crisp white froth only on crests!
+float lace = saturate((vor * 1.38 + drive * 0.55 - 0.62) * 2.65) * saturate(drive * 2.15);
+float aer = drive * (0.25 + 0.75 * c1.b) * 0.32;
+float op = saturate(max(lace * 0.85, aer));
+float3 seaTint = float3(0.08, 0.38, 0.44);
+float3 crestWhite = float3(0.92, 0.96, 0.98);
+float3 col = lerp(seaTint, crestWhite, smoothstep(0.08, 0.52, lace));
+return float4(col, op);
+""")
+    for n, s, pin in [("WP", wp, ""), ("Time", tm, ""), ("UV", uv, ""), ("VCA", vc, "A"), ("OpMul", op_param, ""), ("CellTex", ct, "")]:
+        MEL.connect_material_expressions(s, pin, cu, n)
+
+    rgb = E(unreal.MaterialExpressionComponentMask, -200, 60)
+    rgb.set_editor_property("r", True); rgb.set_editor_property("g", True); rgb.set_editor_property("b", True); rgb.set_editor_property("a", False)
+    MEL.connect_material_expressions(cu, "", rgb, "")
+
+    alp = E(unreal.MaterialExpressionComponentMask, -200, 200)
+    alp.set_editor_property("r", False); alp.set_editor_property("g", False); alp.set_editor_property("b", False); alp.set_editor_property("a", True)
+    MEL.connect_material_expressions(cu, "", alp, "")
+
+    df = E(unreal.MaterialExpressionDepthFade, 60, 200)
+    df.set_editor_property("fade_distance_default", 26.0)
+    MEL.connect_material_expressions(alp, "", df, "Opacity")
+
+    em = E(unreal.MaterialExpressionMultiply, -40, -30)
+    em_k = E(unreal.MaterialExpressionConstant, -180, -50); em_k.set_editor_property("r", 0.16)
+    MEL.connect_material_expressions(rgb, "", em, "A")
+    MEL.connect_material_expressions(em_k, "", em, "B")
+
+    rough = E(unreal.MaterialExpressionConstant, 60, -90); rough.set_editor_property("r", 0.55)
+    MEL.connect_material_property(rgb, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    MEL.connect_material_property(em, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    MEL.connect_material_property(df, "", unreal.MaterialProperty.MP_OPACITY)
+    MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
     MEL.recompile_material(m)
     EAL.save_asset(p)
+    L("Rebuilt M_IW_BowFoam with crisp TLM_SURFACE Voronoi sea-lace (no grey slab!)")
 
 
 try:
@@ -558,10 +674,11 @@ try:
     ct = import_tex(os.path.join(PROJ_DIR, "Content", "Data", "T_IW_CellularFoamTile.png"), "T_IW_CellularFoamTile", clamp_addr=False)
     patch_water_root(kw, pw, ct)
     build_wake_lut_material(pw, ct)
-    fix_bow_foam_depthfade()
+    fix_bow_foam_depthfade(ct)
     L("P27_LUT_MATS_OK")
 except Exception as ex:
     import traceback
     L("EXC " + traceback.format_exc().replace("\n", " | "))
 finally:
-    unreal.SystemLibrary.quit_editor()
+    if not os.environ.get("IW_NOQUIT"):
+        unreal.SystemLibrary.quit_editor()

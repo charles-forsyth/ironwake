@@ -4,7 +4,9 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Math/Vector2D.h"
+#include "UObject/WeakObjectPtrTemplates.h"
 
+class AActor;
 class UWorld;
 class UMaterialInstanceDynamic;
 
@@ -19,8 +21,12 @@ struct FIwShipWaveSrc
 	float CrestK = 0.40f, TroughK = 0.10f, QuarterK = 0.60f, WedgeK = 0.45f;   // hull-class data (ShipDef)
 	float ThrustSteam = 0.f;                   // P27: [0..1.2] screw thrust * steam factor (0 on pure sail)
 	float RollOutM = 0.f;                      // P27: dynamic outboard waterline margin from roll/heel (m)
+	float DevelopedDistM = 0.f;                // P34: real distance (m) steamed since leaving rest — wake grows organically from 0 behind stern!
+	FVector2D PrevPosCm = FVector2D::ZeroVector;
+	bool bHasPrev = false;
 	bool bPlayer = false;                      // P27: guarantees player ship occupies shader slot 0 when in view
 	bool bTwinScrew = false;                   // P27: twin-screw split behind sternpost (ironclad)
+	TWeakObjectPtr<const AActor> LiveActor;    // P35: live post-physics actor transform read at TG_PostUpdateWork
 	double Stamp = 0.0;
 	const void* Key = nullptr;
 };
