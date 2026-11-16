@@ -1,6 +1,6 @@
 {
   "project": "Ironwake",
-  "count": 18,
+  "count": 20,
   "camera_orbit_default": "32deg 74deg auto",
   "gltf_axes": {
     "forward": "+Z",
@@ -371,6 +371,46 @@
       "size_bytes": 2938664,
       "size_kb": 2869.8,
       "unreal_role": "Ambient Harbour & Wake Flock Bird ( 1.30 m Span, Hinged L/R Wings )",
+      "qa_score": 8.2
+    },
+    {
+      "order": 19,
+      "id": "customs_house_v2",
+      "filename": "customs_house_v2.glb",
+      "title": "Victorian Maritime Customs House",
+      "category": "architecture",
+      "description": "22 m Portland-stone and red-brick Admiralty Customs House with rusticated ground-floor arcade, verdigris copper clock-cupola, tall Palladian sash windows, and harbourmaster portico.",
+      "dimensions_m": {
+        "length": 22.0,
+        "beam": 13.26,
+        "height": 25.22,
+        "formatted": "22.0 x 13.3 x 25.2 m"
+      },
+      "faces": 22000,
+      "triangles": 22000,
+      "size_bytes": 2465824,
+      "size_kb": 2408.0,
+      "unreal_role": "Greyhaven & Ironcrag Customs Quay Landmark ( 22 m Domed Arcade )",
+      "qa_score": 8.5
+    },
+    {
+      "order": 20,
+      "id": "coastal_lightship",
+      "filename": "coastal_lightship.glb",
+      "title": "Trinity Shoal Lightship",
+      "category": "ships",
+      "description": "32 m red-hulled steel coastal lightship with amidships lattice lantern mast, daymark cage ball, mushroom-anchor hawsepipe, and stout whaleback sheer for exposed outer-reef stations.",
+      "dimensions_m": {
+        "length": 32.0,
+        "beam": 11.86,
+        "height": 27.61,
+        "formatted": "32.0 x 11.9 x 27.6 m"
+      },
+      "faces": 22000,
+      "triangles": 22000,
+      "size_bytes": 2484752,
+      "size_kb": 2426.5,
+      "unreal_role": "Outer Shoal & Reef Warning Lightvessel ( 32 m Moored Beacon )",
       "qa_score": 8.2
     }
   ]

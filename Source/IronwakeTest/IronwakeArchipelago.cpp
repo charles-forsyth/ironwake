@@ -59,8 +59,18 @@ namespace IwArch
 		{ TEXT("The Anvil"), TEXT("A"), EIsle::Rocky, 470.f, 670.f, 140.f },
 		{ TEXT("Blackscar"), TEXT("B"), EIsle::Cliff, -1240.f, -2650.f, 180.f },
 		{ TEXT("The Sisters"), TEXT("Si"), EIsle::Stacks, -1480.f, 3360.f, 150.f },
+		// P32: Outer 34 km archipelago expansion (3 outer working ports + 6 outer navigation & sea-lane islands)
+		{ TEXT("Kestrel Cove"), TEXT("Kc"), EIsle::Wooded, -10800.f, 11400.f, 240.f },      // 14 (hostIsleIdx=14)
+		{ TEXT("North Grimscar"), TEXT("Ng"), EIsle::Cliff, 12400.f, 8600.f, 260.f },       // 15 (hostIsleIdx=15)
+		{ TEXT("Sable Haven"), TEXT("Sh"), EIsle::Cay, 7800.f, -11800.f, 230.f },           // 16 (hostIsleIdx=16)
+		{ TEXT("Stormness Light"), TEXT("Sl"), EIsle::Lighthouse, -6400.f, 7200.f, 300.f }, // 17 SE mid-sea lighthouse
+		{ TEXT("Basalt Spire"), TEXT("Bs"), EIsle::Cliff, 7200.f, 4800.f, 340.f },          // 18 NE transit headland
+		{ TEXT("Whaler's Holm"), TEXT("Wh"), EIsle::Pines, 3600.f, -7400.f, 320.f },        // 19 NW pine isle
+		{ TEXT("Outer Fang Reef"), TEXT("Of"), EIsle::Reef, 9800.f, -3200.f, 280.f },       // 20 NNW reef hazard
+		{ TEXT("Cormorant Crags"), TEXT("Cc"), EIsle::Stacks, -8200.f, -8400.f, 240.f },    // 21 SW outer stacks
+		{ TEXT("Bell Rock Light"), TEXT("Br"), EIsle::Lighthouse, 11200.f, -9200.f, 250.f },// 22 NW outer light
 	};
-	const TCHAR* RockNames[] = { TEXT("CoastRocks05"), TEXT("NamaCliff01"), TEXT("RockMossSet01"), TEXT("CoastLandRocks03"), TEXT("RockFace01"), TEXT("CoastLandRocks02") };
+	const TCHAR* RockNames[] = { TEXT("BasaltCrag_1"), TEXT("BasaltCrag_4"), TEXT("CoastRocks05"), TEXT("NamaCliff01"), TEXT("RockMossSet01"), TEXT("CoastLandRocks03"), TEXT("RockFace01"), TEXT("CoastLandRocks02") };
 	float Smoothx(float A, float B, float X) { const float Dn = B - A; const float T = FMath::Clamp((X - A) / (FMath::Abs(Dn) < 1e-4f ? 1e-4f : Dn), 0.f, 1.f); return T * T * (3.f - 2.f * T); }
 	FVector PolarV(float ThDeg, float R) { const float T = FMath::DegreesToRadians(ThDeg); return FVector(FMath::Cos(T) * R, FMath::Sin(T) * R, 0.f); }
 }
@@ -173,7 +183,7 @@ void AIronwakeArchipelago::Inst(const TCHAR* MeshName, const FVector& W, const F
 		++NumInstances;
 		// P9: solid rocks/cliffs become ship-collision ellipses (bounds of the scaled scan), vegetation and pebbles do not.
 		const FString N(MeshName);
-		if (N.StartsWith(TEXT("Boulder")) || N.StartsWith(TEXT("CoastRocks")) || N.StartsWith(TEXT("CoastLandRocks")) || N.StartsWith(TEXT("Nama")) || N.StartsWith(TEXT("RockMoss")) || N.StartsWith(TEXT("RockFace")) || N.StartsWith(TEXT("CoastalCliff")))
+		if (N.StartsWith(TEXT("BasaltCrag")) || N.StartsWith(TEXT("Boulder")) || N.StartsWith(TEXT("CoastRocks")) || N.StartsWith(TEXT("CoastLandRocks")) || N.StartsWith(TEXT("Nama")) || N.StartsWith(TEXT("RockMoss")) || N.StartsWith(TEXT("RockFace")) || N.StartsWith(TEXT("CoastalCliff")))
 			if (UIronwakeColl* Co = UIronwakeColl::Get(GetWorld())) Co->AddMeshBounds(H->GetStaticMesh(), FTransform(R, W, S), N, true, 250.f);
 	}
 }

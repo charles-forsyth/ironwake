@@ -85,8 +85,9 @@ AIronwakeShipPawn::AIronwakeShipPawn()
 	// S2: roster hulls + sail cloth (hard references so the packaged cook includes them).
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CutterF(TEXT("/Game/Ironwake/Ships/Aglae/SM_Aglae_Hull.SM_Aglae_Hull"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FrigateF(TEXT("/Game/Ironwake/Ships/Frigate/SM_Frigate_Hull.SM_Frigate_Hull"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothF(TEXT("/Game/Ironwake/Ships/Materials/M_IW_Cloth.M_IW_Cloth"));
-	MeshCutterHull = CutterF.Object; MeshFrigateHull = FrigateF.Object; ClothMaterial = ClothF.Object;
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothF(TEXT("/Game/Ironwake/Ships/Materials/M_IW_Cloth2.M_IW_Cloth2"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothFallbackF(TEXT("/Game/Ironwake/Ships/Materials/M_IW_Cloth.M_IW_Cloth"));
+	MeshCutterHull = CutterF.Object; MeshFrigateHull = FrigateF.Object; ClothMaterial = ClothF.Object ? ClothF.Object : ClothFallbackF.Object;
 	if (HullFinder.Succeeded())
 	{
 		HullMesh->SetStaticMesh(HullFinder.Object);

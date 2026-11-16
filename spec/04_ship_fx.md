@@ -43,7 +43,7 @@ Three ribbons per ship: ribbon 0 = turbulent centre wake (prop boil on steamers)
 | Across-profile T | `0, 0.2, 0.45, 0.65, 0.85, 1` | [src Source/IronwakeTest/IronwakeHydro.cpp:577] |
 | Across-profile alpha | `0, 0.45, 1, 0.8, 0.3, 0` (soft both edges) | [src Source/IronwakeTest/IronwakeHydro.cpp:578] |
 
-- Nominal time span of the history: 160 rows x 0.5 s = 80 s (derived); the header comment says 60 s [src Source/IronwakeTest/IronwakeHydro.h:94-95] and W3 says "60 s" (build report `W3.md`). **CONFLICT**: 80 s of rows exist, but fade-out `Life` caps the visible life at 45 s (centre) / 35 s (arms) (see below), so nothing is visible past ~45 s; the 60 s is a comment value. The row cap 160 is what takes effect [src Source/IronwakeTest/IronwakeHydro.cpp:567]. At turns the step shrinks, so 160 rows can cover less time.
+- Nominal time span of the history: 160 rows x 0.5 s = 80 s (derived); the header comment says 60 s [src Source/IronwakeTest/IronwakeHydro.h:94-95] and W3 says "60 s" [src build/logs/W3.md:34]. **CONFLICT**: 80 s of rows exist, but fade-out `Life` caps the visible life at 45 s (centre) / 35 s (arms) (see below), so nothing is visible past ~45 s; the 60 s is a comment value. The row cap 160 is what takes effect [src Source/IronwakeTest/IronwakeHydro.cpp:567]. At turns the step shrinks, so 160 rows can cover less time.
 - Vertex colour: `R` = foam density (material input), `A` = alpha (clamped 0..1) [src Source/IronwakeTest/IronwakeHydro.cpp:584].
 
 ### 4.2.2 History sampling
@@ -76,23 +76,23 @@ Derived examples at FULL (F=1, SpeedOK=1), ironclad (HalfBeam 12.89 m [src Sourc
 ### 4.2.4 Vertical placement on the sea
 
 - Every vertex: z = FastZ(P) + RowD + Lift(70 cm) [src Source/IronwakeTest/IronwakeHydro.cpp:600].
-- `RowD` is a per-row correction `clamp(RenderedZ - FastZ, -150, 150)` at the row centre, refreshed only on rows where `i % 2 == 0 || i < 4` and the row has history; other rows reuse the last [src Source/IronwakeTest/IronwakeHydro.cpp:624-625]. This prevents rows from dipping under the translucent sea (W4 item 3) (build report `W4.md`).
+- `RowD` is a per-row correction `clamp(RenderedZ - FastZ, -150, 150)` at the row centre, refreshed only on rows where `i % 2 == 0 || i < 4` and the row has history; other rows reuse the last [src Source/IronwakeTest/IronwakeHydro.cpp:624-625]. This prevents rows from dipping under the translucent sea (W4 item 3) [src build/logs/W4.md:12].
 - Cost (derived): per ship per frame, 3 ribbons x 82 query rows (80 even rows + 4 head rows, capped by history length) = about 246 `RenderedZ` plugin queries, plus about 246 + 2880 `FastZ` calls; each `FastZ` loops all 22 waves with a `cos` and a `sqrt` (derived from [src Source/IronwakeTest/IronwakeHydro.cpp:314-320]). See chapter 11.
 
 ### 4.2.5 Wake material (`M_IW_Surf2`)
 
 - Asset `/Game/Ironwake/Islands/M_IW_Surf2` (shared with the archipelago surf ribbons), MID created per wake [src Source/IronwakeTest/IronwakeHydro.cpp:558-560]. Unlit, translucent, two-sided, no depth fade; opacity = `saturate((foamTex1 + foamTex2 + 1.2*VertexR - Thresh) * Contrast) * VertexA`; emissive = `FoamColor` [src Content/Python/iw_i1_shelf.py:57-69]. The two panning foam samples use `T_WaterFlow_03_Foam_Tiled`; second layer UV x `2.7` [src Content/Python/iw_i1_shelf.py:48].
 - Runtime overrides at `Init`: `Thresh` `1.35`, `Contrast` `2.4`, `FoamColor` (0.85, 0.88, 0.9) [src Source/IronwakeTest/IronwakeHydro.cpp:561-563]. Asset defaults: `Thresh` `0.6`, `Contrast` `2.5`, `FoamColor` (0.55, 0.58, 0.60) [src Content/Python/iw_i1_shelf.py:60].
-- **CONFLICT**: W4 log says "Surf2 Thresh 0.55 -> 0.32" for the wake (build report `W4.md`), but the code still sets `Thresh` to `1.35` per wake MID at Init [src Source/IronwakeTest/IronwakeHydro.cpp:561]. The runtime override (`1.35`) takes effect for ship wakes; any asset-default edit (0.32) only affects other users of the material (island surf ribbons). Whether the W4 `9.5/10` wake capture used the override cannot be determined from the files: unknown; re-measure with `-iwwakedbg` and a 200 m-up astern shot.
+- **CONFLICT**: W4 log says "Surf2 Thresh 0.55 -> 0.32" for the wake [src build/logs/W4.md:12], but the code still sets `Thresh` to `1.35` per wake MID at Init [src Source/IronwakeTest/IronwakeHydro.cpp:561]. The runtime override (`1.35`) takes effect for ship wakes; any asset-default edit (0.32) only affects other users of the material (island surf ribbons). Whether the W4 `9.5/10` wake capture used the override cannot be determined from the files: unknown; re-measure with `-iwwakedbg` and a 200 m-up astern shot.
 - Island surf also uses it with `SurfLiftCm = 70.f` [src Source/IronwakeTest/IronwakeArchipelago.h:72].
 
 ### 4.2.6 Tuning history of the wake (what changed, from logs)
 
 | Pass | Change | Source |
 |---|---|---|
-| P5c | 6 verts across with feathered edges (was 4); centre peak x0.55, arms x0.4 (P5b ~1.0 / 0.75); arm width 2 m + 0.1*V*age (was 1.5 + 0.06*V*age); Thresh 1.35 / Contrast 2.4, UV tile 1100; history 160 samples (was 120); step 0.5 -> 0.12 s in turns; reset on teleport | (build report `P5c.md`) |
-| W3 | Kelvin trail replaces the flat stern plane; wider/longer hull churn | (build report `W3.md`) |
-| W4 | per-vertex `FastZ` (build report `W4.md`) + row query correction; density decays to 0.4 not 0.1; arm alpha up | (build report `W4.md`) |
+| P5c | 6 verts across with feathered edges (was 4); centre peak x0.55, arms x0.4 (P5b ~1.0 / 0.75); arm width 2 m + 0.1*V*age (was 1.5 + 0.06*V*age); Thresh 1.35 / Contrast 2.4, UV tile 1100; history 160 samples (was 120); step 0.5 -> 0.12 s in turns; reset on teleport | [src build/logs/P5c.md:5] |
+| W3 | Kelvin trail replaces the flat stern plane; wider/longer hull churn | [src build/logs/W3.md:34-35] |
+| W4 | per-vertex `FastZ` [src build/logs/W4.md:12] + row query correction; density decays to 0.4 not 0.1; arm alpha up | [src build/logs/W4.md:12] |
 
 (P27 update: straight-course wake `0..4.1 L` is rendered directly in `M_IW_WaterRoot` via `T_IW_PropWashFoamLut` + `T_IW_CellularFoamTile`, while `UIronwakeWake` uses lit `M_IW_WakeLut` [src Source/IronwakeTest/IronwakeHydro.cpp:560] (`NearHandoff` [src Source/IronwakeTest/IronwakeHydro.cpp:642]) to carry curved turn trails and far-astern wake tails at `+6 cm` lift.)
 
@@ -134,7 +134,7 @@ There is no symbol named "cushion" in code; the P5c request "small raised bow wa
 - Arc: `13` stations at angles `-110`..`+110` deg around the stem [src Source/IronwakeTest/IronwakeHydro.cpp:424]; radii `R0 = 0.6*Scale` m to `R1 = (3.5 + 9*F)*Scale` m [src Source/IronwakeTest/IronwakeHydro.cpp:421].
 - Inner edge pushed sideways outside the hull if it falls inside (`|y| < Clear(x)` and `x < Stem + 0.3`) [src Source/IronwakeTest/IronwakeHydro.cpp:446]; outer edge keeps at least `0.8 * (R1 - R0)` lateral spread when `0.3f` [src Source/IronwakeTest/IronwakeHydro.cpp:448].
 - Alpha at a station: `clamp((F - 0.25)*2, 0, 1) * (0.65 + 0.35*Ahead)`, Ahead = cos(angle) [src Source/IronwakeTest/IronwakeHydro.cpp:433]. Gate starts at F = 0.25 (3.25 kn) and is full at F = 0.75 (9.75 kn) (derived: F x 13).
-- Height (m): (0.2 + 2.0*F^2) * Scale * (0.5 + 0.5*max(Ahead, 0)) [src Source/IronwakeTest/IronwakeHydro.cpp:433]. P5c log: "stem mound height 0.2 + 2.0*F^2 (was 0.3 + 1.2F)" (build report `P5c.md`). At FULL on the ironclad (Scale 1): crest `2.2` m. `LastStemCrestM = (0.2 + 2.0*F^2)*Scale` is stored for others to read [src Source/IronwakeTest/IronwakeHydro.cpp:436].
+- Height (m): (0.2 + 2.0*F^2) * Scale * (0.5 + 0.5*max(Ahead, 0)) [src Source/IronwakeTest/IronwakeHydro.cpp:433]. P5c log: "stem mound height 0.2 + 2.0*F^2 (was 0.3 + 1.2F)" [src build/logs/P5c.md:6]. At FULL on the ironclad (Scale 1): crest `2.2` m. `LastStemCrestM = (0.2 + 2.0*F^2)*Scale` is stored for others to read [src Source/IronwakeTest/IronwakeHydro.cpp:436].
 - Derived heights at nominal speeds on the ironclad: 4 kn (F 0.31) 0.39 m, 8 kn (F 0.62) 0.96 m, 13 kn (F 1) 2.2 m; alpha at 4 kn 0.12, 8 kn 0.73 (derived).
 
 ### 4.3.3 Ribbons 2 and 2b: diverging Kelvin crests and curling lip
@@ -142,7 +142,7 @@ There is no symbol named "cushion" in code; the P5c request "small raised bow wa
 - Kelvin = tan(19.47 deg) [src Source/IronwakeTest/IronwakeHydro.cpp:457]; crest length CrestLen = Lerp(0.35, 1.4, clamp(F, 0, 1)) * L [src Source/IronwakeTest/IronwakeHydro.cpp:458]. Ironclad L = 121.7 m (derived: 59.2 - (-62.5) from [src Source/IronwakeTest/IronwakeHydro.cpp:23]): crest 42.6 m at a crawl to 170 m at FULL.
 - Per station `U = i/21` (22 stations): `Sx = U*CrestLen`; X = Stem - 2*Scale - Sx [src Source/IronwakeTest/IronwakeHydro.cpp:447-449]; width W0 = (2.5 + 7*F)*Scale*(0.6 + 1.4*U) [src Source/IronwakeTest/IronwakeHydro.cpp:450]; inner lateral Yin = max(1*Scale + Sx*Kelvin, Clear(X)) [src Source/IronwakeTest/IronwakeHydro.cpp:451-452].
 - Station alpha: `clamp(F*1.6, 0, 1) * sqrt(Fade)` with `Fade = clamp(U < 0.08 ? U/0.08 : 1, 0, 1) * (1 - U)^2`; height `(0.8 + 3.2*F) * Scale * (1 - 0.8*U)` m [src Source/IronwakeTest/IronwakeHydro.cpp:453-454]. Outer edge x trails `0.25*W0` aft [src Source/IronwakeTest/IronwakeHydro.cpp:454].
-- Curling lip (W4): over the first 45 % of each crest (`U = i/11 * 0.45`, 12 stations) [src Source/IronwakeTest/IronwakeHydro.cpp:469]; ribbon spans `Yin + 0.15*W0` to Yin + 0.75*W0 [src Source/IronwakeTest/IronwakeHydro.cpp:474]; alpha `clamp((F - 0.25)*2.5, 0, 1) * Fade` with `Fade = clamp(U/0.06, 0, 1) * (1 - U/0.45)^2`; height equals crest height `Hc` with the lip height profile (peak `1.25 Hc`) [src Source/IronwakeTest/IronwakeHydro.cpp:475-477]. Always emitted (fixed topology); alpha is 0 below 25 % speed [src Source/IronwakeTest/IronwakeHydro.cpp:460]. Vision: "no curling lip, painted foam" (score 4/10) (build report `W4.md`).
+- Curling lip (W4): over the first 45 % of each crest (`U = i/11 * 0.45`, 12 stations) [src Source/IronwakeTest/IronwakeHydro.cpp:469]; ribbon spans `Yin + 0.15*W0` to Yin + 0.75*W0 [src Source/IronwakeTest/IronwakeHydro.cpp:474]; alpha `clamp((F - 0.25)*2.5, 0, 1) * Fade` with `Fade = clamp(U/0.06, 0, 1) * (1 - U/0.45)^2`; height equals crest height `Hc` with the lip height profile (peak `1.25 Hc`) [src Source/IronwakeTest/IronwakeHydro.cpp:475-477]. Always emitted (fixed topology); alpha is 0 below 25 % speed [src Source/IronwakeTest/IronwakeHydro.cpp:460]. Vision: "no curling lip, painted foam" (score 4/10) [src build/logs/W4.md:14].
 - Derived crest heights at FULL, ironclad: first station `4.0` m (0.8 + 3.2), last `0.8` m (x(1 - 0.8)); width at FULL 9.5 m x (0.6..2.0) = 5.7..19 m.
 
 ### 4.3.4 Ribbon 3: waterline foam strip
@@ -161,7 +161,7 @@ Two strips hugging the hull, 40 stations from the shoulder to past the stern [sr
 
 ### 4.3.6 Bow-foam material (`M_IW_BowFoam`)
 
-Created by `w1_assets.py`: lit translucent, volumetric non-directional lighting, two-sided [src Content/Python/w1_assets.py:11-14]; two world-position foam layers from `/Water/Textures/Foam/T_WaterFlow_03_Foam_Tiled` with UV divisors `900.0` and `2300.0` and panner speeds `(0.01, 0.004)` / (-0.006, 0.008) [src Content/Python/w1_assets.py:30-31]; `foam = t1 + t1*t2`; opacity = saturate((foam*1.4 + 0.3) * VertexColor.A * Opacity) [src Content/Python/w1_assets.py:38-48]; depth fade distance `120` cm [src Content/Python/w1_assets.py:49] reduced to `8` by `w1_foamfix.py` (foam lifted 35 cm) [src Content/Python/w1_foamfix.py:6]; base colour lerp `(0.55, 0.6, 0.63)` to `(0.92, 0.94, 0.95)` by the foam texture; roughness `0.85` [src Content/Python/w1_assets.py:53-58]. Vision after W1 fix: 7/10 on `W1_bow_wave` (build report `W1.md`).
+Created by `w1_assets.py`: lit translucent, volumetric non-directional lighting, two-sided [src Content/Python/w1_assets.py:11-14]; two world-position foam layers from `/Water/Textures/Foam/T_WaterFlow_03_Foam_Tiled` with UV divisors `900.0` and `2300.0` and panner speeds `(0.01, 0.004)` / (-0.006, 0.008) [src Content/Python/w1_assets.py:30-31]; `foam = t1 + t1*t2`; opacity = saturate((foam*1.4 + 0.3) * VertexColor.A * Opacity) [src Content/Python/w1_assets.py:38-48]; depth fade distance `120` cm [src Content/Python/w1_assets.py:49] reduced to `8` by `w1_foamfix.py` (foam lifted 35 cm) [src Content/Python/w1_foamfix.py:6]; base colour lerp `(0.55, 0.6, 0.63)` to `(0.92, 0.94, 0.95)` by the foam texture; roughness `0.85` [src Content/Python/w1_assets.py:53-58]. Vision after W1 fix: 7/10 on `W1_bow_wave` [src build/logs/W1.md:58].
 
 ## 4.4 Bow spray, slam and sheets (Niagara, `TickBowFX`)
 
@@ -191,7 +191,7 @@ Slam gate (P5c, then P5b original):
 - Slam sheets (`NS_IW_BowSheet`): per side at `X = X1 - 9*Hs`, `Y = s*(HalfBreadthAt(X) + 1.5)`, `Z = +80`; axis `(0.25, 0.95 s, 0.75)`; scale `clamp((0.12 + 0.6*Strength) * Sea * clamp(Hs, 0.6, 1.3), 0.08, 1.1)` with Sea = clamp(SeaState/4, 0.25, 1) [src Source/IronwakeTest/IronwakeShipHydro.cpp:236-245].
 - Logged as IWP5B slam kn= strength= rise= bowSub= sea= [src Source/IronwakeTest/IronwakeShipHydro.cpp:248].
 - `BowSubmergeM` = (rendered sea at the stem deck point minus its z)/100; green water when > 0 (chapter 3, 3.10.1).
-- Measured slam counts per 60 s at 13 kn on the cutter (P5c): calm 0, moderate 8, rough 35 (build report `P5c.md`). P5b measured 0 slams (BowSubmergeM max -0.57) under the older stricter gate (build report `P5b.md`).
+- Measured slam counts per 60 s at 13 kn on the cutter (P5c): calm 0, moderate 8, rough 35 [src build/logs/P5c.md:8]. P5b measured 0 slams (BowSubmergeM max -0.57) under the older stricter gate [src build/logs/P5b.md:8].
 
 ### 4.4.3 NPC behaviour
 
@@ -218,7 +218,7 @@ Last known parameter source per system. Assets: `/Game/Ironwake/FX/<name>`. "Dup
 - Spawn calls: shell splash [src Source/IronwakeTest/IronwakeShell.cpp:134-136]; hit `NS_IW_Explosion2` [src Source/IronwakeTest/IronwakeCombat.cpp:362]; sink/burn `NS_IW_Smoke` and NS_IW_Fire [src Source/IronwakeTest/IronwakeCombat.cpp:402] [src Source/IronwakeTest/IronwakeCombat.cpp:416].
 - The old bow splash spawn in `AIronwakeVoyage::TickSailing` was removed in W1 [src Source/IronwakeTest/IronwakeVoyage.cpp:1018].
 - Soft spray material `M_IW_Spray` (W4): unlit translucent; opacity = `radial^1.6 * (0.35 + 0.9*foamTex) * ParticleColor.A * depthfade(60 cm)`; emissive = particle colour; used with Niagara sprites and ribbons [src Content/Python/w4_spray.py:17-48] with exponent `1.6` [src Content/Python/w4_spray.py:32], breakup constants `0.9` and `0.35` [src Content/Python/w4_spray.py:39] [src Content/Python/w4_spray.py:41], depth fade `60` [src Content/Python/w4_spray.py:46], panner `0.08`, `0.03` [src Content/Python/w4_spray.py:37].
-- Chimney smoke in the town does not use Niagara (sphere plumes, Niagara ignores component scale) (build report `P12.md`); the factory `NS_IW_Smoke` is scaled `0.045` and deactivated/hidden [src Source/IronwakeTest/IronwakeVoyage.cpp:347-349].
+- Chimney smoke in the town does not use Niagara (sphere plumes, Niagara ignores component scale) [src build/logs/P12.md:16]; the factory `NS_IW_Smoke` is scaled `0.045` and deactivated/hidden [src Source/IronwakeTest/IronwakeVoyage.cpp:347-349].
 
 ## 4.6 Funnel smoke
 
@@ -231,7 +231,7 @@ Duplicated from `NS_IW_Smoke` [src Content/Python/p5b_assets.py:5], then edited 
 | P5b | colour `(0.35, 0.35, 0.37, 0.3)` [src build/tools/p5b_smoke.py:4-8], uniform sprite size min `800` [src build/tools/p5b_smoke.py:4-8], max `2000` [src build/tools/p5b_smoke.py:4-8], spawn rate `9` [src build/tools/p5b_smoke.py:4-8], sphere radius `150` [src build/tools/p5b_smoke.py:4-8] | [src build/tools/p5b_smoke.py:4-8] |
 | P5c (final) | colour `(0.62, 0.62, 0.64, 0.75)` [src build/tools/p5c_smoke.py:4-7], spawn rate `14` [src build/tools/p5c_smoke.py:4-7], lifetime min `4` [src build/tools/p5c_smoke.py:4-7], max `7` [src build/tools/p5c_smoke.py:4-7] | [src build/tools/p5c_smoke.py:4-7] |
 
-The P5c edit does not touch sprite size or radius, so P5b `800`..`2000` (cm, i.e. 8-20 m at scale 1) and radius `150` persist (build report `P5b.md`) (asset binary not read; if edited later in the editor this is unknown). P5c log: previous alpha 0.3 / 9 per s was invisible against fog; now 0.62 alpha 0.75 14/s life 4-7 s (build report `P5c.md`). Derived: at 14/s and mean life 5.5 s there are ~77 live sprites per funnel at steady state.
+The P5c edit does not touch sprite size or radius, so P5b `800`..`2000` (cm, i.e. 8-20 m at scale 1) and radius `150` persist [src build/logs/P5b.md:3] (asset binary not read; if edited later in the editor this is unknown). P5c log: previous alpha 0.3 / 9 per s was invisible against fog; now 0.62 alpha 0.75 14/s life 4-7 s [src build/logs/P5c.md:9]. Derived: at 14/s and mean life 5.5 s there are ~77 live sprites per funnel at steady state.
 
 ### 4.6.2 Stack positions, base scale and colour per hull
 
@@ -242,18 +242,18 @@ The P5c edit does not touch sprite size or radius, so P5b `800`..`2000` (cm, i.e
 | Frigate Albatross | aux steam stack created on first `B` (steam toggle) | `HullMesh`, `(-2300, 0, 2300)` (P7: -23 m aft, 23 m up) | `0.9` (sail ship) | [src Source/IronwakeTest/IronwakeShipFleet.cpp:136-137] [src Source/IronwakeTest/IronwakeShipHydro.cpp:165] |
 | Merchant Goliath tug | yes | funnel component at `(330, 0, 1140)`, smoke local `(0, 0, 55)` | `0.3` | [src Source/IronwakeTest/IronwakeLivingSea.cpp:105] [src Source/IronwakeTest/IronwakeLivingSea.cpp:152-154] |
 | Merchant Aglae | yes | funnel at `(60, 0, 940)`, smoke local `(0, 0, 55)` | `0.2` | [src Source/IronwakeTest/IronwakeLivingSea.cpp:128] [src Source/IronwakeTest/IronwakeLivingSea.cpp:154] |
-| NPC enemy (Kracken) | none (`FleetBeginPlay` [src Source/IronwakeTest/IronwakeShipFleet.cpp:66] returns for NPCs) | n/a | n/a | [src Source/IronwakeTest/IronwakeShipFleet.cpp:66] |
+| NPC enemy (Kracken) | none (`FleetBeginPlay` [src Source/IronwakeTest/IronwakeShipFleet.cpp:70] returns for NPCs) | n/a | n/a | [src Source/IronwakeTest/IronwakeShipFleet.cpp:66] |
 
-- `FleetBeginPlay` spawns the smoke only for the player ship (`bIsNPC` returns early) [src Source/IronwakeTest/IronwakeShipFleet.cpp:66] with `SpawnSystemAttached(..., KeepRelativeOffset, false)` and scale `ShipDef->SmokeScale` [src Source/IronwakeTest/IronwakeShipFleet.cpp:83-84].
+- `FleetBeginPlay` spawns the smoke only for the player ship (`bIsNPC` returns early) [src Source/IronwakeTest/IronwakeShipFleet.cpp:66] with `SpawnSystemAttached(..., KeepRelativeOffset, false)` and scale `ShipDef->SmokeScale` [src Source/IronwakeTest/IronwakeShipFleet.cpp:87-88].
 - Sail ships: the stack exists only after toggling auxiliary steam; SetActive(bAuxSteam || !SailRig) [src Source/IronwakeTest/IronwakeShipFleet.cpp:139]. Default for the frigate is steam OFF (no smoke) until `B` is pressed [src Source/IronwakeTest/IronwakeShipFleet.cpp:132].
-- The frigate stack has moved three times: between the masts (build report `P5c.md`) (-15 m aft, 13 m up, scale 0.6) then (-23 m aft, 23 m up, 0.9) (build report `P7.md`). Vision after P7: score about 5/10, visible in chase, faint (build report `P7.md`).
+- The frigate stack has moved three times: between the masts [src build/logs/P5c.md:9] (-15 m aft, 13 m up, scale 0.6) then (-23 m aft, 23 m up, 0.9) [src build/logs/P7.md:27]. Vision after P7: score about 5/10, visible in chase, faint [src build/logs/P7.md:27].
 - Moored steamer's funnel smoke is deactivated (white glare pillar) [src Source/IronwakeTest/IronwakeVoyage.cpp:428].
 
 ### 4.6.3 Scale vs speed
 
-`FunnelSmoke->SetWorldScale3D(base * (0.45 + 0.55 * clamp(Frac, 0, 1)))`, each tick, player ship only; base = SailRig ? 0.9 : (ShipDef ? SmokeScale * (LengthM < 60 ? 1.2 : 1) : 0.3) [src Source/IronwakeTest/IronwakeShipHydro.cpp:165]. So smoke is 45 % size at a stop and 100 % at 13 kn (Frac 1) (derived). Cutter: `0.24 x (0.45..1.0)` = `0.108..0.24`. Frigate `0.405..0.9`. P5b: "funnel scale 45% -> 100% with speed" (build report `P5b.md`). Emission rate and lifetime do not vary with speed (fixed in the asset).
+`FunnelSmoke->SetWorldScale3D(base * (0.45 + 0.55 * clamp(Frac, 0, 1)))`, each tick, player ship only; base = SailRig ? 0.9 : (ShipDef ? SmokeScale * (LengthM < 60 ? 1.2 : 1) : 0.3) [src Source/IronwakeTest/IronwakeShipHydro.cpp:165]. So smoke is 45 % size at a stop and 100 % at 13 kn (Frac 1) (derived). Cutter: `0.24 x (0.45..1.0)` = `0.108..0.24`. Frigate `0.405..0.9`. P5b: "funnel scale 45% -> 100% with speed" [src build/logs/P5b.md:3]. Emission rate and lifetime do not vary with speed (fixed in the asset).
 
-Note: the P12 log says Niagara ignores component scale for the town chimney plumes (build report `P12.md`); for ship funnels the scale demonstrably changes the smoke (chase view scoring) per P5c/P7 logs, so treat scale as honoured here, unverified numerically.
+Note: the P12 log says Niagara ignores component scale for the town chimney plumes [src build/logs/P12.md:16]; for ship funnels the scale demonstrably changes the smoke (chase view scoring) per P5c/P7 logs, so treat scale as honoured here, unverified numerically.
 
 ## 4.7 Storm spray: spume and rain (`AIronwakeStorm`)
 
@@ -265,12 +265,12 @@ Note: the P12 log says Niagara ignores component scale for the town chimney plum
 - Crest test: reject unless Jacobian `J <= Lerp(0.55, 0.72, G)` and height `>= FastZ(ship) - 150` cm [src Source/IronwakeTest/IronwakeStorm.cpp:215]; spawn at `Z + 30` [src Source/IronwakeTest/IronwakeStorm.cpp:225].
 - Orientation: axis `normalize(DownV*0.97 + Up*0.1)` (low, long, blown downwind, W4); scale Lerp(0.7, 1.4, G) * clamp(R/15000, 0.8, 2.2) [src Source/IronwakeTest/IronwakeStorm.cpp:217-219]. Each burst counts as live for `3.5` s [src Source/IronwakeTest/IronwakeStorm.cpp:221].
 - W4 asset tuning (last script): burst count `60`, lifetime `2.5`..`4.5`, sprite size min `(120, 1500)` max `(320, 4200)` (velocity-aligned: Y along travel), colour `(0.42, 0.44, 0.46, 0.3)`, cone velocity `1400`..`2800`, cone angle `12`, gravity `(0, 0, -120)`, drag `0.2`..`0.5`, material M_IW_Spray [src build/tools/w4fx.py:25-37]. W3 values (burst 46, life 2-4, sprite 700x450..2200x1100, colour 1.5/1.55/1.6/0.5, strength 900-2400, cone 18) [src build/tools/w3fx.py:27-35] are superseded.
-- Measured: 2,242 bursts in one W3 storm run (build report `W3.md`); W4 vision still sees no airborne spume (1-2/10): too faint/thin (build report `W4.md`). Budget with the original W2 setup was 25-90 live (build report `W2.md`); code now 40-160.
+- Measured: 2,242 bursts in one W3 storm run [src build/logs/W3.md:33]; W4 vision still sees no airborne spume (1-2/10): too faint/thin [src build/logs/W4.md:13]. Budget with the original W2 setup was 25-90 live [src build/logs/W2.md:18]; code now 40-160.
 
 ### 4.7.2 Rain (`NS_IW_Rain`)
 
 - Active when `RainAmount > 0.05` or `Local >= 2.6`; placed `1800` cm ahead of the camera yaw and `1800` cm above, rotated to the wave travel yaw (slant downwind) [src Source/IronwakeTest/IronwakeStorm.cpp:151-155].
-- W3 asset parameters: spawn rate `24000`/s, lifetime `0.9`..`1.3`, non-uniform sprite `(2.6, 110)` cm, colour `(2.2, 2.4, 2.7, 0.55)` (HDR), sphere radius `4200`, cone axis `(0.55, 0, -1)`, speed `1300`..`1900`, velocity-aligned [src build/tools/w3fx.py:14-24]. Vision: rain reads (prominent diagonal streaks) (build report `W3.md`).
+- W3 asset parameters: spawn rate `24000`/s, lifetime `0.9`..`1.3`, non-uniform sprite `(2.6, 110)` cm, colour `(2.2, 2.4, 2.7, 0.55)` (HDR), sphere radius `4200`, cone axis `(0.55, 0, -1)`, speed `1300`..`1900`, velocity-aligned [src build/tools/w3fx.py:14-24]. Vision: rain reads (prominent diagonal streaks) [src build/logs/W3.md:32].
 - Rain audio layer gain `bRain ? Lerp(0.25, 0.9, max(RainAmount, Storminess)) : 0` (chapter 10) [src Source/IronwakeTest/IronwakeStorm.cpp:262].
 
 ### 4.7.3 Lightning flash (not Niagara)
@@ -280,22 +280,22 @@ Directional light `Bolt` with atmosphere light index 1 (lights the clouds, sun d
 ## 4.8 Legacy flat planes (hidden) and merchant wakes
 
 - `WakeStern`, `WakeBowL`, `WakeBowR` are static-mesh planes with `M_WakeFoam` MIDs on every ship; since W1/W3 they are forced hidden every tick [src Source/IronwakeTest/IronwakeShipPawn.cpp:855-856]. The code after `if (!bShow) return;` (`Kn > 0.5`) still positions/scales them and sets their `Opacity` MID param each tick: dead work (stern strip `Lerp(15000, 90000, Frac16) * sqrt(WakeSc)` cm long, width `Lerp(2400, 3400, Frac16) * WakeSc`; bow planes at 19 deg `Lerp(4000, 11000)` x `Lerp(500, 1100)`; opacity `clamp(Frac16*1.3, 0, 1)`, where `Frac16 = clamp(Kn/16, 0, 1)`) [src Source/IronwakeTest/IronwakeShipPawn.cpp:863-885]. They have no visible effect.
-- Merchants still use one flat stern plane: length `16000` cm, width scale `7` (Aglae) or `12` (Goliath) (x100 cm plane), `Opacity 0.75`, translucent sort priority 10 [src Source/IronwakeTest/IronwakeLivingSea.cpp:208-210] [src Source/IronwakeTest/IronwakeLivingSea.cpp:147]. Merchants have no bow wave and no Kelvin wake (W1 open item 3) (build report `W1.md`).
-- Wreck waterline foam planes reuse `M_IW_BowFoam` and "barely show from 170 m" (build report `E1.md`).
+- Merchants still use one flat stern plane: length `16000` cm, width scale `7` (Aglae) or `12` (Goliath) (x100 cm plane), `Opacity 0.75`, translucent sort priority 10 [src Source/IronwakeTest/IronwakeLivingSea.cpp:208-210] [src Source/IronwakeTest/IronwakeLivingSea.cpp:147]. Merchants have no bow wave and no Kelvin wake (W1 open item 3) [src build/logs/W1.md:82].
+- Wreck waterline foam planes reuse `M_IW_BowFoam` and "barely show from 170 m" [src build/logs/E1.md:63].
 
 ## 4.9 Vision-score history (readability, not metrics)
 
 | System | Result | Source |
 |---|---|---|
-| Wake from 200 m up astern | 9.5/10 after W4 (W3 `wake_high` (build report `W4.md`) 0/10 had wrong framing) | (build report `W4.md`) |
-| Bow wave close, rough | 4/10, "painted foam", no curl | (build report `W4.md`) |
-| Cutter side 13 kn | 3/10 flat band (P5b), 7 after P5c wake texture fix | (build report `P5b.md`) (build report `P5c.md`) |
-| Frigate chase wake | unstable 3-7 | (build report `P5c.md`) |
-| Spume | 1-2/10 | (build report `W4.md`) |
-| Rain | reads | (build report `W3.md`) |
-| Funnel smoke (frigate chase) | about 5/10 after P7 | (build report `P7.md`) |
+| Wake from 200 m up astern | 9.5/10 after W4 (W3 `wake_high` [src build/logs/W4.md:12] 0/10 had wrong framing) | [src build/logs/W4.md:12] |
+| Bow wave close, rough | 4/10, "painted foam", no curl | [src build/logs/W4.md:14] |
+| Cutter side 13 kn | 3/10 flat band (P5b), 7 after P5c wake texture fix | [src build/logs/P5b.md:6] [src build/logs/P5c.md:14] |
+| Frigate chase wake | unstable 3-7 | [src build/logs/P5c.md:14] |
+| Spume | 1-2/10 | [src build/logs/W4.md:13] |
+| Rain | reads | [src build/logs/W3.md:32] |
+| Funnel smoke (frigate chase) | about 5/10 after P7 | [src build/logs/P7.md:27] |
 
-Vision scores jitter by +-1.5 between identical frames (build report `P5c.md`).
+Vision scores jitter by +-1.5 between identical frames [src build/logs/P5c.md:13].
 
 ## Gaps / unknown
 
@@ -311,5 +311,5 @@ Vision scores jitter by +-1.5 between identical frames (build report `P5c.md`).
 ## 4.10 P27: Turbulent twin-vortex prop-wash LUT, Voronoi cellular lace & zero hull-climbing foam (2026-11-13)
 
 - **Propulsion-aware turbulent boil (`M_IW_WaterRoot`, `IronwakeHydro.cpp`):** replaced the solid white `M_IW_Surf2` ribbon with `T_IW_PropWashFoamLut` (`R` = twin-vortex boil, `G` = echelon crest lace, `B` = conformal bow/shoulder contact) modulated by 3 distance-adaptive octaves (`2.6 m`, `11.5 m`, `36 m`) of periodic Voronoi cellular foam (`T_IW_CellularFoamTile`) and aerated turquoise subsurface scattering (`FLinearColor(0.055, 0.235, 0.255)`).
-- **Twin-screw vs single-screw vs pure sail:** `FIwShipWaveSrc` carries `ThrustSteam` [src Source/IronwakeTest/IronwakeShipWave.h:20] and `bTwinScrew` [src Source/IronwakeTest/IronwakeShipWave.h:23] (`ShipId == TEXT("ironclad")` [src Source/IronwakeTest/IronwakeShipPawn.cpp:872], `false` on single-screw steamers, `0.f` thrust on `TallBrig` and `Frigate` under pure sail). Twin-screw hulls emit two counter-rotating jets at `+/- 0.30 * B/2` spreading as `(1 + s * 0.85)^0.42`; sailing ships under canvas emit zero screw boil (`sheet_sail_vs_steam_p27.jpg` `9.5 / 10` (build report `P27.md`), prop wash `8.5 / 10` (build report `P27.md`)).
-- **Zero mid-body hull climb:** clamped `UIronwakeWake` vertex lift from `70` cm down to `6.f` cm [src Source/IronwakeTest/IronwakeHydro.cpp:660] with `SetCastShadow(false)` [src Source/IronwakeTest/IronwakeHydro.cpp:551] and `bReceivesDecals = false; bAffectDynamicIndirectLighting = false` [src Source/IronwakeTest/IronwakeHydro.cpp:552], switched curved turn ribbons to lit `M_IW_WakeLut` (`DepthFade = 45` cm, `VCR`/`VCA` scalar inputs), raised `M_IW_BowFoam` `DepthFade` from `8` cm to `65` cm, capped `UIronwakeBowWave` crest height at `0.55f` m [src Source/IronwakeTest/IronwakeHydro.cpp:473], shifted cutwater foam `+0.03 L` forward, and masked shader foam inside the conformal hull waterline (`d_outboard >= 0`, `sheet_hull_waterline_p19_vs_p27.jpg` `9.5 / 10` (build report `P27.md`)).
+- **Twin-screw vs single-screw vs pure sail:** `FIwShipWaveSrc` carries `ThrustSteam` [src Source/IronwakeTest/IronwakeShipWave.h:20] and `bTwinScrew` [src Source/IronwakeTest/IronwakeShipWave.h:23] (`ShipId == TEXT("ironclad")` [src Source/IronwakeTest/IronwakeShipPawn.cpp:875], `false` on single-screw steamers, `0.f` thrust on `TallBrig` and `Frigate` under pure sail). Twin-screw hulls emit two counter-rotating jets at `+/- 0.30 * B/2` spreading as `(1 + s * 0.85)^0.42`; sailing ships under canvas emit zero screw boil (`sheet_sail_vs_steam_p27.jpg` `9.5 / 10` [src build/logs/P27.md:7], prop wash `8.5 / 10` [src build/logs/P27.md:5]).
+- **Zero mid-body hull climb:** clamped `UIronwakeWake` vertex lift from `70` cm down to `6.f` cm [src Source/IronwakeTest/IronwakeHydro.cpp:660] with `SetCastShadow(false)` [src Source/IronwakeTest/IronwakeHydro.cpp:551] and `bReceivesDecals = false; bAffectDynamicIndirectLighting = false` [src Source/IronwakeTest/IronwakeHydro.cpp:552], switched curved turn ribbons to lit `M_IW_WakeLut` (`DepthFade = 45` cm, `VCR`/`VCA` scalar inputs), raised `M_IW_BowFoam` `DepthFade` from `8` cm to `65` cm, capped `UIronwakeBowWave` crest height at `0.55f` m [src Source/IronwakeTest/IronwakeHydro.cpp:473], shifted cutwater foam `+0.03 L` forward, and masked shader foam inside the conformal hull waterline (`d_outboard >= 0`, `sheet_hull_waterline_p19_vs_p27.jpg` `9.5 / 10` [src build/logs/P27.md:8]).

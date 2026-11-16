@@ -1330,7 +1330,7 @@ void AIronwakeVoyage::DrawVoyageHUD(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Shi
 		H->DrawRect(FLinearColor(0.02f, 0.035f, 0.045f, 0.62f), MX, MY, MS, MS);
 		H->DrawLine(MX, MY, MX + MS, MY, Dim, 1.f); H->DrawLine(MX, MY + MS, MX + MS, MY + MS, Dim, 1.f);
 		H->DrawLine(MX, MY, MX, MY + MS, Dim, 1.f); H->DrawLine(MX + MS, MY, MX + MS, MY + MS, Dim, 1.f);
-		auto Map = [&](const FVector& W) { return FVector2D(MX + MS * 0.5f + W.Y / Half * MS * 0.5f, MY + MS * 0.5f - W.X / Half * MS * 0.5f); };
+		auto Map = [&](const FVector& W) { return FVector2D(MX + MS * 0.5f + (W.Y - Ship->GetActorLocation().Y) / Half * MS * 0.5f, MY + MS * 0.5f - (W.X - Ship->GetActorLocation().X) / Half * MS * 0.5f); };
 		H->DrawText(TEXT("N"), Brass, MX + MS * 0.5f - 5.f * S, MY + 2.f * S, Font, 0.7f * S);
 		if (AIronwakeLivingSea* LS = AIronwakeLivingSea::Get(GetWorld()))
 		{
@@ -1356,6 +1356,7 @@ void AIronwakeVoyage::DrawVoyageHUD(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Shi
 		for (int32 i = 0; i < POIs.Num(); ++i)
 		{
 			const FVector2D P = Map(POIs[i].Loc);
+			if (P.X < MX || P.X > MX + MS || P.Y < MY || P.Y > MY + MS) continue;
 			const FLinearColor C = i == NextPOI ? Hi : (POIs[i].bVisited ? Dim : FLinearColor(0.8f, 0.8f, 0.8f, 0.9f));
 			H->DrawRect(C, P.X - 3.5f * S, P.Y - 3.5f * S, 7.f * S, 7.f * S);
 			H->DrawText(POIs[i].Tag, C, P.X + 5.f * S, P.Y - 8.f * S, Font, 0.65f * S);

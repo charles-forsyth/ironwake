@@ -30,36 +30,36 @@ W3 water-fix build, not A1-era; frigate and cutter are always unlocked. See chap
 
 ---
 
-Status as of 2026-11-13 13:00 EST. **Promoted build: `Packaged/Ironwake/Ironwake.app`** (promoted in **P30** from verified `Ironwake_P29.app`: data-driven 3-port world via `world_ports.json` — Greyhaven + Ironcrag + Stigsby, 4-ship Shipyard incl. 42 m rigged Tall Brig, 7-ship Havelock LUT wakes, 120+ moving parts & 3D crew, Harbourmaster 8-good trade market & Captain's Logbook; `53.10 FPS` MEDIUM `+1.15` vs P19 & `+18.15` vs W3, `33.25 FPS` HIGH `+1.40` vs P19).
-Showcase (2026-11-13, after P30): public repo `charles-forsyth/ironwake`, site https://charles-forsyth.github.io/ironwake/ (18 web models, 25 sounds, wake lab, 4-cut reel). Pipeline, cluster runs and release gate: chapter 13.12. No game code changed.
-Previous Nov 10 W3 `Ironwake.app` backed up to `Packaged/Ironwake/Ironwake_W3_prev.app`; per-card archives remain at `Packaged/Ironwake/Ironwake_<card>.app`.
+Status as of 2026-11-15 19:45 EST. **Promoted build: `~/Games/Ironwake/Ironwake.app`** (promoted in **P33** from verified `Ironwake_P32.app`: data-driven 6-port 34 km archipelago via `world_ports.json` — Greyhaven, Ironcrag, Stigsby, Kestrel Cove, North Grimscar & Sable Haven with Ursa TPU Pareto-solved 8-good trade markets; 6-ship Shipyard adding 26 m Chapman gun sloop *Petrel* & 38 m topsail schooner *Amphion* with WPO flax SSS sails; continuous TPU Kelvin wake LUTs, POM street cobbles, Nanite Quixel Megaplant coastal foliage with static-mesh fallback, Kittiwake V2 & Frigate copper boot-top).
+Showcase (2026-11-15, after P33): public repo `charles-forsyth/ironwake`, site https://charles-forsyth.github.io/ironwake/ (20 web models, 25 sounds, wake lab, 4-cut reel). Pipeline, cluster runs and release gate: chapter 13.12.
+Previous Nov 10 W3 `Ironwake.app` backed up to `~/Games/Ironwake/Ironwake_W3_prev.app`; per-card archives remain at `~/Games/Ironwake/Ironwake_<card>.app`.
 
 New to the project? Read `HANDOFF.md` first.
 
-Owner: Chuck Forsyth. Built by Hermes (orchestrator) and the automated build pipeline
-(automated multi-pass build & verification workflow).
+Owner: Chuck Forsyth. Built by Hermes (orchestrator) and the `ironwake-build` Kanban worker
+(board `ironwake`, Sonnet 5.5 via the UCR gateway; Opus 5.5 for read-only reviews).
 
 ## 1. What the game is
 A steampunk naval sailing game: sail ironclads, steam frigates and cutters around an archipelago
 in changing weather, day and night, with airships overhead. Peaceful sailing comes first;
 combat (P2) and the open-sea storm look are PARKED until Chuck un-parks them.
 Long-term target (WORLD_PLAN.md in game-concepts): ~120 x 120 km, 30-40 islands, 4 sea zones,
-many ports and towns, NPC ships and airships, trade. The current slice (`P29`) spans ~8.4 km with
-18 places, **3 full working ports** driven from `Content/IronwakeData/world_ports.json` (**Greyhaven**, **Ironcrag**, **Stigsby**), a 30-ship multi-port NPC sea (`0/0/0` soak), an 8-good Harbourmaster cargo market (`Silver Crowns`), and a Captain's Logbook.
+many ports and towns, NPC ships and airships, trade. The current slice (`P32`/`P33`) spans **34 km diagonal** (`48 km` ocean plane, `29 x 29 km` 5 km-grid sea chart) with
+18 places, **6 full working ports** driven from `Content/IronwakeData/world_ports.json` (**Greyhaven**, **Ironcrag**, **Stigsby**, **Kestrel Cove**, **North Grimscar**, **Sable Haven**), **6 playable hulls** (`Ironclad`, `Frigate`, `TallBrig`, `SteamCutter`, `ChapmanSloop`, `AmphionSchooner`), a 30-ship multi-port NPC sea with outer archipelago trade convoys, an 8-good TPU-solved Harbourmaster cargo market (`Silver Crowns`), and a Captain's Logbook.
 
 ## 2. Engine, project, sources
-- Unreal Engine 5.8.4, Apple Silicon Mac (Metal), project `./` (git, `main`).
+- Unreal Engine 5.8.4, Apple Silicon Mac (Metal), project `~/Projects/unreal/IronwakeTest` (git, `main`).
 - C++ module `Source/IronwakeTest/` (systems below), map `/Game/Maps/Ironwake_Sea`.
-- Design docs and asset sources: `$IRONWAKE_ASSETS/` (CONCEPT, DESIGN, ART_BIBLE,
-  WORLD_PLAN, concepts/, models/, audio/, cluster/ scripts for the GPU batch GPU/CPU jobs).
-- Worker rules: `build/BRIEF.md` (read first). Per-card specs: `build/cards2/*.md`. Logs: `logs/` (git-ignored).
+- Design docs and asset sources: `~/Projects/game-concepts/ironwake/` (CONCEPT, DESIGN, ART_BIBLE,
+  WORLD_PLAN, concepts/, models/, audio/, cluster/ scripts for the Ursa GPU/CPU jobs).
+- Worker rules: `build/BRIEF.md` (read first). Per-card specs: `build/cards2/*.md`. Logs: `build/logs/` (git-ignored).
 
 ## 3. Systems (where they live)
 | System | Files | State |
 |---|---|---|
 | Ship pawn, handling, telegraph, rudder | IronwakeShipPawn.*, IronwakeShipHydro.cpp, IronwakeFleet.* | Heavy ships; physics substepping (1/60, 6 substeps) so turning is frame-rate independent (P7). Full circle at flank: ironclad 209 s (R 330 m), frigate 192 s, cutter 33 s. |
 | Water and buoyancy | IronwakeHydro.*, IronwakeP16.cpp, Water plugin ocean (Gerstner) | Sea state CALM..GALE tables; measured crest-to-trough (both analytic and renderer path agree): CALM 0.97 m, MODERATE 2.34 m, ROUGH 4.82 m, GALE 8.78 m (P16). Ocean extent 300 km (no horizon seam, P5c). |
-| Ship water FX | IronwakeShipPawn.cpp (UIronwakeWake, UIronwakeBowWave), IronwakeShipWave.*, M_IW_WaterRoot | P27: 7-ship GPU batch Havelock Kelvin LUT (`T_IW_KelvinWaveLut` + CPU `kelvin_lut_256.bin`) + turbulent twin-vortex Voronoi prop-wash LUT (`T_IW_PropWashFoamLut` + `T_IW_CellularFoamTile`) + turquoise SSS + lit `M_IW_WakeLut` (`+6 cm`, zero hull climb; vision 8.5-9.5/10, `+1.75` FPS vs P26). |
+| Ship water FX | IronwakeShipPawn.cpp (UIronwakeWake, UIronwakeBowWave), IronwakeShipWave.*, M_IW_WaterRoot | P27: 7-ship Ursa Havelock Kelvin LUT (`T_IW_KelvinWaveLut` + CPU `kelvin_lut_256.bin`) + turbulent twin-vortex Voronoi prop-wash LUT (`T_IW_PropWashFoamLut` + `T_IW_CellularFoamTile`) + turquoise SSS + lit `M_IW_WakeLut` (`+6 cm`, zero hull climb; vision 8.5-9.5/10, `+1.75` FPS vs P26). |
 | Funnel smoke | NS_IW_FunnelSmoke | Pale grey, speed-scaled; NS_IW_Smoke only for burning/sinking. |
 | Collision + grounding | IronwakeCollision.*, IronwakeShipCollision.cpp | 1108 analytic solids (rocks, cliffs, piers, quays, buildings, buoys, lighthouse, wreck) + ship hulls; depth grounding vs per-hull draught (SHOAL WATER / AGROUND); astern frees; autopilot and NPCs avoid land (P9). `-iwnocoll` disables. |
 | Autopilot + chart | IronwakeAutopilot.cpp, IronwakeVoyage.* | OFF / HOLD COURSE / WAYPOINTS / TOUR; 3-port trade triangle (`Greyhaven • Ironcrag • Stigsby`), breakwater throat gates, routes bend round hazards. |
@@ -91,7 +91,7 @@ many ports and towns, NPC ships and airships, trade. The current slice (`P29`) s
 - Music off by default; no tonal/"angelic" ambience.
 - Storm crest/whitecap/spume look PARKED; normal wave height by sea state is wanted.
 - Combat PARKED.
-- Never touch another Unreal Editor instance (`(concurrent editor project)`).
+- Never touch [REDACTED] (`~/Projects/unreal/[REDACTED]`).
 - Test runs: `-RenderOffScreen -nosound -unattended -nosplash`, end with `pkill -x CrashReportClient`
   (trap). No windows or sound while Chuck uses the Mac.
 - Never replace `Ironwake.app` without a promotion gate; each card packages `Ironwake_<card>.app`.
@@ -99,19 +99,19 @@ many ports and towns, NPC ships and airships, trade. The current slice (`P29`) s
 
 ## 6. Verification method
 Each card ends with offscreen captures scored by a vision model against a target (usually >= 7/10),
-a paired bench (600 frames, 1920x1080, packaged), and a log in `logs/<card>.md`.
+a paired bench (600 frames, 1920x1080, packaged), and a log in `build/logs/<card>.md`.
 The orchestrator re-scores key frames itself and writes follow-up cards for misses.
 
 ## 7. Card history (2026-11-09 .. 11)
 First night: S1 sailing, H1 perf/handling, R1 hi-res ships, W1 heavy bow wave, A1 autopilot, E1 world assets,
 S2 ships, I1 islands, W2-W4 storm (parked at 4-6/10).
-Day 2-3: P3 handling + sea, P4 clip (media/slice_v2.mp4), P5 package, P6 Phase-review review (phase_review.md),
+Day 2-3: P3 handling + sea, P4 clip (media/slice_v2.mp4), P5 package, P6 Opus review (build/REVIEW_opus.md),
 P5b speed FX + grey smoke, P5c ship water look, P7 frame-rate-independent turning, P8 cluster models + sky v1,
 P9 collision, P10 HDR night sky + town v1, P11 clock/weather/hum/help, P12 terraced town, P13 dawn/dusk/lamps,
 P14 clear noon / night sea / harbour basin.
 Day 3-5 (2026-11-11 .. 13): P15 natural hillside, P16 measured swell + livelier ship + CAMERA MOTION, P17 cove/jetties + batch-2 models,
 P18 scaled menu + 8 audio sliders, P19 ship-wave field, P20-P22 living sea, moving parts, wake hysteresis,
-P23-P24 stepped-bench town + headland lighthouse + trace windows (67 houses, street 7.5, noon 400 m 4), P25 NPC quay-lane & mouth arbitrator (`0/0/0` soak across seeds 1-3), P26 rigged 42 m Tall Brig (17 moving parts + gaff spanker + WPO wind sails + 4-ship Shipyard, vision 8.0-10/10, `+2.05` FPS), P27 7-ship Havelock Kelvin & Voronoi prop-wash LUT + zero hull climb (vision 8.5-9.5/10, `+1.75` FPS), P28 moving paddle/crane/bell/airship parts + 3D crew/rowers/gulls + b4 tavern/chandlery/foundry + shop signs + triplanar 4K ground (vision 7.5-10/10, `+1.85` FPS), P29 data-driven 3-port world (`world_ports.json`: Greyhaven + Ironcrag + Stigsby) + Harbourmaster diorama + 8-good trade market + Captain's Logbook (vision 7.8-10/10, `0/0/0` soak, `-0.20` FPS vs P28), P30 independent verification, promotion of `Ironwake_P29.app` -> `Packaged/Ironwake/Ironwake.app`, full spec check (`0 fail`), and `build/MORNING_REPORT_3.md`.
+P23-P24 stepped-bench town + headland lighthouse + trace windows (67 houses, street 7.5, noon 400 m 4), P25 NPC quay-lane & mouth arbitrator (`0/0/0` soak across seeds 1-3), P26 rigged 42 m Tall Brig (17 moving parts + gaff spanker + WPO wind sails + 4-ship Shipyard, vision 8.0-10/10, `+2.05` FPS), P27 7-ship Havelock Kelvin & Voronoi prop-wash LUT + zero hull climb (vision 8.5-9.5/10, `+1.75` FPS), P28 moving paddle/crane/bell/airship parts + 3D crew/rowers/gulls + b4 tavern/chandlery/foundry + shop signs + triplanar 4K ground (vision 7.5-10/10, `+1.85` FPS), P29 data-driven 3-port world (`world_ports.json`: Greyhaven + Ironcrag + Stigsby) + Harbourmaster diorama + 8-good trade market + Captain's Logbook (vision 7.8-10/10, `0/0/0` soak, `-0.20` FPS vs P28), P30 independent verification, promotion of `Ironwake_P29.app` -> `~/Games/Ironwake/Ironwake.app`, full spec check (`0 fail`), and `build/MORNING_REPORT_3.md`.
 
 ## 8. Current scores (latest frames)
 | View | Score | Card |
@@ -137,14 +137,14 @@ P23-P24 stepped-bench town + headland lighthouse + trace windows (67 houses, str
 2. NPC harbour soak: `0/0/0` in Greyhaven-only P25; `0/1/0`, `1/0/0`, `2/3/0` across 3 seeds in P30's 6-port multi-port + gale soak (`0` groundings across all seeds, `101-120` moving parts).
 3. Moving parts & crew: **CLOSED in P28/P30** (`PaddleSteamerV3` spinning wheels `8.5-9.0/10`, `SalvageTenderV3` slewing crane + diving bell `8.5-9.5/10`, `PatrolAirshipV4` 3 props `7.5-8.0/10`, 3D `SailorCrewRower` gig stroke `9.5/10`, `SeaGullV4` wings, `SailorCrewStand` helmsmen & dockhands; minor polish: lower `TallBrig` quarterdeck `HelmsmanPivot` Z).
 4. Ship wake look: **CLOSED in P27/P30** (`9.8/10` speed-scaling sheet in P30, `8.5-9.5/10` vs real photos, zero hull climb `insideHullFoamMax=0.0000`).
-5. Multi-port arrival, trade & logbook (Phase-review item #8): **CLOSED in P29/P30** (3 data-driven ports in `world_ports.json`: Greyhaven, Ironcrag, Stigsby; `< 2.5 kn` `Enter` mooring & salvage verb; live Harbourmaster diorama; 8-good cargo market; persisted Silver Crowns & Captain's Logbook).
+5. Multi-port arrival, trade & logbook (Opus item #8): **CLOSED in P29/P30** (3 data-driven ports in `world_ports.json`: Greyhaven, Ironcrag, Stigsby; `< 2.5 kn` `Enter` mooring & salvage verb; live Harbourmaster diorama; 8-good cargo market; persisted Silver Crowns & Captain's Logbook).
 6. Squall from high camera reads flat without crest foam (parked look).
 7. In-game audio recording at 13 kn to confirm no hum (needs Chuck away from the Mac); `25/25` sounds classed (`0` unclassed, `bad=0` verified in P30).
-8. Combat remains parked; **`Ironwake_P29.app` promoted to `Packaged/Ironwake/Ironwake.app` in P30** (`build/MORNING_REPORT_3.md`).
-9. Chapters under `spec/` are the detailed record; run build/tools/spec_check.py --all after code changes.
+8. Combat remains parked; **`Ironwake_P29.app` promoted to `~/Games/Ironwake/Ironwake.app` in P30** (`build/MORNING_REPORT_3.md`).
+9. Chapters under spec/ are the detailed record; run build/tools/spec_check.py --all after code changes.
 10. Public showcase: re-run `prep_web_models.py` / `render_rig_reel.py` on Ursa and `tools/verify_repo.py` in the public repo whenever ships or parts change (chapter 13.12).
 
 ## 10. Credits
 Star map: NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC.
 Moon: NASA SVS CGI Moon Kit (LROC). Library ship and world assets: see build/CREDITS.txt and
-`Packaged/Ironwake/CREDITS.txt` (CC-BY sources are never committed; re-made by build scripts).
+`~/Games/Ironwake/CREDITS.txt` (CC-BY sources are never committed; re-made by build scripts).

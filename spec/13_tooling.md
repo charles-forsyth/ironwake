@@ -1,20 +1,20 @@
 # Chapter 13: Build, test and tooling
 
-Scope: how Ironwake is built (editor target, packaged Mac app), every script under `build/tools/` (one row each: purpose, arguments, key facts), every `-iw*` command-line flag and trigger file the C++ reads (with file:line), the test directors and their modes (`-iws2`, `-iww2`, `-iwp8`, `-iwp9`, `-iwp11`, `-iwp12`, `-iwa1`, `-iwe1`, `-iwi1`, `-iww1`, `-iwh1`, P1/S1 trigger files), the offscreen / `-nosound` / CrashReportClient rules from `build/BRIEF.md`, the editor Python scripts, the GPU batch cluster scripts in `$IRONWAKE_ASSETS/cluster/`, the task workflow and a summary of the BRIEF rules. Nothing here was executed: no editor or game was launched for this chapter. Citation: `value` [src path:line]. Paths are relative to `./` unless absolute.
+Scope: how Ironwake is built (editor target, packaged Mac app), every script under `build/tools/` (one row each: purpose, arguments, key facts), every `-iw*` command-line flag and trigger file the C++ reads (with file:line), the test directors and their modes (`-iws2`, `-iww2`, `-iwp8`, `-iwp9`, `-iwp11`, `-iwp12`, `-iwa1`, `-iwe1`, `-iwi1`, `-iww1`, `-iwh1`, P1/S1 trigger files), the offscreen / `-nosound` / CrashReportClient rules from `build/BRIEF.md`, the editor Python scripts, the Ursa cluster scripts in `~/Projects/game-concepts/ironwake/cluster/`, the Kanban workflow and a summary of the BRIEF rules. Nothing here was executed: no editor or game was launched for this chapter. Citation: `value` [src path:line]. Paths are relative to `[REDACTED]/Projects/unreal/IronwakeTest` unless absolute.
 
 ## 13.1 Environment
 
 | Item | Value | Source |
 |---|---|---|
 | Engine association | `5.8` [src IronwakeTest.uproject:3] | IronwakeTest.uproject |
-| Engine install | `$UE_ROOT` | `$UE_ROOT` [src build/tools/package.sh:7] |
+| Engine install | `[REDACTED]/Epic Games/UE_5.8` | `[REDACTED]/Epic Games/UE_5.8` [src build/tools/package.sh:7] |
 | Engine version / hardware (BRIEF) | UE `5.8.4`, Apple M5 Mac, Metal, 32 GB | `UE 5.8.4` [src build/BRIEF.md:19], `Apple M5 Mac, Metal, 32 GB` [src build/BRIEF.md:20] |
-| Game default map | `/Game/Maps/Ironwake_Sea` | `GameDefaultMap=/Game/Maps/Ironwake_Sea.Ironwake_Sea` [src Config/DefaultEngine.ini:29] |
-| Editor startup map | same map | `EditorStartupMap=/Game/Maps/Ironwake_Sea.Ironwake_Sea` [src Config/DefaultEngine.ini:30] |
+| Game default map | `/Game/Maps/Ironwake_Sea` | `GameDefaultMap=/Game/Maps/Ironwake_Sea.Ironwake_Sea` [src Config/DefaultEngine.ini:32] |
+| Editor startup map | same map | `EditorStartupMap=/Game/Maps/Ironwake_Sea.Ironwake_Sea` [src Config/DefaultEngine.ini:33] |
 | C++ module | `IronwakeTest`; unity builds **off** (files share anonymous-namespace names) | `bUseUnity = false` [src Source/IronwakeTest/IronwakeTest.Build.cs:8] |
 | Module dependencies | Core, CoreUObject, Engine, InputCore, EnhancedInput, Water, Niagara, UMG, Slate, SlateCore, ProceduralMeshComponent | `PublicDependencyModuleNames` [src Source/IronwakeTest/IronwakeTest.Build.cs:9] |
-| Packaged bundle ids seen | `io.github.charles-forsyth.ironwake` (P5 and later builds) and `com.YourCompany.IronwakeTest` (older builds / default) | `io.github.charles-forsyth.ironwake` [src build/README_P5.txt:1], `com.YourCompany.IronwakeTest` [src build/tools/h1openbench.sh:5] |
-| Live editor MCP | Unreal MCP server at `http://127.0.0.1:8001/mcp` (server name `unreal-ironwake`); another Unreal Editor instance uses port `8000` and must never be touched | `http://127.0.0.1:8001/mcp` [src build/BRIEF.md:21], `port 8000` [src build/BRIEF.md:41] |
+| Packaged bundle ids seen | `com.omstead.ironwake` (P5 and later builds) and `com.YourCompany.IronwakeTest` (older builds / default) | `com.omstead.ironwake` [src build/README_P5.txt:1], `com.YourCompany.IronwakeTest` [src build/tools/h1openbench.sh:5] |
+| Live editor MCP | Unreal MCP server at `http://127.0.0.1:8001/mcp` (server name `unreal-ironwake`); [REDACTED] uses port `8000` and must never be touched | `http://127.0.0.1:8001/mcp` [src build/BRIEF.md:21], `port 8000` [src build/BRIEF.md:41] |
 | Standalone test MCP ports | `8011` (p9/p10/p11/p12/p3/p7/s2/fxshot/p5 scripts), `8018` (a1), `8019` (h1, r1, w1, w2), `8021` (i1) | `8011` [src build/tools/p11run.sh:7], `8018` [src build/tools/a1run.sh:11], `8019` [src build/tools/h1run.sh:9], `8021` [src build/tools/i1run.sh:12] |
 | Headless build port | `8009` (once held by a stale CrashReportClient) | `port 8009` [src build/BRIEF.md:63] |
 
@@ -26,10 +26,10 @@ Scope: how Ironwake is built (editor target, packaged Mac app), every script und
 | Fix the editor module manifest | after a build, newest `libUnrealEditor-IronwakeTest-*.dylib` is patched into `Binaries/Mac/UnrealEditor.modules` with `sed -i ''` | `UnrealEditor.modules` [src build/tools/s1build.sh:19] |
 | Package (cook + stage) | `RunUAT.sh BuildCookRun -project=... -platform=Mac -clientconfig=Development -build -cook -stage -pak -iostore -unattended -utf8output -nop4 -nocompileeditor -skipbuildeditor > Saved/package.log` ; editor must be closed | `BuildCookRun` [src build/tools/package.sh:8], `-skipbuildeditor` [src build/tools/package.sh:9] |
 | Package output | `Saved/StagedBuilds/Mac/IronwakeTest.app` | `Saved/StagedBuilds/Mac/IronwakeTest.app` [src build/tools/package.sh:5] |
-| Promotion | the staged `.app` is copied with `ditto` to `Packaged/Ironwake/Ironwake.app` (or `Ironwake_<card>.app`); `-archive` produced a bare binary that crashes on a missing `libtbb.12.dylib` | `ditto` (build report `D.md`) |
+| Promotion | the staged `.app` is copied with `ditto` to `~/Games/Ironwake/Ironwake.app` (or `Ironwake_<card>.app`); `-archive` produced a bare binary that crashes on a missing `libtbb.12.dylib` | `ditto` [src build/logs/D.md:88] |
 | Headless editor Python | `IWTEST_SCRIPT=<module> UnrealEditor <uproject> -unattended -nullrhi -abslog=...` (`Content/Python/init_unreal.py` imports `$IWTEST_SCRIPT`) | `-nullrhi` [src build/tools/pyrun.sh:7], `IWTEST_SCRIPT` [src Content/Python/init_unreal.py:2] |
 | Standalone game run from the editor build | `UnrealEditor <uproject> /Game/Maps/Ironwake_Sea -game -windowed -ResX= -ResY= -iwnomenu ...` | `-game -windowed` [src build/tools/s2run.sh:12] |
-| Live editor relaunch (BRIEF) | `UnrealEditor IronwakeTest.uproject /Game/Maps/Ironwake_Sea -log`, background mode, never nohup/disown; delete `Saved/Autosaves/*` first after an unclean exit ("Restore Packages" dialog blocks MCP) | `Restore Packages` [src build/BRIEF.md:85], `rm -rf ./Saved/Autosaves/*` [src build/BRIEF.md:86] |
+| Live editor relaunch (BRIEF) | `UnrealEditor IronwakeTest.uproject /Game/Maps/Ironwake_Sea -log`, background mode, never nohup/disown; delete `Saved/Autosaves/*` first after an unclean exit ("Restore Packages" dialog blocks MCP) | `Restore Packages` [src build/BRIEF.md:85], `rm -rf ~/Projects/unreal/IronwakeTest/Saved/Autosaves/*` [src build/BRIEF.md:86] |
 | Only one IronwakeTest editor at a time | two instances fight over the same files | `Only one IronwakeTest` [src build/BRIEF.md:38] |
 | Packaged-app launch (benchmarks) | `open -n <app> --args ...` (launching the binary directly gets frame-cap sleeps throttled by macOS, capped runs read ~18 fps) | `open -n` [src build/tools/h1openbench.sh:7], `~18 fps` [src build/tools/h1openbench.sh:3] |
 
@@ -45,19 +45,19 @@ Stale launcher note: `s1build.sh` relaunches the editor with `nohup` [src build/
 | Always `-nosound -unattended -nosplash` | offscreen runs still play audio he cannot dismiss; only a spectrum-recording audio check may run with sound and only when the orchestrator says Chuck is away | `-nosound` [src build/BRIEF.md:10], `Only an audio check` [src build/BRIEF.md:11] |
 | Batch launches | "batch PIE/-game test runs (several checks per launch)" | `batch PIE/-game test runs` [src build/BRIEF.md:188] |
 | No LLM/GUI side effects | tests strip input so stray typing cannot open the menu (`ClearAllMappings` once a second in the S2 director; same idea in W2) | `ClearAllMappings` [src Source/IronwakeTest/IronwakeS2Test.cpp:67], `Unattended: strip input` [src Source/IronwakeTest/IronwakeW2Test.cpp:63] |
-| Never touch another Unreal Editor instance | Chuck's own session, port `8000` | `NEVER touch` [src build/BRIEF.md:40] |
+| Never touch [REDACTED] | Chuck's own session, port `8000` | `NEVER touch` [src build/BRIEF.md:40] |
 
 **CONFLICT (scripts vs rule):** only `p11run.sh` (and `p14run.sh`, which `exec`s it) pass `-nosound -unattended -nosplash -RenderOffScreen` [src build/tools/p11run.sh:7]; every other `-game` script (a1run, h1run, i1run, p10run, p12run, p9run, r1run, s2run, w1run, w2run, p3circle, p3fx, p5b/p5c, p7circle) predates the 08:52 rule and omits them [src build/tools/p9run.sh:6]; `e1openbench.sh` passes them [src build/tools/e1openbench.sh:7]. The BRIEF rule applies; add the flags (or use `p11run.sh`) for any new run. Only `p10run.sh`, `p11run.sh`, `p12run.sh` use an `EXIT` trap [src build/tools/p10run.sh:6]; the others `pkill` at the end of the script and a script killed by timeout skips that line.
 
 ## 13.4 `build/tools/` scripts (one row each)
 
-Conventions: `P=$HOME/Projects/unreal/IronwakeTest`; `UE` = `UnrealEditor` inside `$UE_ROOT`; `gtimeout` bounds each run; logs go to `Saved/*.log` via `-abslog`.
+Conventions: `P=$HOME/Projects/unreal/IronwakeTest`; `UE` = `UnrealEditor` inside `[REDACTED]/Epic Games/UE_5.8`; `gtimeout` bounds each run; logs go to `Saved/*.log` via `-abslog`.
 
 ### Run scripts (launch the editor build `-game` or the packaged app)
 
 | Script | Purpose / args | Key facts | Source |
 |---|---|---|---|
-| `a1run.sh` | `a1run.sh <hold\|route\|tour\|fire> [extra]`: A1 autopilot director | `-iwnomenu -iwa1=$M -iwa1quit`, timeout `A1TIMEOUT:-1800` [src build/tools/a1run.sh:10] s, MCP port `8018`, log `Saved/a1_$M.log` copied to `logs/A1/` | build/tools/a1run.sh |
+| `a1run.sh` | `a1run.sh <hold\|route\|tour\|fire> [extra]`: A1 autopilot director | `-iwnomenu -iwa1=$M -iwa1quit`, timeout `A1TIMEOUT:-1800` [src build/tools/a1run.sh:10] s, MCP port `8018`, log `Saved/a1_$M.log` copied to `build/logs/A1/` | build/tools/a1run.sh |
 | `h1run.sh` | `h1run.sh [extra]`: H1 handling/camera test | `-iwh1 -iwh1quit`, `gtimeout 400`, port `8019`, log `Saved/h1test.log` | `gtimeout 400` [src build/tools/h1run.sh:8] |
 | `i1run.sh` | `i1run.sh [mode=shots] [extra]`: I1 archipelago director (modes shots, bench) | `-iwi1=$M -iwi1quit`, timeout `I1TIMEOUT:-600` [src build/tools/i1run.sh:11], port `8021`; also `pkill -f "IronwakeTest.uproject.*-game"` first | build/tools/i1run.sh |
 | `p10run.sh` | `p10run.sh <mode> [extra]`: P10 shots via the P8 director | `-iwp8=$M -iwp8quit -iwunlockall`, 1600x900, `TMO` default `600`, EXIT trap | `TMO:-600` [src build/tools/p10run.sh:7] |
@@ -70,8 +70,8 @@ Conventions: `P=$HOME/Projects/unreal/IronwakeTest`; `UE` = `UnrealEditor` insid
 | `p5b_ladder.sh` | 3 hulls (cutter, frigate, ironclad) x {`4`,`8`,`13`} kn x sea {`0.25`,`1.0`}: side + chase shots | `-iws2=p5b`, `gtimeout 300`, 1600x900, `-iwhold=70` | `for H in cutter frigate ironclad` [src build/tools/p5b_ladder.sh:8] |
 | `p5c_count.sh` | slam counts for the cutter at 13 kn, sea `0.25`,`1.0`,`1.6` | `-iwcount`, `gtimeout 260`, 1280x720, counts `IWP5B slam` lines | `IWP5B slam` [src build/tools/p5c_count.sh:10] |
 | `p5c_ladder.sh` | slam counts then the 18-cell ladder via `p5c_run.sh` | `-iwhold=60`, `gtimeout 260` | `p5c_run.sh` [src build/tools/p5c_ladder.sh:14] |
-| `p5c_run.sh` | `p5c_run.sh <hull> <sea> <kn> [hold]`: one ladder cell | `gtimeout 200`, copies shots to `logs/P5c/shots/` | `gtimeout 200` [src build/tools/p5c_run.sh:9] |
-| `p7bench.sh` | `p7bench.sh <suffix[:..]>...`: bench packaged apps `Ironwake_<suffix>.app` | bundle id `io.github.charles-forsyth.ironwake`, `FRAMES=600`, uses `e1openbench.sh` with `-iwtour` | `FRAMES=600` [src build/tools/p7bench.sh:3] |
+| `p5c_run.sh` | `p5c_run.sh <hull> <sea> <kn> [hold]`: one ladder cell | `gtimeout 200`, copies shots to `build/logs/P5c/shots/` | `gtimeout 200` [src build/tools/p5c_run.sh:9] |
+| `p7bench.sh` | `p7bench.sh <suffix[:..]>...`: bench packaged apps `Ironwake_<suffix>.app` | bundle id `com.omstead.ironwake`, `FRAMES=600`, uses `e1openbench.sh` with `-iwtour` | `FRAMES=600` [src build/tools/p7bench.sh:3] |
 | `p7circle.sh` | `p7circle.sh <hull> <fps>`: circle time at a fixed game delta | `-benchmark -fps=$F`, `gtimeout 500`, 1280x720 | `-benchmark -fps=$F` [src build/tools/p7circle.sh:10] |
 | `p9run.sh` | `p9run.sh <hull> <mode> [extra]`: P9 collision director | `-iwp9=$M -iwp9quit -iwship=$H -iwunlockall`, `TMO` default `900`, 1280x720 | `TMO:-900` [src build/tools/p9run.sh:9] |
 | `r1run.sh` | `r1run.sh [extra]`: R1 capture director | `-iwr1`, `gtimeout 300`, deletes `Saved/shots/R_*.png` first; `IWX` env adds ExecCmds | `gtimeout 300` [src build/tools/r1run.sh:9] |
@@ -84,7 +84,7 @@ Conventions: `P=$HOME/Projects/unreal/IronwakeTest`; `UE` = `UnrealEditor` insid
 | `package.sh` | cook + stage Mac Development build | see 13.2; prints `package rc=` | `package rc=` [src build/tools/package.sh:12] |
 | `pyrun.sh` | `pyrun.sh <module> [timeout=500]`: headless editor Python with `-nullrhi` | log `Saved/py_<module>.log`, greps `IWP10|LogPython: Error|Traceback|Fatal` | `${2:-500}` [src build/tools/pyrun.sh:7] |
 | `h1bench.sh` | `h1bench.sh <app> <label> "<ExecCmds>" [resx resy frames]`: bench a packaged binary directly, `-iwtour`, csv profile | defaults 1600x900, `450` frames; env `IWFRONT` brings the app to front via osascript | `N=${6:-450}` [src build/tools/h1bench.sh:4] |
-| `h1openbench.sh` | `h1openbench.sh <label> [args]`: like above via `open -n` (correct capped fps) | `-csvCaptureFrames=450`, kills the app by pattern, copies csv to `logs/$BENCHDIR/` | `csvCaptureFrames=450` [src build/tools/h1openbench.sh:7] |
+| `h1openbench.sh` | `h1openbench.sh <label> [args]`: like above via `open -n` (correct capped fps) | `-csvCaptureFrames=450`, kills the app by pattern, copies csv to `build/logs/$BENCHDIR/` | `csvCaptureFrames=450` [src build/tools/h1openbench.sh:7] |
 | `r1openbench.sh` | copy of `h1openbench.sh` (header still says h1) that also matches `Ironwake_v1.app` | `pkill -f "Ironwake(_v1)?.app/..."` | `Ironwake(_v1)?.app` [src build/tools/r1openbench.sh:10] |
 | `e1openbench.sh` | `e1openbench.sh <label> [args]`: no automatic `-iwtour`; `FRAMES`, `IWID`, `IWAPP`, `BENCHDIR` env | adds `-nosound -unattended -nosplash -RenderOffScreen` | `-nosound -unattended -nosplash -RenderOffScreen` [src build/tools/e1openbench.sh:7] |
 
@@ -108,7 +108,7 @@ Conventions: `P=$HOME/Projects/unreal/IronwakeTest`; `UE` = `UnrealEditor` insid
 | Script | Purpose / args | Source |
 |---|---|---|
 | `mcp.py` | tiny MCP client: `list`, `describe <toolset>`, `call <toolset> <tool> '<json>' [out.png]`; URL from env `UE_MCP` (default `http://127.0.0.1:8001/mcp`), timeout `600` s; `MAXC` env truncates output (default `20000`) | `UE_MCP` [src build/tools/mcp.py:3] |
-| `uepy.py` | run a Python file inside the live editor via PythonScriptPlugin remote execution; only targets the node whose `project_name` is `IronwakeTest`, never another Unreal Editor instance | `project_name` [src build/tools/uepy.py:14] |
+| `uepy.py` | run a Python file inside the live editor via PythonScriptPlugin remote execution; only targets the node whose `project_name` is `IronwakeTest`, never [REDACTED] | `project_name` [src build/tools/uepy.py:14] |
 | `script.py` | `script.py file.py`: run a ProgrammaticToolset script (`run()`) over MCP | `execute_tool_script` [src build/tools/script.py:4] |
 | `cap.py` | `cap.py out.png x y z pitch yaw`: MCP `CaptureViewport` to a PNG (UI hidden) | `CaptureViewport` [src build/tools/cap.py:7] |
 | `capasset.py` | `capasset.py out.png [asset]`: MCP `CaptureAssetImage` thumbnail (default `/Game/Ironwake/Ships/Ironclad/SM_Ironclad`) | `CaptureAssetImage` [src build/tools/capasset.py:4] |
@@ -143,8 +143,8 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwcredits` | PlayerController BeginPlay | title menu with credits card, screenshot `R_credits`, quit after `11` s | `iwcredits` [src Source/IronwakeTest/IronwakePlayerController.cpp:685] |
 | `-iwstorm` | Voyage / GameMode | start with the storm at sea (no enemy) | `iwstorm` [src Source/IronwakeTest/IronwakeVoyage.cpp:331], `iwstorm` [src Source/IronwakeTest/IronwakeGameMode.cpp:51] |
 | `-iwlegacywx` | Voyage | use the old preset weather instead of the living clock/weather (`StartLiving` skipped) | `iwlegacywx` [src Source/IronwakeTest/IronwakeVoyage.cpp:343] |
-| `-iwship=<id>` | Fleet `GetSelected` | force the ship (cutter, frigate, ironclad...); also the player's saved choice fallback | `iwship=` [src Source/IronwakeTest/IronwakeFleet.cpp:110] |
-| `-iwunlockall` | Fleet `IsUnlocked` | every roster ship unlocked | `iwunlockall` [src Source/IronwakeTest/IronwakeFleet.cpp:130] |
+| `-iwship=<id>` | Fleet `GetSelected` | force the ship (cutter, frigate, ironclad...); also the player's saved choice fallback | `iwship=` [src Source/IronwakeTest/IronwakeFleet.cpp:144] |
+| `-iwunlockall` | Fleet `IsUnlocked` | every roster ship unlocked | `iwunlockall` [src Source/IronwakeTest/IronwakeFleet.cpp:164] |
 | `-iwgfx=N` | Settings `GetGraphics` | override saved graphics level (0..2) for the run | `iwgfx=` [src Source/IronwakeTest/IronwakeSettings.cpp:54] |
 | `-iwdebug` | Voyage HUD | adds preset and sea-state debug text to the status chips | `iwdebug` [src Source/IronwakeTest/IronwakeVoyage.cpp:1288] |
 | `?iwrestart`, `?iwpeaceful=1` (URL options, not switches) | GameMode StartPlay | restart skips the title menu and keeps the mode | `iwrestart` [src Source/IronwakeTest/IronwakeGameMode.cpp:58], `iwpeaceful` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
@@ -158,10 +158,10 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwp8=<mode>` / `-iwp8quit` | Voyage / P8 | sky/town shot director | `iwp8=` [src Source/IronwakeTest/IronwakeVoyage.cpp:326], `iwp8quit` [src Source/IronwakeTest/IronwakeP8.cpp:380] |
 | `-iwp9=<mode>` / `-iwp9quit` | Voyage / P9Test | collision director | `iwp9=` [src Source/IronwakeTest/IronwakeVoyage.cpp:325], `iwp9quit` [src Source/IronwakeTest/IronwakeP9Test.cpp:34] |
 | `-iwp11=<mode>` / `-iwp11quit` | Voyage / P11 | living-world shot director | `iwp11=` [src Source/IronwakeTest/IronwakeVoyage.cpp:341], `iwp11quit` [src Source/IronwakeTest/IronwakeP11.cpp:506] |
-| `-iwp12=<mode>` / `-iwp12quit` | Voyage / P12 | town camera director | `iwp12=` [src Source/IronwakeTest/IronwakeVoyage.cpp:335], `iwp12quit` [src Source/IronwakeTest/IronwakeP12.cpp:1000] |
-| `-iwa1=<mode>` / `-iwa1quit` | Voyage, GameMode / Autopilot | autopilot director; every mode except `fire` is peaceful | `iwa1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:324], `iwa1quit` [src Source/IronwakeTest/IronwakeAutopilot.cpp:889], `!= TEXT("fire")` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
+| `-iwp12=<mode>` / `-iwp12quit` | Voyage / P12 | town camera director | `iwp12=` [src Source/IronwakeTest/IronwakeVoyage.cpp:335], `iwp12quit` [src Source/IronwakeTest/IronwakeP12.cpp:1031] |
+| `-iwa1=<mode>` / `-iwa1quit` | Voyage, GameMode / Autopilot | autopilot director; every mode except `fire` is peaceful | `iwa1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:324], `iwa1quit` [src Source/IronwakeTest/IronwakeAutopilot.cpp:899], `!= TEXT("fire")` [src Source/IronwakeTest/IronwakeGameMode.cpp:58] |
 | `-iwe1=<mode>` / `-iwe1quit` | Voyage | E1 world-asset shot director (modes incl. `bench`, `bench_island`) | `iwe1=` [src Source/IronwakeTest/IronwakeVoyage.cpp:328], `iwe1quit` [src Source/IronwakeTest/IronwakeVoyage.cpp:1588] |
-| `-iwi1=<mode>` / `-iwi1quit` | Archipelago | I1 islands director (`shots`, `bench`) | `iwi1=` [src Source/IronwakeTest/IronwakeArchipelago.cpp:247], `iwi1quit` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1284] |
+| `-iwi1=<mode>` / `-iwi1quit` | Archipelago | I1 islands director (`shots`, `bench`) | `iwi1=` [src Source/IronwakeTest/IronwakeArchipelago.cpp:257], `iwi1quit` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1294] |
 | `-iww1`, `-iww1clip`, `-iww1quit` | GameMode, ShipPawn, ShipHydro | W1 handling/waves director (`clip` = 300-frame clip at `-benchmark -fps=30`); peaceful | `iww1` [src Source/IronwakeTest/IronwakeGameMode.cpp:50], `iww1clip` [src Source/IronwakeTest/IronwakeShipPawn.cpp:248], `iww1quit` [src Source/IronwakeTest/IronwakeShipHydro.cpp:434] |
 | `-iwh1`, `-iwh1quit` | ShipPawn | H1 handling/camera test (also `Saved/iw_h1.txt`) | `iwh1` [src Source/IronwakeTest/IronwakeShipPawn.cpp:255], `iwh1quit` [src Source/IronwakeTest/IronwakeShipPawn.cpp:259] |
 | `-iwr1` | LivingSea | R1 capture director (hides on-screen messages) | `iwr1` [src Source/IronwakeTest/IronwakeLivingSea.cpp:367] |
@@ -179,7 +179,7 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwslow` | S2Test | warm-up cruise `6` kn instead of `8` | `iwslow` [src Source/IronwakeTest/IronwakeS2Test.cpp:586] |
 | `-iwturn` | S2Test | p5cwide adds a turn | `iwturn` [src Source/IronwakeTest/IronwakeS2Test.cpp:527] |
 | `-iwgaugeat=x,y`, `-iwgaugestate=<s>` | W2Test | gauge location and sea state (default `4`) | `iwgaugeat=` [src Source/IronwakeTest/IronwakeW2Test.cpp:107], `iwgaugestate=` [src Source/IronwakeTest/IronwakeW2Test.cpp:108] |
-| `-iwi1seaoff=<cm>` | Archipelago | sea offset for island placement | `iwi1seaoff=` [src Source/IronwakeTest/IronwakeArchipelago.cpp:207] |
+| `-iwi1seaoff=<cm>` | Archipelago | sea offset for island placement | `iwi1seaoff=` [src Source/IronwakeTest/IronwakeArchipelago.cpp:217] |
 
 ### Time, weather, sky (living world)
 
@@ -213,8 +213,8 @@ Parsing is by `FParse::Param` (bare switch) or `FParse::Value` (`name=value`) on
 | `-iwwakedbg` | Hydro | wake debug log every `5` s | `iwwakedbg` [src Source/IronwakeTest/IronwakeHydro.cpp:673] |
 | `-iwcovk=`, `-iwfoamdbg=`, `-iwstreakk=`, `-iwfoammode=`, `-iwlacek=`, `-iwplanebias=` | Hydro | whitecap coverage, whitecap, streak, debug mode, lace, plane-bias multipliers (default `1`, mode `0`, bias `0`) | `iwcovk=` [src Source/IronwakeTest/IronwakeHydro.cpp:114], `iwfoamdbg=` [src Source/IronwakeTest/IronwakeHydro.cpp:181], `iwstreakk=` [src Source/IronwakeTest/IronwakeHydro.cpp:183], `iwfoammode=` [src Source/IronwakeTest/IronwakeHydro.cpp:186], `iwlacek=` [src Source/IronwakeTest/IronwakeHydro.cpp:190], `iwplanebias=` [src Source/IronwakeTest/IronwakeHydro.cpp:197] |
 | `-iwnocoll` | ShipCollision | disable ship collision | `iwnocoll` [src Source/IronwakeTest/IronwakeShipCollision.cpp:20] |
-| `-iwground=<k>` | P12 | harbour ground tint factor (default `3.0`) | `iwground=` [src Source/IronwakeTest/IronwakeP12.cpp:47] |
-| `-iwnoveg` | P12 | skip town vegetation | `iwnoveg` [src Source/IronwakeTest/IronwakeP12.cpp:277] |
+| `-iwground=<k>` | P12 | harbour ground tint factor (default `3.0`) | `iwground=` [src Source/IronwakeTest/IronwakeP12.cpp:50] |
+| `-iwnoveg` | P12 | skip town vegetation | `iwnoveg` [src Source/IronwakeTest/IronwakeP12.cpp:282] |
 
 Count: 81 distinct `-iw*` switches plus the `?iwrestart`/`?iwpeaceful` URL options. Counted by listing every `TEXT("iw...")` string passed to `FParse`/`Contains` in `Source/IronwakeTest/` (`grep -rno 'TEXT("-\?iw[a-z0-9_]*=\?")'`).
 
@@ -240,10 +240,10 @@ All run only when armed by their flag; each logs a tagged line family (grep pref
 | P9 (collision) | `-iwp9=` / `p9run.sh <hull> <mode>` | `all` or one of `beach`, `stack`, `breakwater`, `moored`, `ship`, `autopilot` `beach` [src Source/IronwakeTest/IronwakeP9Test.cpp:37] | `IWP9` |
 | P8 (sky/town shots) | `-iwp8=` / `p10run.sh` | `sky` `sky` [src Source/IronwakeTest/IronwakeP8.cpp:314], `skyq` `skyq` [src Source/IronwakeTest/IronwakeP8.cpp:315], `town` `town` [src Source/IronwakeTest/IronwakeP8.cpp:316], `bench` `bench` [src Source/IronwakeTest/IronwakeP8.cpp:317] | `IWP8`, `IWP10` |
 | P11 (living world) | `-iwp11=` / `p11run.sh`, `p14run.sh` | `day` (5 shots dawn..small hours), `wx` (6 weather states), `harbour` (4), `help` (hint and help panel), `tw` (4 twilight shots), `p14` (7 shots), `bench`; selection at `P11Mode == TEXT("p14")` [src Source/IronwakeTest/IronwakeP11.cpp:453] | `IWP11`, `IWP13` |
-| P12 (town cameras) | `-iwp12=` / `p12run.sh` | `shots`, `day`, `night`, `bench` `iwp12=shots|day|night` [src Source/IronwakeTest/IronwakeP12.cpp:1000], `day` [src Source/IronwakeTest/IronwakeP12.cpp:1000], `night` [src Source/IronwakeTest/IronwakeP12.cpp:1000], `bench` [src Source/IronwakeTest/IronwakeP12.cpp:1080] | `IWP12` |
-| A1 (autopilot) | `-iwa1=` / `a1run.sh` | `hold` `hold` [src Source/IronwakeTest/IronwakeAutopilot.cpp:902], `route` `route` [src Source/IronwakeTest/IronwakeAutopilot.cpp:862], `voyage` `voyage` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1049], `tour` `tour` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1024], `waterline` `waterline` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1145], `fire` `fire` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1185] | `IWA1` |
+| P12 (town cameras) | `-iwp12=` / `p12run.sh` | `shots`, `day`, `night`, `bench` `iwp12=shots|day|night` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `day` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `night` [src Source/IronwakeTest/IronwakeP12.cpp:1031], `bench` [src Source/IronwakeTest/IronwakeP12.cpp:1111] | `IWP12` |
+| A1 (autopilot) | `-iwa1=` / `a1run.sh` | `hold` `hold` [src Source/IronwakeTest/IronwakeAutopilot.cpp:912], `route` `route` [src Source/IronwakeTest/IronwakeAutopilot.cpp:867], `voyage` `voyage` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1059], `tour` `tour` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1034], `waterline` `waterline` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1155], `fire` `fire` [src Source/IronwakeTest/IronwakeAutopilot.cpp:1195] | `IWA1` |
 | E1 (world assets) | `-iwe1=` | `bench`, `bench_island` `bench_island` [src Source/IronwakeTest/IronwakeVoyage.cpp:1630] and shot modes | `IWE1` |
-| I1 (islands) | `-iwi1=` / `i1run.sh` | `shots`, `bench` (modes beginning `bench` hold the `3+ islands` view) `bench` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1142] | `IWI1` |
+| I1 (islands) | `-iwi1=` / `i1run.sh` | `shots`, `bench` (modes beginning `bench` hold the `3+ islands` view) `bench` [src Source/IronwakeTest/IronwakeArchipelago.cpp:1152] | `IWI1` |
 | W1 (handling/waves) | `-iww1` / `w1run.sh` | stages 0-9 (rest draft, short chop, long swell, settle, FULL AHEAD, bow shots); `-iww1clip` = clip mode | `IWW1` |
 | H1 (handling/camera) | `-iwh1` / `h1run.sh` | scripted handling + camera captures | `IWH1` |
 | R1 (ship captures) | `-iwr1` / `r1run.sh` | capture director | `IWR1` |
@@ -274,45 +274,45 @@ Run headless with `build/tools/pyrun.sh <module>` (module name without `.py`) or
 
 Never delete or force-replace an asset that is still referenced (hit an ensure in `ObjectTools.cpp:4051` and killed the editor) [src build/BRIEF.md:88-89].
 
-## 13.8 GPU batch cluster scripts (`$IRONWAKE_ASSETS/cluster/`)
+## 13.8 Ursa cluster scripts (`~/Projects/game-concepts/ironwake/cluster/`)
 
-Cluster work is run by the orchestrator through `batch-runner`; workers must **not** submit jobs, they append requests to `batch_requests.md` [src build/BRIEF.md:166-167]. Partitions: `standard` (CPU), `L4-queue` (L4 GPUs), `V100-queue` (V100).
+Cluster work is run by the orchestrator through `[REDACTED]`; workers must **not** submit jobs, they append requests to `build/URSA_REQUESTS.md` [src build/BRIEF.md:166-167]. Partitions: `standard` (CPU), `gpul4` (L4 GPUs), `gpu1v1` (V100).
 
 | File | Kind | Purpose | Key facts | Source |
 |---|---|---|---|---|
-| `fleet2_concepts.sh` | local shell | concept images for new NPC craft (fishing, patrol, airships, harbour craft) with the `lumina` CLI | studio style prompt, `--aspect-ratio 1:1`, skips existing | `lumina` (design archive `cluster/fleet2_concepts.sh`) |
-| `town_concepts.sh` | local shell | concept images for port towns (houses, harbour props) | same style as fleet2 | `lumina` (design archive `cluster/town_concepts.sh`) |
-| `img3d.sbatch` | Slurm array `0-1` | Hunyuan3D-2 image to textured GLB, one model per `inputs/*_concept.png` | partition `L4-queue` (design archive `cluster/img3d.sbatch`), 1 GPU, `02:00:00` | |
-| `harbour3d.sbatch` | Slurm array `0-9` | same, 10 harbour models | `L4-queue` (design archive `cluster/harbour3d.sbatch`), `02:00:00` | |
-| `harbour3d_v100.sbatch` | Slurm single | same on a V100 | `V100-queue` (design archive `cluster/harbour3d_v100.sbatch`), `03:00:00` | |
-| `prep_ships.sbatch` | Slurm array `0-9` | Blender 5.2.3 headless decimation of 10 library ships | `standard` (design archive `cluster/prep_ships.sbatch`), 8 CPUs, `48G`, `01:30:00`; targets `300000 200000 200000 200000 120000 300000 100000 80000 200000 80000` triangles | `TRIS=` (design archive `cluster/prep_ships.sbatch`) |
-| `prep_ships.py` | Blender script | decimate to budget, apply transforms, write `<name>_game.glb`, `<name>_report.json`, previews | `blender -b -P prep_ships.py -- in.glb outdir tris` | `blender -b -P prep_ships.py` (design archive `cluster/prep_ships.py`) |
-| `prep_island.py` | Blender script | prep one Poly Haven island glTF (decimate, 2K textures, game GLB + preview) | `-- <in.gltf> <outdir> <target_tris>` | `blender -b -P prep_island.py` (design archive `cluster/prep_island.py`) |
-| `prep_islands_local.sh` | local shell | batch-run `prep_island.py` over `models/islands`, `xargs -P 4`, timeout `900` s each | budgets `120000` coast/cliff, `60000` trees, `25000` saplings, `15000` shrubs | `gtimeout 900` (design archive `cluster/prep_islands_local.sh`) |
-| `remesh_bake.py` | Blender script | remesh a messy triangle-soup model and bake textures from the original | `-- <in.glb> <outdir> <target_faces> <tex_res>` | `blender -b -P remesh_bake.py` (design archive `cluster/remesh_bake.py`) |
-| `turntable.py` | Blender script | Cycles turntable stills + key art | `-- <model> <outdir> <frames> <res_x> <res_y> <samples>` | `blender -b -P turntable.py` [src pipeline/turntable.py:2] |
-| `score_job.sh` | local shell | quick turntables for every model of a downloaded hy3d job, comparison sheet (concept, hero render, turntable) for vision scoring | `gtimeout 240` per model | `gtimeout 240` (design archive `cluster/score_job.sh`) |
-| `make_sky.py` | Python (GPU batch) | night-sky textures: equirect star map (Hipparcos positions/magnitudes/B-V), procedural Milky Way, Moon Kit albedo, `moon_phase_<n>.png` (8), `moon_2027.json` | writes `SKY_USE.md`; skips failed catalogues rather than faking | `Nothing is faked` (design archive `cluster/make_sky.py`) |
-| `sky.sbatch` | Slurm | runs `make_sky.py` | `standard` (design archive `cluster/sky.sbatch`), 16 CPUs, `60G`, `01:30:00` | |
-| `iw_cluster_watch.sh` | local shell | waits for listed job ids, downloads `out/` to `<dest>/<jobid>/` at the first job that ends, exits (so a background run notifies the orchestrator) | `iw_cluster_watch.sh <dest-root> <jobid>...`, polls every `90` s, up to `3` h | `sleep 90` (design archive `cluster/iw_cluster_watch.sh`) |
-| `batch_wait_fetch.sh` | local shell | wait for a job-name pattern to leave RUNNING/PENDING, then download | `<jobname-pattern> <first-array-jobid> <dest-dir>` | `sleep 120` (design archive `cluster/batch_wait_fetch.sh`) |
-| `batch_wait_ids.sh` | local shell | `batch-runner wait` for ids (timeout `14400`, poll `90`), then merge each job's `out/` into DEST | `batch_wait_ids.sh DEST id...` | `--timeout 14400` (design archive `cluster/batch_wait_ids.sh`) |
+| `fleet2_concepts.sh` | local shell | concept images for new NPC craft (fishing, patrol, airships, harbour craft) with the `lumina` CLI | studio style prompt, `--aspect-ratio 1:1`, skips existing | `lumina` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/fleet2_concepts.sh:10] |
+| `town_concepts.sh` | local shell | concept images for port towns (houses, harbour props) | same style as fleet2 | `lumina` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/town_concepts.sh:10] |
+| `img3d.sbatch` | Slurm array `0-1` | Hunyuan3D-2 image to textured GLB, one model per `inputs/*_concept.png` | partition `gpul4` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/img3d.sbatch:5], 1 GPU, `02:00:00` | |
+| `harbour3d.sbatch` | Slurm array `0-9` | same, 10 harbour models | `gpul4` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/harbour3d.sbatch:5], `02:00:00` | |
+| `harbour3d_v100.sbatch` | Slurm single | same on a V100 | `gpu1v1` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/harbour3d_v100.sbatch:4], `03:00:00` | |
+| `prep_ships.sbatch` | Slurm array `0-9` | Blender 5.2.3 headless decimation of 10 library ships | `standard` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/prep_ships.sbatch:3], 8 CPUs, `48G`, `01:30:00`; targets `300000 200000 200000 200000 120000 300000 100000 80000 200000 80000` triangles | `TRIS=` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/prep_ships.sbatch:15] |
+| `prep_ships.py` | Blender script | decimate to budget, apply transforms, write `<name>_game.glb`, `<name>_report.json`, previews | `blender -b -P prep_ships.py -- in.glb outdir tris` | `blender -b -P prep_ships.py` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/prep_ships.py:2] |
+| `prep_island.py` | Blender script | prep one Poly Haven island glTF (decimate, 2K textures, game GLB + preview) | `-- <in.gltf> <outdir> <target_tris>` | `blender -b -P prep_island.py` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/prep_island.py:2] |
+| `prep_islands_local.sh` | local shell | batch-run `prep_island.py` over `models/islands`, `xargs -P 4`, timeout `900` s each | budgets `120000` coast/cliff, `60000` trees, `25000` saplings, `15000` shrubs | `gtimeout 900` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/prep_islands_local.sh:10] |
+| `remesh_bake.py` | Blender script | remesh a messy triangle-soup model and bake textures from the original | `-- <in.glb> <outdir> <target_faces> <tex_res>` | `blender -b -P remesh_bake.py` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/remesh_bake.py:2] |
+| `turntable.py` | Blender script | Cycles turntable stills + key art | `-- <model> <outdir> <frames> <res_x> <res_y> <samples>` | `blender -b -P turntable.py` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/turntable.py:2] |
+| `score_job.sh` | local shell | quick turntables for every model of a downloaded hy3d job, comparison sheet (concept, hero render, turntable) for vision scoring | `gtimeout 240` per model | `gtimeout 240` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/score_job.sh:10] |
+| `make_sky.py` | Python (Ursa) | night-sky textures: equirect star map (Hipparcos positions/magnitudes/B-V), procedural Milky Way, Moon Kit albedo, `moon_phase_<n>.png` (8), `moon_2027.json` | writes `SKY_USE.md`; skips failed catalogues rather than faking | `Nothing is faked` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/make_sky.py:13] |
+| `sky.sbatch` | Slurm | runs `make_sky.py` | `standard` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/sky.sbatch:3], 16 CPUs, `60G`, `01:30:00` | |
+| `iw_cluster_watch.sh` | local shell | waits for listed job ids, downloads `out/` to `<dest>/<jobid>/` at the first job that ends, exits (so a background run notifies the orchestrator) | `iw_cluster_watch.sh <dest-root> <jobid>...`, polls every `90` s, up to `3` h | `sleep 90` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/iw_cluster_watch.sh:11] |
+| `ursa_wait_fetch.sh` | local shell | wait for a job-name pattern to leave RUNNING/PENDING, then download | `<jobname-pattern> <first-array-jobid> <dest-dir>` | `sleep 120` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/ursa_wait_fetch.sh:6] |
+| `ursa_wait_ids.sh` | local shell | `[REDACTED] wait` for ids (timeout `14400`, poll `90`), then merge each job's `out/` into DEST | `ursa_wait_ids.sh DEST id...` | `--timeout 14400` [src [REDACTED]/Projects/game-concepts/ironwake/cluster/ursa_wait_ids.sh:7] |
 
-Also in the same project tree (not under `cluster/`): `$IRONWAKE_ASSETS/fetch_islands.py` (fetches island assets) (design archive `fetch_islands.py`) and the audio sources described in chapter 10. Nothing in `cluster/` is invoked by the build or the game; outputs are copied to `$IRONWAKE_ASSETS/models/...` by the orchestrator and prepared into `build/assets/` (chapter 12). The orchestrator CLI is `env -u PYTHONPATH batch-runner` (`jobs`, `results <id> --prefix out --download`, `job log`, `wait`) (design archive `cluster/iw_cluster_watch.sh`).
+Also in the same project tree (not under `cluster/`): `~/Projects/game-concepts/ironwake/fetch_islands.py` (fetches island assets) [src [REDACTED]/Projects/game-concepts/ironwake/fetch_islands.py:1] and the audio sources described in chapter 10. Nothing in `cluster/` is invoked by the build or the game; outputs are copied to `~/Projects/game-concepts/ironwake/models/...` by the orchestrator and prepared into `build/assets/` (chapter 12). The orchestrator CLI is `env -u PYTHONPATH [REDACTED]` (`jobs`, `results <id> --prefix out --download`, `job log`, `wait`) [src [REDACTED]/Projects/game-concepts/ironwake/cluster/iw_cluster_watch.sh:16].
 
-## 13.9 task workflow
+## 13.9 Kanban workflow
 
 | Item | Value | Source |
 |---|---|---|
-| Board slug / name | `ironwake` / "Ironwake overnight build" ("Playable steampunk naval slice in UE 5.8") | `ironwake` (macOS container `GameUserSettings.ini`), `Ironwake overnight build` (macOS container `GameUserSettings.ini`) |
-| Board files | `~/.hermes/task/boards/ironwake/board.json` and `task.db` | `default_workdir` (macOS container `GameUserSettings.ini`) |
-| Default workdir | `./` | `./` (macOS container `GameUserSettings.ini`) |
-| Worker profile | `automated-builder` (every card file begins "Owner: automated-builder"); profile directory `~/.hermes/profiles/automated-builder/` | `Owner: automated-builder` [src build/cards2/D1_full_spec.md:3] |
-| Worker model / provider | `assistant-worker-5-5` via `custom:institutional-gateway` | `assistant-worker-5-5` (macOS container `GameUserSettings.ini`), `custom:institutional-gateway` (macOS container `GameUserSettings.ini`) |
-| Profile task setting | `review_dispatch: true` | `review_dispatch: true` (macOS container `GameUserSettings.ini`) |
-| Card source files | `build/cards/` and `build/cards2/*.md`; card id map in `build/cards2/ids.json` (17 entries, e.g. `P1_loop` `t_877230bd`, `W4` `t_ecad708c`, `P6_phase_review` `t_0d533935`) | `P1_loop` [src build/cards2/ids.json:2], `W4` [src build/cards2/ids.json:15] |
-| Handoff | each card ends with `task_complete` metadata plus `logs/<card>.md` (what works, capture paths, what is left, known bugs) | `task_complete` [src build/BRIEF.md:73] |
-| Watcher | `build/watch_cards.sh <board-slug> <build-dir>`: polls `hermes task --board <slug> list` every `60` s; exits (notifying the background run) on any status change, when `<build-dir>/STOP` appears, or after `45` minutes (heartbeat) | `sleep 60` [src build/watch_cards.sh:8], `2700` [src build/watch_cards.sh:6] |
+| Board slug / name | `ironwake` / "Ironwake overnight build" ("Playable steampunk naval slice in UE 5.8") | `ironwake` [src [REDACTED]/.hermes/kanban/boards/ironwake/board.json:2], `Ironwake overnight build` [src [REDACTED]/.hermes/kanban/boards/ironwake/board.json:3] |
+| Board files | `~/.hermes/kanban/boards/ironwake/board.json` and `kanban.db` | `default_workdir` [src [REDACTED]/.hermes/kanban/boards/ironwake/board.json:6] |
+| Default workdir | `[REDACTED]/Projects/unreal/IronwakeTest` | `[REDACTED]/Projects/unreal/IronwakeTest` [src [REDACTED]/.hermes/kanban/boards/ironwake/board.json:6] |
+| Worker profile | `ironwake-build` (every card file begins "Owner: ironwake-build"); profile directory `~/.hermes/profiles/ironwake-build/` | `Owner: ironwake-build` [src build/cards2/D1_full_spec.md:3] |
+| Worker model / provider | `claude-sonnet-5-5` via `custom:ucr-gateway` | `claude-sonnet-5-5` [src [REDACTED]/.hermes/profiles/ironwake-build/config.yaml:24], `custom:ucr-gateway` [src [REDACTED]/.hermes/profiles/ironwake-build/config.yaml:15] |
+| Profile kanban setting | `review_dispatch: true` | `review_dispatch: true` [src [REDACTED]/.hermes/profiles/ironwake-build/config.yaml:27] |
+| Card source files | `build/cards/` and `build/cards2/*.md`; card id map in `build/cards2/ids.json` (17 entries, e.g. `P1_loop` `t_877230bd`, `W4` `t_ecad708c`, `P6_opus_review` `t_0d533935`) | `P1_loop` [src build/cards2/ids.json:2], `W4` [src build/cards2/ids.json:15] |
+| Handoff | each card ends with `kanban_complete` metadata plus `build/logs/<card>.md` (what works, capture paths, what is left, known bugs) | `kanban_complete` [src build/BRIEF.md:73] |
+| Watcher | `build/watch_cards.sh <board-slug> <build-dir>`: polls `hermes kanban --board <slug> list` every `60` s; exits (notifying the background run) on any status change, when `<build-dir>/STOP` appears, or after `45` minutes (heartbeat) | `sleep 60` [src build/watch_cards.sh:8], `2700` [src build/watch_cards.sh:6] |
 | Stop file | if `build/STOP` exists, write `build/STOP_REASON.md` and stop | `build/STOP` [src build/BRIEF.md:71] |
 | Model for the orchestrator | not recorded in the repo: unknown (read the Hermes session config of the default profile) | |
 
@@ -331,15 +331,15 @@ Card order was rewritten several times in BRIEF: current explicit order lines ar
 | 7 | Honest status: "done" = ran in PIE and captured a screenshot that shows it | `Honest status` [src build/BRIEF.md:68] |
 | 8 | Respect the art bible: no cartoon kitbash, grey stormy palette, real-metre scale | `Respect the art bible` [src build/BRIEF.md:70] |
 | 9 | Stop and write `build/STOP_REASON.md` if `build/STOP` exists | `Stop and write` [src build/BRIEF.md:71] |
-| 10 | Leave project agent config files alone | `Leave agent docs` [src build/BRIEF.md:72] |
-| 11 | Handoff: `task_complete` + `logs/<card>.md` | `Handoff` [src build/BRIEF.md:73] |
+| 10 | Leave CLAUDE.md / AGENTS.md alone | `Leave CLAUDE.md` [src build/BRIEF.md:72] |
+| 11 | Handoff: `kanban_complete` + `build/logs/<card>.md` | `Handoff` [src build/BRIEF.md:73] |
 | 12 | Music OFF by default, SFX on | `Standing rule` [src build/BRIEF.md:148] |
 | 13 | Hull never sits below its paint line in calm water | `Never let a hull sit below its paint line` [src build/BRIEF.md:186] |
 | 14 | Collision is a hard rule: ships never pass through land, beaches, rocks, piers, buildings or other ships; every placed object gets simple collision | `Collision is a hard rule` [src build/BRIEF.md:192] |
 | 15 | Audio: only water + environment sounds | `Audio: ONLY water` [src build/BRIEF.md:184] |
-| 16 | Workers must not submit cluster jobs; write requests to `batch_requests.md` | `do NOT submit cluster jobs` [src build/BRIEF.md:166] |
+| 16 | Workers must not submit cluster jobs; write requests to `build/URSA_REQUESTS.md` | `do NOT submit cluster jobs` [src build/BRIEF.md:166] |
 | 17 | Test windows steal focus: batch runs and relaunch as little as possible | `Test windows steal focus` [src build/BRIEF.md:188] |
-| 18 | Re-package the pass build to `Packaged/Ironwake/Ironwake.app`, keep the previous as `Ironwake_v1.app` until verified (PASS 2 rule; later builds are kept as `Ironwake_<card>.app`) | `Ironwake_v1.app` [src build/BRIEF.md:98] |
+| 18 | Re-package the pass build to `~/Games/Ironwake/Ironwake.app`, keep the previous as `Ironwake_v1.app` until verified (PASS 2 rule; later builds are kept as `Ironwake_<card>.app`) | `Ironwake_v1.app` [src build/BRIEF.md:98] |
 | 19 | Direction: sailing ships are the game's centre; frigate is the default player ship; close zoom to ~20 m | `the game now centres on SAILING ships` [src build/BRIEF.md:175], `~20 m` [src build/BRIEF.md:179] |
 
 **Stale / superseded BRIEF text:** the "Controls (DESIGN.md section 3)" line (A/D rudder steps, RMB zoom) [src build/BRIEF.md:47] is superseded by the held-wheel rudder and RMB-exits-scope bindings in chapter 9; "Current state (verified 2026-11-09 00:45)" [src build/BRIEF.md:49] describes the pre-build map and is historical.
@@ -354,20 +354,20 @@ scripts and these spec chapters. Cooked `.uasset` content and licensed source mo
 ### Site (`docs/`)
 | Piece | What it does | Value |
 |---|---|---|
-| 3D hangar | `<model-viewer>` over the web GLBs in `docs/models/` (18 models plus `manifest.json`) | `model-viewer/4.0.0` [src docs/index.html:21] |
-| Reel | four cuts; cut 4 is a Blender studio render, labelled as one, the rest are in-game captures | `cut4_articulated_rig_reel` [src docs/site.js:23] |
+| 3D hangar | `<model-viewer>` over the web GLBs in `docs/models/` (18 models plus `manifest.json`) | `model-viewer/4.0.0` (public repo `docs/index.html:21`) |
+| Reel | four cuts; cut 4 is a Blender studio render, labelled as one, the rest are in-game captures | `cut4_articulated_rig_reel` (public repo `docs/site.js:23`) |
 | Sound | Web Audio mixer over the 25 MP3s in `docs/audio/` | |
 | Wake lab | Canvas Kelvin-wake toy beside the cut-2 footage | |
 
 ### Pipeline scripts used for the site
 | Script | Job | Key value |
 |---|---|---|
-| `pipeline/prep_web_models.py` | Blender: assemble articulated GLBs (moving parts kept as separate `PART_*` nodes), decimate to about 26k triangles, write QA thumbnails | `decimate_mesh(tav, 26000)` [src pipeline/prep_web_models.py:845] |
-| weld before decimate | the glTF importer splits vertices on every UV/normal seam; collapse-decimating that tore surfaces into slivers and holes, so seams are merged first | `def weld_mesh(obj, dist=1e-5):` [src pipeline/prep_web_models.py:370] |
-| two-sided materials | exported as glTF `doubleSided`, so back faces never show through | `m.use_backface_culling = False` [src pipeline/prep_web_models.py:499] |
-| depsgraph refresh | read `matrix_world` only after an update, or every part collapses to the origin | `bpy.context.view_layer.update()` [src pipeline/prep_web_models.py:531] |
-| `pipeline/render_rig_reel.py` | Cycles studio vignettes (brig yards, paddle wheels, tender crane and bell, airship propellers) in a lathed cyclorama | `--samples 16` [src pipeline/render_rig_reel.py:7] |
-| camera arc | slow 32 degree arc on the bow quarter, never head-on (bow-on foreshortens and clips) | `200 + 32 * ease` [src pipeline/render_rig_reel.py:232] |
+| `pipeline/prep_web_models.py` | Blender: assemble articulated GLBs (moving parts kept as separate `PART_*` nodes), decimate to about 26k triangles, write QA thumbnails | `decimate_mesh(tav, 26000)` (public repo `pipeline/prep_web_models.py:845`) |
+| weld before decimate | the glTF importer splits vertices on every UV/normal seam; collapse-decimating that tore surfaces into slivers and holes, so seams are merged first | `def weld_mesh(obj, dist=1e-5):` (public repo `pipeline/prep_web_models.py:370`) |
+| two-sided materials | exported as glTF `doubleSided`, so back faces never show through | `m.use_backface_culling = False` (public repo `pipeline/prep_web_models.py:499`) |
+| depsgraph refresh | read `matrix_world` only after an update, or every part collapses to the origin | `bpy.context.view_layer.update()` (public repo `pipeline/prep_web_models.py:531`) |
+| `pipeline/render_rig_reel.py` | Cycles studio vignettes (brig yards, paddle wheels, tender crane and bell, airship propellers) in a lathed cyclorama | `--samples 16` (public repo `pipeline/render_rig_reel.py:7`) |
+| camera arc | slow 32 degree arc on the bow quarter, never head-on (bow-on foreshortens and clips) | `200 + 32 * ease` (public repo `pipeline/render_rig_reel.py:232`) |
 
 ### Cluster runs (Ursa `standard` partition)
 - Web GLBs: one 16-CPU node, 18 Blender slices in parallel, about 40 s per run.
@@ -380,9 +380,10 @@ scripts and these spec chapters. Cooked `.uasset` content and licensed source mo
 ### Release gate
 | Check | Value |
 |---|---|
-| `tools/verify_repo.py`: every model, sound, page reference and link resolves, plus a privacy scan of tracked files and GLB metadata | `VERIFY OK` [src tools/verify_repo.py:144] |
-| CI runs the gate, then every spec citation | `python3 tools/spec_check.py --all --fails` [src .github/workflows/ci.yml:26] |
-| CI job name | `Repo, showcase and privacy gate` [src .github/workflows/ci.yml:13] |
+| `tools/verify_repo.py`: every model, sound, page reference and link resolves, plus a privacy scan of tracked files and GLB metadata | `VERIFY OK` (public repo `tools/verify_repo.py:144`) |
+| CI runs the gate, then every spec citation | `python3 tools/spec_check.py --all --fails` (public repo `.github/workflows/ci.yml:26`) |
+| CI job name | `Repo, showcase and privacy gate` (public repo `.github/workflows/ci.yml:13`) |
+
 
 ## 13.11 Gaps / unknown
 
@@ -393,5 +394,5 @@ scripts and these spec chapters. Cooked `.uasset` content and licensed source mo
 - The orchestrator's model and the `hermes` CLI commands that created the board are not stored in the repo (unknown); the profile config only shows the worker.
 - `build/cards/` (first-pass cards) was not read for this chapter; only `build/cards2/` and `ids.json`.
 - Whether the 81 flag count is complete for flags read through helper wrappers (e.g. a flag parsed with `HasParam` or by `Contains` on `FCommandLine::Get()` text) is unverified; the `grep` pattern only finds `TEXT("iw...")` literals.
-- Packaged apps carry two bundle ids (`io.github.charles-forsyth.ironwake`, `com.YourCompany.IronwakeTest`); which one a given `~/Games/Ironwake*.app` uses must be read from its `Info.plist` (not done; `build/Mac/Resources/Info.template.plist` is the template).
+- Packaged apps carry two bundle ids (`com.omstead.ironwake`, `com.YourCompany.IronwakeTest`); which one a given `~/Games/Ironwake*.app` uses must be read from its `Info.plist` (not done; `build/Mac/Resources/Info.template.plist` is the template).
 - Test directors for P13 and P14 re-use `-iwp11` modes (`tw`, `p14`); no dedicated `-iwp13`/`-iwp14` flag exists.

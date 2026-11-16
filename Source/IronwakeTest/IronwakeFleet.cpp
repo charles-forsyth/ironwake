@@ -72,6 +72,40 @@ namespace
 			R.Add(D);
 		}
 		{
+			// P32: 26 m Chapman gun sloop (historical Chapman Architectura Navalis Mercatoria sloop, nimble fore-and-aft + topsail coastal runner).
+			FIronwakeShipDef D;
+			D.Id = TEXT("sloop"); D.Name = TEXT("Petrel"); D.Class = TEXT("Chapman gun sloop  |  26 m  |  165 t");
+			D.Blurb = TEXT("Fast single-masted historical Chapman sloop with woven flax sails. Points close to the wind and slips into tight coves. Auxiliary steam (B).");
+			D.UnlockText = TEXT("Dispatch & packet sloop, always available");
+			D.HullMesh = TEXT("/Game/Ironwake/World/ChapmanSloop/SM_ChapmanSloop.SM_ChapmanSloop");
+			D.LengthM = 26.f; D.BeamM = 6.2f; D.MassKg = 1.65e5f; D.bSail = true;
+			D.TelegraphKnots = { -5.f, -2.5f, 0.f, 4.5f, 7.f, 9.5f, 11.5f };
+			D.MaxAccelMS2 = 0.95f; D.SpeedTimeConstant = 2.4f; D.MinTurnRadiusM = 58.f; D.YawResponse = 4.2f; D.LateralDrag = 3.8f; D.RudderSlew = 34.f;
+			D.HeavePeriod = 3.4f; D.HeaveZeta = 0.50f; D.PitchPeriod = 3.3f; D.PitchZeta = 0.52f; D.RollPeriod = 5.0f; D.RollZeta = 0.42f;
+			D.SeaFollowHeave = 1.f; D.SeaFollowPitch = 1.f; D.SeaFollowRoll = 0.96f; D.FitSpan = 0.85f;
+			D.DraftBelowBootTopCm = 195.f; // SM_ChapmanSloop z=0 is at the KEEL -> +195 cm sets calm waterline cleanly on lower hull
+			D.WaveCrestK = 0.24f; D.WaveTroughK = 0.04f; D.WaveQuarterK = 0.54f; D.WaveWedgeK = 1.08f; D.WaveBluff = 0.20f; D.FreeboardM = 2.1f; D.DraftM = 1.95f;
+			D.Profile = &FIronwakeHullProfile::ChapmanSloop;
+			R.Add(D);
+		}
+		{
+			// P32: 38 m Amphion two-masted topsail schooner (sleek clipper-bowed archipelago packet schooner).
+			FIronwakeShipDef D;
+			D.Id = TEXT("schooner"); D.Name = TEXT("Amphion"); D.Class = TEXT("Topsail schooner  |  38 m  |  320 t");
+			D.Blurb = TEXT("Two-masted topsail packet schooner. High close-hauled speed and generous 85-ton hold for long archipelago trade runs. Auxiliary steam (B).");
+			D.UnlockText = TEXT("Archipelago packet schooner, always available");
+			D.HullMesh = TEXT("/Game/Ironwake/World/AmphionSchooner/SM_AmphionSchooner.SM_AmphionSchooner");
+			D.LengthM = 38.f; D.BeamM = 8.4f; D.MassKg = 3.2e5f; D.bSail = true;
+			D.TelegraphKnots = { -5.f, -2.5f, 0.f, 4.5f, 6.8f, 9.0f, 11.0f };
+			D.MaxAccelMS2 = 0.72f; D.SpeedTimeConstant = 3.1f; D.MinTurnRadiusM = 78.f; D.YawResponse = 3.6f; D.LateralDrag = 3.5f; D.RudderSlew = 30.f;
+			D.HeavePeriod = 3.8f; D.HeaveZeta = 0.51f; D.PitchPeriod = 3.7f; D.PitchZeta = 0.54f; D.RollPeriod = 5.8f; D.RollZeta = 0.42f;
+			D.SeaFollowHeave = 1.f; D.SeaFollowPitch = 1.f; D.SeaFollowRoll = 0.94f; D.FitSpan = 0.82f;
+			D.DraftBelowBootTopCm = 265.f; // SM_AmphionSchooner z=0 is at the KEEL -> +265 cm places hull cleanly in the water
+			D.WaveCrestK = 0.26f; D.WaveTroughK = 0.05f; D.WaveQuarterK = 0.53f; D.WaveWedgeK = 1.06f; D.WaveBluff = 0.24f; D.FreeboardM = 2.7f; D.DraftM = 2.65f;
+			D.Profile = &FIronwakeHullProfile::AmphionSchooner;
+			R.Add(D);
+		}
+		{
 			// (b) the heavy ironclad: unchanged H1/W1 tuning (values come from BP_PlayerShip / the pawn defaults).
 			FIronwakeShipDef D;
 			D.Id = TEXT("ironclad"); D.Name = TEXT("Devastation"); D.Class = TEXT("Turret ironclad  |  125 m  |  8,000 t");
@@ -129,7 +163,7 @@ namespace IronwakeFleet
 	{
 		if (FParse::Param(FCommandLine::Get(), TEXT("iwunlockall"))) return true;
 		// Chuck (22:35): the sailing frigate is the start ship; the merchant brig and cutter are always available; the ironclad is earned by voyages or 1,200 Silver Crowns.
-		if (Id == TEXT("frigate") || Id == TEXT("brig") || Id == TEXT("cutter")) return true;
+		if (Id == TEXT("frigate") || Id == TEXT("brig") || Id == TEXT("cutter") || Id == TEXT("sloop") || Id == TEXT("schooner")) return true;
 		if (Id == TEXT("ironclad")) return GetArrivals() >= ArrivalsForIronclad || ReadInt(TEXT("Crowns"), 0) >= 1200;
 		return false;
 	}
@@ -227,6 +261,22 @@ FIronwakeHullProfile FIronwakeHullProfile::TallBrig()
 	P.HalfB = { 0.65f, 1.85f, 2.75f, 3.15f, 3.46f, 3.65f, 3.85f, 4.18f, 4.40f, 4.52f, 4.62f, 4.70f, 4.76f, 4.82f, 4.84f, 4.81f, 4.72f, 4.55f, 4.15f, 3.82f, 3.55f, 3.22f, 2.65f, 1.65f, 0.55f };
 	P.BowDeckM = 6.20f;   // forecastle deck Z in mesh metres above z=0 keel (~3.10 m above 3.10 m calm waterline)
 	P.KeelM = 3.10f;
+	return P;
+}
+
+FIronwakeHullProfile FIronwakeHullProfile::ChapmanSloop()
+{
+	FIronwakeHullProfile P; P.X0 = -11.2f; P.X1 = 9.4f;
+	P.HalfB = { 0.45f, 1.35f, 2.05f, 2.48f, 2.75f, 2.92f, 3.04f, 3.10f, 3.12f, 3.12f, 3.10f, 3.05f, 2.98f, 2.88f, 2.75f, 2.58f, 2.38f, 2.15f, 1.88f, 1.58f, 1.25f, 0.92f, 0.62f, 0.35f, 0.18f };
+	P.BowDeckM = 4.1f; P.KeelM = 1.95f;
+	return P;
+}
+
+FIronwakeHullProfile FIronwakeHullProfile::AmphionSchooner()
+{
+	FIronwakeHullProfile P; P.X0 = -16.8f; P.X1 = 12.6f;
+	P.HalfB = { 0.52f, 1.55f, 2.35f, 2.90f, 3.32f, 3.65f, 3.90f, 4.08f, 4.18f, 4.22f, 4.22f, 4.18f, 4.12f, 4.02f, 3.86f, 3.65f, 3.38f, 3.05f, 2.68f, 2.25f, 1.80f, 1.35f, 0.92f, 0.52f, 0.22f };
+	P.BowDeckM = 5.35f; P.KeelM = 2.65f;
 	return P;
 }
 
@@ -684,6 +734,27 @@ void UIronwakeSailRig::Build()
 {
 	if (bBuilt) return;
 	bBuilt = true;
+	if (bHullSailsWPO)
+	{
+		HullSailMIDs.Reset();
+		if (UStaticMeshComponent* ParentHull = Cast<UStaticMeshComponent>(GetAttachParent()))
+		{
+			for (int32 mi = 0; mi < ParentHull->GetNumMaterials(); ++mi)
+			{
+				UMaterialInterface* Mat = ParentHull->GetMaterial(mi);
+				if (Mat && Mat->GetName().Contains(TEXT("Sail")))
+				{
+					if (UMaterialInstanceDynamic* Mid = ParentHull->CreateAndSetMaterialInstanceDynamic(mi))
+					{
+						Mid->SetScalarParameterValue(TEXT("Phase"), 0.85f * mi);
+						HullSailMIDs.Add(Mid);
+					}
+				}
+			}
+		}
+		UE_LOG(LogIronwake, Display, TEXT("IWP32 WPO hull-sail rig bound: %d dynamic sail slots"), HullSailMIDs.Num());
+		return;
+	}
 	if (bTallBrig) { BuildTallBrig(); return; }
 	AActor* Owner = GetOwner();
 	UStaticMesh* Cyl = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
@@ -776,6 +847,31 @@ void UIronwakeSailRig::Build()
 void UIronwakeSailRig::TickRig(float Dt, float RelWind, int32 SetLevel, float Fill, float WindKnots, float ApparentRelWind)
 {
 	if (!bBuilt) return;
+	if (bHullSailsWPO)
+	{
+		T += Dt;
+		const float TWA = FMath::Abs(RelWind);
+		const float Side = RelWind >= 0.f ? 1.f : -1.f;
+		const float Ls = -Side;
+		const float Wf = FMath::Clamp(WindKnots / 16.f, 0.25f, 1.5f);
+		const bool bLuff = (TWA < 35.f || Fill < 0.05f);
+		const float Sf = (SetLevel <= 2) ? 0.15f : FMath::Clamp((SetLevel - 2) / 3.f, 0.45f, 1.0f);
+		const float BellyCm = (bLuff ? 2.0f : (Fill * 24.0f * FMath::Clamp(Wf, 0.5f, 1.3f))) * Sf;
+		const float LuffCm  = (bLuff ? 16.0f : FMath::Clamp((0.45f - Fill) * 14.f, 0.f, 4.5f)) * Wf * Sf;
+		LastBellyM = BellyCm / 100.f;
+		LastLuffCm = LuffCm;
+		const FVector HullRight = GetComponentTransform().GetUnitAxis(EAxis::Y);
+		const FVector HullFwd   = GetComponentTransform().GetUnitAxis(EAxis::X);
+		const FVector LeeDir    = (HullRight * Ls * 0.78f + HullFwd * 0.62f).GetSafeNormal();
+		for (UMaterialInstanceDynamic* Mid : HullSailMIDs)
+		{
+			if (!Mid) continue;
+			Mid->SetVectorParameterValue(TEXT("BillowDir"), FLinearColor(LeeDir.X, LeeDir.Y, LeeDir.Z, 0.f));
+			Mid->SetScalarParameterValue(TEXT("WindBelly"), BellyCm);
+			Mid->SetScalarParameterValue(TEXT("LuffAmp"), LuffCm);
+		}
+		return;
+	}
 	if (bTallBrig) { TickTallBrig(Dt, RelWind, ApparentRelWind, SetLevel, Fill, WindKnots); return; }
 	T += Dt;
 	const float TWA = FMath::Abs(RelWind);

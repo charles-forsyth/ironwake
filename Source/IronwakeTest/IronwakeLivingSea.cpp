@@ -232,7 +232,7 @@ AIronwakeAirship::AIronwakeAirship()
 	if (ShipFinder.Succeeded()) Body->SetStaticMesh(ShipFinder.Object);
 	// R1: brass airship (Pigcraft, CC-BY), 110 m, nose +X, keel at z=0; hull centre ~46 m above the actor's keel.
 	Body->SetRelativeScale3D(FVector(1.f));
-	// E1: watertight remesh + 4K bake (batch job 2162). Its bbox includes the stern prop, so shift it 1.53 m aft onto R1's frame.
+	// E1: watertight remesh + 4K bake (Ursa job 2162). Its bbox includes the stern prop, so shift it 1.53 m aft onto R1's frame.
 	Body->SetRelativeLocation(FVector(-153.f, 0.f, 0.f));
 	Body->SetRelativeRotation(FRotator::ZeroRotator);
 	Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);

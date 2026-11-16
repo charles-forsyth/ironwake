@@ -28,6 +28,8 @@ struct FIronwakeHullProfile
 	static FIronwakeHullProfile Aglae();
 	static FIronwakeHullProfile Frigate(); // S2 (IronwakeFleet.cpp)
 	static FIronwakeHullProfile TallBrig(); // P26 (IronwakeFleet.cpp)
+	static FIronwakeHullProfile ChapmanSloop(); // P32 (IronwakeFleet.cpp)
+	static FIronwakeHullProfile AmphionSchooner(); // P32 (IronwakeFleet.cpp)
 };
 
 /** W2: our own Gerstner generator: a fixed set of components (primary swell, crossing swell, wind sea, chop) whose

@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ironwake: a steampunk naval sailing game in Unreal Engine 5.8</title>
-  <meta name="description" content="Open-source steampunk naval sailing game in Unreal Engine 5.8. Sail ironclads, brigs and steamers between three working ports. Rotate 18 ships and buildings in 3D, mix the sea audio, and drive the Kelvin wake lab in your browser.">
+  <meta name="description" content="Open-source steampunk naval sailing game in Unreal Engine 5.8. Sail ironclads, brigs, schooners, sloops and steamers across six working ports in a 34 km archipelago. Rotate 20 ships and buildings in 3D, mix the sea audio, and drive the Kelvin wake lab in your browser.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://charles-forsyth.github.io/ironwake/">
   <meta property="og:title" content="Ironwake: steampunk naval sailing in Unreal Engine 5.8">
-  <meta property="og:description" content="Three working ports, a 30-ship living sea, physically solved Kelvin wakes. Rotate the fleet in 3D, mix the sea, and play with the wake lab.">
+  <meta property="og:description" content="Six working ports, six playable hulls, a 30-ship living sea, physically solved Kelvin wakes. Rotate the fleet in 3D, mix the sea, and play with the wake lab.">
   <meta property="og:image" content="https://charles-forsyth.github.io/ironwake/assets/og-share.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://charles-forsyth.github.io/ironwake/assets/og-share.jpg">
@@ -49,9 +49,9 @@
           <h1>Steam, sail and <em>iron</em> on a living sea</h1>
           <div class="rule" aria-hidden="true"><span>EST. 1871</span></div>
           <p class="lead">
-            Ironwake is a peaceful-first steampunk naval game. Take a turret ironclad, a rigged brig or a paddle
-            steamer between three working harbours, trade cargo with the harbourmaster, and watch a sea that
-            behaves like water: crests by sea state, wakes from a solved Kelvin pattern, ships that heel and pitch.
+            Ironwake is a peaceful-first steampunk naval game. Take a turret ironclad, a rigged brig, a topsail schooner,
+            a Chapman sloop or a steam cutter across six working harbours in a 34 km archipelago, trade cargo with the
+            harbourmaster, and watch a sea that behaves like water: crests by sea state, wakes from a solved Kelvin pattern, ships that heel and pitch.
           </p>
           <div class="cta-row">
             <a class="btn btn-primary" href="#fleet">Rotate the fleet in 3D</a>
@@ -59,9 +59,9 @@
             <a class="btn" href="https://github.com/charles-forsyth/ironwake">Source and spec</a>
           </div>
           <div class="ledger">
-            <div><b>3</b><span>working ports</span></div>
-            <div><b>30</b><span>NPC ships, 0 collisions in soak</span></div>
-            <div><b>18</b><span>web 3D models below</span></div>
+            <div><b>6</b><span>working ports (34 km sea)</span></div>
+            <div><b>6</b><span>playable hulls to command</span></div>
+            <div><b>20</b><span>web 3D models below</span></div>
             <div><b>53 fps</b><span>medium preset, M-series Mac</span></div>
           </div>
         </div>
@@ -126,7 +126,7 @@
         </div>
 
         <div class="chips" id="fleet-filter" role="group" aria-label="Filter models">
-          <button type="button" class="chip" data-cat="all" aria-pressed="true">All 18</button>
+          <button type="button" class="chip" data-cat="all" aria-pressed="true">All 20</button>
           <button type="button" class="chip" data-cat="ships" aria-pressed="false">Ships</button>
           <button type="button" class="chip" data-cat="aircraft" aria-pressed="false">Airships</button>
           <button type="button" class="chip" data-cat="architecture" aria-pressed="false">Waterfront</button>
@@ -290,8 +290,10 @@ Wake height blends low > mid > high as Fn rises; foam is gated by speed so a shi
               <li><b>P26</b><span><strong>The brig.</strong> 42 m Curlew with 17 moving rig parts; four-ship shipyard.</span></li>
               <li><b>P27</b><span><strong>Wakes.</strong> Havelock Kelvin and screw-wash tables solved on the cluster.</span></li>
               <li><b>P28</b><span><strong>Moving parts.</strong> 120+ animated parts: rowing crew, paddle wheels, crane and bell, airship screws.</span></li>
-              <li><b>P29</b><span><strong>Two more ports.</strong> Ironcrag and Stigsby, three-port chart, market and logbook.</span></li>
-              <li><b>P30</b><span><strong>Verify and promote.</strong> Multi-seed soak, paired FPS, spec check 3658 / 3658.</span></li>
+              <li><b>P29</b><span><strong>Multi-port trade.</strong> Data-driven harbours, market and logbook.</span></li>
+              <li><b>P30</b><span><strong>Verify and promote.</strong> Multi-seed soak, paired FPS, spec check.</span></li>
+              <li><b>P31</b><span><strong>Photoreal pass.</strong> Continuous TPU Kelvin wake tables, flax sail SSS, POM cobbles, Nanite coastal foliage, copper boot-tops.</span></li>
+              <li><b>P32</b><span><strong>Archipelago &amp; fleet.</strong> Six working ports across a 34 km sea, TPU-solved 8-good trade equilibrium, Chapman sloop and topsail schooner Amphion (six playable hulls).</span></li>
             </ol>
           </div>
         </div>

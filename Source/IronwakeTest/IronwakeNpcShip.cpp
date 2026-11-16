@@ -185,7 +185,7 @@ void AIronwakeNpcShip::BuildVisuals()
 	};
 	if (D.Id == TEXT("patrol_airship"))
 	{
-		// P28: clean bladeless-pod PatrolAirshipV4 + 3 prepped 4-blade brass/mahogany propellers (X_ue=+100*X_b, Y_ue=-100*Y_b, Z_ue=+100*Z_b).
+		// P28: clean bladeless-pod PatrolAirshipV4 + 3 Ursa-prepped 4-blade brass/mahogany propellers (X_ue=+100*X_b, Y_ue=-100*Y_b, Z_ue=+100*Z_b).
 		// Cruise rev/s ~2.5 (> 1.7 rev/s activates translucent swept motion-blur disc while blades spin ~135 deg per 0.15 s).
 		struct FPr4 { const TCHAR* Mesh; FVector PivotCm; float Rev; float Ph; };
 		static const FPr4 Pr4[] = {

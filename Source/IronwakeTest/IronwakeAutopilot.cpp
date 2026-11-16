@@ -677,8 +677,9 @@ void AIronwakeVoyage::DrawChart(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Ship, U
 	H->DrawRect(FLinearColor(0.005f, 0.01f, 0.015f, 0.88f), 0.f, 0.f, Cv->ClipX, Cv->ClipY);
 	const float X0 = ChartCX - ChartHalfPx, Y0 = ChartCY - ChartHalfPx, Sz = 2.f * ChartHalfPx;
 	H->DrawRect(FLinearColor(0.06f, 0.10f, 0.13f, 1.f), X0, Y0, Sz, Sz);
-	// 1 km grid
-	for (float G = -300000.f; G <= 300001.f; G += 100000.f)
+	// 5 km maritime chart grid (P32: 29 km x 29 km archipelago chart)
+	const float GridStepCm = ChartHalfCm > 600000.f ? 500000.f : 100000.f;
+	for (float G = -FMath::FloorToFloat(ChartHalfCm / GridStepCm) * GridStepCm; G <= ChartHalfCm + 1.f; G += GridStepCm)
 	{
 		const FVector2D A = WorldToChart(FVector(G, -ChartHalfCm, 0)), B = WorldToChart(FVector(G, ChartHalfCm, 0));
 		const FVector2D C2 = WorldToChart(FVector(-ChartHalfCm, G, 0)), D2 = WorldToChart(FVector(ChartHalfCm, G, 0));
@@ -689,11 +690,12 @@ void AIronwakeVoyage::DrawChart(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Ship, U
 	H->DrawLine(X0, Y0, X0 + Sz, Y0, Brass, 2.f); H->DrawLine(X0, Y0 + Sz, X0 + Sz, Y0 + Sz, Brass, 2.f);
 	H->DrawLine(X0, Y0, X0, Y0 + Sz, Brass, 2.f); H->DrawLine(X0 + Sz, Y0, X0 + Sz, Y0 + Sz, Brass, 2.f);
 	H->DrawText(TEXT("N"), Brass, ChartCX - 6.f * S, Y0 - 26.f * S, Font, 1.1f * S);
-	// Scale bar
+	// Scale bar (5 km on 30 km chart)
 	{
-		const FVector2D A = WorldToChart(FVector(-ChartHalfCm + 20000.f, -ChartHalfCm + 20000.f, 0)), B = WorldToChart(FVector(-ChartHalfCm + 20000.f, -ChartHalfCm + 120000.f, 0));
+		const float BarCm = ChartHalfCm > 600000.f ? 500000.f : 100000.f;
+		const FVector2D A = WorldToChart(FVector(-ChartHalfCm + 60000.f, -ChartHalfCm + 60000.f, 0)), B = WorldToChart(FVector(-ChartHalfCm + 60000.f, -ChartHalfCm + 60000.f + BarCm, 0));
 		H->DrawLine(A.X, A.Y, B.X, B.Y, Brass, 3.f);
-		H->DrawText(TEXT("1 km"), Brass, A.X, A.Y - 22.f * S, Font, 0.8f * S);
+		H->DrawText(ChartHalfCm > 600000.f ? TEXT("5 km") : TEXT("1 km"), Brass, A.X, A.Y - 22.f * S, Font, 0.8f * S);
 	}
 	auto Circle = [&](const FVector& C, float R, const FLinearColor& Col, float Th, bool bDash)
 	{
@@ -798,18 +800,26 @@ void AIronwakeVoyage::DrawChart(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Ship, U
 		Circle(Waypoints[i], 9000.f, Col, 2.5f, false);
 		H->DrawText(FString::FromInt(i + 1), Col, P.X + 9.f * S, P.Y - 22.f * S, Font, 1.0f * S);
 	}
-	// Points of interest (opaque pill backdrops on top of lines so zero text-line overlap!)
+	// Points of interest: show all 6 working ports, major lighthouses, and wreck sites cleanly on the 30 km chart without inner-islet clutter!
 	for (int32 i = 0; i < POIs.Num(); ++i)
 	{
 		const FVector2D P = WorldToChart(POIs[i].Loc);
-		H->DrawRect(POIs[i].bVisited ? Dim : Hi, P.X - 5.f * S, P.Y - 5.f * S, 10.f * S, 10.f * S);
-		float Tw, Th; H->GetTextSize(POIs[i].Name, Tw, Th, Font, 0.75f * S);
-		float Ox = 10.f * S, Oy = 8.f * S;
-		if (POIs[i].Tag == TEXT("H"))       { Ox = 20.f * S; Oy = -58.f * S; }
-		else if (POIs[i].Tag == TEXT("Ic")) { Ox = 24.f * S; Oy = -28.f * S; }
-		else if (POIs[i].Tag == TEXT("St")) { Ox = -Tw - 26.f * S; Oy = -26.f * S; }
+		H->DrawRect(POIs[i].bVisited ? Dim : Hi, P.X - 4.5f * S, P.Y - 4.5f * S, 9.f * S, 9.f * S);
+		const FString& Tg = POIs[i].Tag;
+		const bool bMajorLabel = (Tg == TEXT("H") || Tg == TEXT("Ic") || Tg == TEXT("St") || Tg == TEXT("Kc") || Tg == TEXT("Ng") || Tg == TEXT("Sh")
+			|| Tg == TEXT("L") || Tg == TEXT("Sl") || Tg == TEXT("Br") || Tg == TEXT("W") || Tg == TEXT("K") || Tg == TEXT("F"));
+		if (!bMajorLabel && ChartHalfCm > 600000.f) continue;
+		float Tw, Th; H->GetTextSize(POIs[i].Name, Tw, Th, Font, 0.72f * S);
+		float Ox = 9.f * S, Oy = 6.f * S;
+		if      (Tg == TEXT("H"))  { Ox = 14.f * S; Oy = -24.f * S; }
+		else if (Tg == TEXT("Ic")) { Ox = 14.f * S; Oy = -22.f * S; }
+		else if (Tg == TEXT("St")) { Ox = 12.f * S; Oy = 8.f * S; }
+		else if (Tg == TEXT("Kc")) { Ox = -Tw - 14.f * S; Oy = -10.f * S; }
+		else if (Tg == TEXT("Ng")) { Ox = -Tw - 14.f * S; Oy = 8.f * S; }
+		else if (Tg == TEXT("Sh")) { Ox = 12.f * S; Oy = -12.f * S; }
+		else if (Tg == TEXT("L"))  { Ox = 12.f * S; Oy = -20.f * S; }
 		H->DrawRect(FLinearColor(0.01f, 0.02f, 0.03f, 0.94f), P.X + Ox - 4.f * S, P.Y + Oy - 2.f * S, Tw + 8.f * S, Th + 4.f * S);
-		H->DrawText(POIs[i].Name, Brass, P.X + Ox, P.Y + Oy, Font, 0.75f * S);
+		H->DrawText(POIs[i].Name, Brass, P.X + Ox, P.Y + Oy, Font, 0.72f * S);
 	}
 	{
 		const FVector2D P = WorldToChart(AnchorPt);
@@ -828,8 +838,8 @@ void AIronwakeVoyage::DrawChart(AHUD* H, UCanvas* Cv, AIronwakeShipPawn* Ship, U
 	// Legend panel
 	float LX = X0 + Sz + 30.f * S, LY = Y0;
 	auto Txt = [&](const FString& T, const FLinearColor& Col, float Sc) { H->DrawText(T, Col, LX, LY, Font, Sc * S); LY += 26.f * Sc * S; };
-	Txt(TEXT("CHART"), Brass, 1.6f);
-	Txt(TEXT("Greyhaven • Ironcrag • Stigsby"), Dim, 0.9f);
+	Txt(TEXT("CHART — 6-PORT ARCHIPELAGO"), Brass, 1.45f);
+	Txt(TEXT("Greyhaven • Ironcrag • Stigsby • Kestrel • Grimscar • Sable"), Dim, 0.76f);
 	LY += 10.f * S;
 	Txt(FString::Printf(TEXT("AUTOPILOT: %s"), *AutopilotLabel()), Hi, 0.9f);
 	float LenCm = 0.f; { FVector A = Orig; for (const FVector& Pt : Path) { LenCm += FVector::Dist2D(A, Pt); A = Pt; } }

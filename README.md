@@ -5,13 +5,13 @@
 [![Unreal Engine 5.8](https://img.shields.io/badge/Unreal_Engine-5.8-0e1128?style=for-the-badge&logo=unrealengine&logoColor=white)](https://www.unrealengine.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3da639?style=for-the-badge)](LICENSE)
 
-A steampunk naval sailing game in **Unreal Engine 5.8**. Take a turret ironclad, a rigged brig or a paddle
-steamer between three working harbours, trade cargo with the harbourmaster, and sail a sea that behaves like
-water: crest height by sea state, wakes from a solved Kelvin wave pattern, ships that heel, pitch and run aground.
-Peaceful sailing comes first; combat exists in the code but is parked.
+A steampunk naval sailing game in **Unreal Engine 5.8**. Take a turret ironclad, a rigged brig, a topsail schooner,
+a Chapman sloop or a steam cutter across six working harbours in a 34 km archipelago, trade cargo with the
+harbourmaster, and sail a sea that behaves like water: crest height by sea state, wakes from a solved Kelvin wave
+pattern, ships that heel, pitch and run aground. Peaceful sailing comes first; combat exists in the code but is parked.
 
 > **Try it in your browser:** [charles-forsyth.github.io/ironwake](https://charles-forsyth.github.io/ironwake/).
-> Rotate all 18 ships, airships and waterfront buildings in 3D, mix the sea audio, drag before/after sliders,
+> Rotate all 20 ships, airships and waterfront buildings in 3D, mix the sea audio, drag before/after sliders,
 > and drive the live wake lab on the real wake tables.
 
 <p align="center">
@@ -24,10 +24,10 @@ Peaceful sailing comes first; combat exists in the code but is parked.
 
 | | |
 |---|---|
-| **Three ports** | Greyhaven (capital), Ironcrag (coal and foundry), Stigsby (fish and timber). Each harbour is data in [`Content/IronwakeData/world_ports.json`](Content/IronwakeData/world_ports.json): breakwaters, quays, berths, prices and stock. |
-| **Trade and logbook** | Make fast under 2.5 knots (`Enter`) to buy and sell eight goods for Silver Crowns; record each call in the captain's logbook (`O`). |
-| **A living sea** | 30 NPC ships over four ports with a harbour-mouth channel lock and quay reservations. Soak result: 0 collisions, 0 stuck, 0 groundings across three 50-minute seeds. |
-| **Four ships to command** | Turret ironclad, steam frigate, cutter, and the 42 m brig *Curlew* with 17 moving rig parts (yards brace, sails reef and furl). |
+| **Six working ports** | Greyhaven (capital), Ironcrag (coal and foundry), Stigsby (fish and timber), Kestrel Cove (grain and wool), North Grimscar (iron ore and spirits), and Sable Haven (salt and spice) across a 34 km archipelago. Each harbour is data in [`Content/IronwakeData/world_ports.json`](Content/IronwakeData/world_ports.json): breakwaters, quays, berths, prices and stock. |
+| **Trade and logbook** | Make fast under 2.5 knots (`Enter`) to buy and sell eight goods for Silver Crowns across Pareto-solved regional markets; record each call in the captain's logbook (`O`). |
+| **A living sea** | 30 NPC ships over six ports with a harbour-mouth channel lock, outer trade convoys, and quay reservations. |
+| **Six ships to command** | Turret ironclad, steam frigate (with copper boot-top), steam cutter *Kittiwake* V2, the 42 m brig *Curlew* (17 moving rig parts), the 26 m Chapman gun sloop *Petrel*, and the 38 m topsail schooner *Amphion* with dynamic WPO flax sails. |
 | **Water** | UE Water plugin ocean with Gerstner waves by sea state (calm 0.97 m to gale 8.78 m crest-to-trough), physics substepping, depth-based grounding per hull draught. |
 | **Wakes** | Havelock Kelvin wave tables at three Froude numbers plus a turbulent twin-screw wash field, solved offline and blended by speed in the water material. |
 | **Sky and weather** | Continuous clock, sun for latitude 50 N, real moon phase, NASA star map at night; weather drifts between clear, overcast, mist, rain and squall. |

@@ -22,8 +22,9 @@ __pycache__/
 .DS_Store
 .venv/
 
-# Licensed third-party sources are credited, never redistributed (see CREDITS.md).
+# Licensed third-party sources & Quixel Megaplants are credited, never redistributed (see CREDITS.md).
 # Re-make them locally with the Content/Python and pipeline scripts.
+Content/Megaplant_Library/
 build/
 *.fbx
 *.fbm/

@@ -59,6 +59,8 @@ void AIronwakeShipPawn::ApplyFleetHull()
 	HullProf.X0 -= Xc / 100.f; HullProf.X1 -= Xc / 100.f;
 	// Camera: frigate masts are 57 m; keep the default zoom out a step more for small hulls.
 	if (ShipId == TEXT("cutter")) for (float& Z : ZoomStepsL) Z *= 1.8f;   // 30 m hull: same metres as a bigger ship
+	if (ShipId == TEXT("sloop")) ZoomStepsL = { 0.56f, 0.72f, 0.92f, 1.18f, 1.50f, 1.90f, 2.5f, 3.4f, 4.6f, 6.2f };
+	if (ShipId == TEXT("schooner")) ZoomStepsL = { 0.48f, 0.62f, 0.78f, 1.00f, 1.28f, 1.65f, 2.2f, 3.0f, 4.1f, 5.6f };
 	if (ShipId == TEXT("brig")) ZoomStepsL = { 0.44f, 0.56f, 0.72f, 0.92f, 1.18f, 1.5f, 2.0f, 2.8f, 3.9f, 5.4f }; // 42 m brig, 27 m masts: closest ~18.5 m
 	if (ShipId == TEXT("frigate")) ZoomStepsL = { 0.36f, 0.45f, 0.58f, 0.75f, 0.95f, 1.25f, 1.7f, 2.5f, 3.6f, 5.2f }; // 57 m masts, 26 m yards: closest ~32 m, outside the sails
 	UE_LOG(LogIronwake, Display, TEXT("IWS2 hull %s (%s) L=%.0f m mass=%.0f t turn R=%.0f m tel=[%.0f..%.0f kn] meshZ=%.0f xc=%.0f"),
@@ -73,6 +75,7 @@ void AIronwakeShipPawn::FleetBeginPlay()
 		SailRig = NewObject<UIronwakeSailRig>(this, TEXT("SailRig"));
 		SailRig->SetupAttachment(HullMesh);
 		SailRig->bTallBrig = (ShipId == TEXT("brig"));
+		SailRig->bHullSailsWPO = (ShipId == TEXT("sloop") || ShipId == TEXT("schooner"));
 		SailRig->ClothMat = ClothMaterial;
 		SailRig->RegisterComponent();
 		SailRig->Build();
@@ -89,9 +92,11 @@ void AIronwakeShipPawn::FleetBeginPlay()
 	if (UStaticMesh* StandM = IronwakeWorld::Mesh(TEXT("SailorCrewStand")))
 	{
 		FVector DeckCm(-2500.f, 0.f, 452.f); // ironclad aft bridge superstructure deck
-		if      (ShipId == TEXT("frigate")) DeckCm = FVector(-3344.f, 0.f, 736.f);
-		else if (ShipId == TEXT("brig"))    DeckCm = FVector(-1596.f, 0.f, 905.f);
-		else if (ShipId == TEXT("cutter"))  DeckCm = FVector(-1140.f, 0.f,  62.f);
+		if      (ShipId == TEXT("frigate"))  DeckCm = FVector(-3344.f, 0.f, 736.f);
+		else if (ShipId == TEXT("brig"))     DeckCm = FVector(-1596.f, 0.f, 750.f);
+		else if (ShipId == TEXT("schooner")) DeckCm = FVector(-1340.f, 0.f, 648.f);
+		else if (ShipId == TEXT("sloop"))    DeckCm = FVector( -880.f, 0.f, 290.f);
+		else if (ShipId == TEXT("cutter"))   DeckCm = FVector(-1140.f, 0.f,  62.f);
 
 		HelmsmanPivot = NewObject<USceneComponent>(this, TEXT("HelmsmanPivot"));
 		HelmsmanPivot->SetupAttachment(HullMesh);

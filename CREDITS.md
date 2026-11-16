@@ -13,7 +13,10 @@ Models were scaled to real-world metres, split into articulated moving parts, de
 - **"RSS Kracken"** by **martyn169** (<https://sketchfab.com/martyn169>) — <https://sketchfab.com/3d-models/rss-kracken-19b2bacb53a14881831ad993844231e9>
 - **"Goliath Steam Tug 1903"** by **martyn169** (<https://sketchfab.com/martyn169>) — <https://sketchfab.com/3d-models/goliath-steam-tug-1903-e3a6e441103145f0a7354717891c0c9d>
 - **"Type du remorqueur 'AGLAÉ' de 45 chevaux - 1874"** by **Gabrielcambreling** (<https://sketchfab.com/Gabrielcambreling>) — <https://sketchfab.com/3d-models/type-du-remorqueur-aglae-de-45-chevaux-1874-88c558644a3c46a79a8a511b4997e96c>
-- **"Russian archipelago frigate Svjatoi Nikolai"** by **Museovirasto Museiverket — Finnish Heritage Agency** — <https://sketchfab.com/3d-models/russian-archipelago-frigate-svjatoi-nikolai-2e0c2c37a55f48bba314c894ca5e5f0b> (static sails/yards/flag removed; rebuilt with procedural WPO sail rig and scaled to 88 m)
+- **"Russian archipelago frigate Svjatoi Nikolai"** by **Museovirasto Museiverket — Finnish Heritage Agency** — <https://sketchfab.com/3d-models/russian-archipelago-frigate-svjatoi-nikolai-2e0c2c37a55f48bba314c894ca5e5f0b> (static sails/yards/flag removed; rebuilt with procedural WPO sail rig, copper boot-top added, and scaled to 88 m)
+- **"Swedish Chapman type gun sloop"** by **Museovirasto Museiverket — Finnish Heritage Agency** — <https://sketchfab.com/3d-models/swedish-chapman-type-gun-sloop-001f16707683405cb2340cd7194b7eba> (static sails replaced with dynamic WPO flax rig; scaled to 26 m)
+- **"Swedish royal schooner yacht Amphion"** by **Museovirasto Museiverket — Finnish Heritage Agency** — <https://sketchfab.com/3d-models/swedish-royal-schooner-yacht-amphion-751174e48b764e829410cd323144833c> (scaled to 38 m topsail schooner with dynamic WPO sail rig)
+- **"HMS Implacable 1805"** by **Mixmamo.studio** (<https://sketchfab.com/mixmamo.studio>) — <https://sketchfab.com/3d-models/hms-implacable-1805-f44725d26b644ab1a9b3c953491b9524> (hull & lower rig scaled to 56 m Admiralty guardship)
 - **"Steampunk Airship – Brass-Plated Vessel"** by **Pigcraft** (<https://sketchfab.com/s8819296>) — <https://sketchfab.com/3d-models/steampunk-airship-brass-plated-vessel-8b1e7d79349744458ce6a1af4acad29d> (watertight remesh and 4K PBR bake)
 
 ---

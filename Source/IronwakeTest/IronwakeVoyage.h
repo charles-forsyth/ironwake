@@ -246,7 +246,7 @@ private:
 	int32 GiveWayCount = 0;
 	float GiveWayYaw = 0.f;
 	float ChartCX = 0.f, ChartCY = 0.f, ChartHalfPx = 1.f;
-	float ChartHalfCm = 380000.f;
+	float ChartHalfCm = 1450000.f; // P32: 29 km x 29 km chart (34+ km diagonal across the 6-port archipelago)
 	// A1 standalone test director (-iwa1=hold|route|tour|fire [-iwa1quit])
 	FString A1Mode;
 	float A1T = 0.f, A1Mark = 0.f, A1LogAcc = 0.f;

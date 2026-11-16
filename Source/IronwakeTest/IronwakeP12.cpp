@@ -9,6 +9,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "IronwakeWorld.h"
+#include "IronwakeMegaplants.h"
 #include "IronwakeCollision.h"
 #include "IronwakeTest.h"
 #include "Components/StaticMeshComponent.h"
@@ -273,10 +274,39 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 	ChimIsm->SetStaticMesh(CubeMesh); ChimIsm->SetupAttachment(Hs); ChimIsm->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	{ const FLinearColor Brick(0.20f, 0.085f, 0.06f); if (UMaterialInstanceDynamic* Mi = VTintP12(this, Brick)) ChimIsm->SetMaterial(0, Mi); }
 	ChimIsm->RegisterComponent(); AddInstanceComponent(ChimIsm);
+	IronwakeMegaplants::FLocalFoliageBatch MpHarbourBatch;
+	MpHarbourBatch.Init(this, Hs);
 	TMap<FString, UInstancedStaticMeshComponent*> VegIsm;
 	const auto Veg = [&](const TCHAR* Name, const FVector& LocM, float Yaw, float S, float Pitch = 0.f, float Roll = 0.f, float Sz = 1.f, float LeanY = 0.f)
 	{
 		if (FParse::Param(FCommandLine::Get(), TEXT("iwnoveg"))) return;
+		const FQuat Qt = (LeanY != 0.f)
+			? (FQuat(FVector(1.f, 0.f, 0.f), FMath::DegreesToRadians(-LeanY)) * FQuat(FRotator(0.f, Yaw, 0.f)))
+			: FQuat(FRotator(Pitch, Yaw, Roll));
+		const TCHAR* MpKey = nullptr;
+		float TargetHM = 8.0f, WidthMul = 1.25f;
+		if (FCString::Strcmp(Name, TEXT("FirTree01")) == 0)
+		{
+			MpKey = (FMath::RoundToInt(Yaw) & 1) ? TEXT("spruce_B") : TEXT("spruce_C");
+			TargetHM = FMath::Clamp(S * 7.8f, 6.2f, 15.5f);
+			WidthMul = 1.22f;
+		}
+		else if (FCString::Strcmp(Name, TEXT("IslandTree01")) == 0 || FCString::Strcmp(Name, TEXT("IslandTree02")) == 0 || FCString::Strcmp(Name, TEXT("IslandTree03")) == 0)
+		{
+			const int32 PickMp = FMath::Abs(FMath::RoundToInt(Yaw * 3.f)) % 4;
+			MpKey = (PickMp == 0) ? TEXT("beech_A") : ((PickMp == 1) ? TEXT("beech_B") : ((PickMp == 2) ? TEXT("birch_A") : TEXT("birch_C")));
+			TargetHM = FMath::Clamp(S * 4.5f * Sz, 6.0f, 14.2f);
+			WidthMul = 1.38f;
+		}
+		else if (FCString::Strcmp(Name, TEXT("Shrub02")) == 0 || FCString::Strcmp(Name, TEXT("Shrub03")) == 0)
+		{
+			const int32 PickSh = FMath::Abs(FMath::RoundToInt(Yaw * 5.f)) % 3;
+			MpKey = (PickSh == 0) ? TEXT("hazel_A") : ((PickSh == 1) ? TEXT("bracken_A") : TEXT("bilberry_A"));
+			TargetHM = (PickSh == 0) ? FMath::Clamp(S * 1.45f, 1.8f, 4.2f) : FMath::Clamp(S * 0.55f, 0.7f, 1.6f);
+			WidthMul = 1.32f;
+		}
+		if (MpKey && MpHarbourBatch.AddMegaplant(MpKey, M(LocM.X, LocM.Y, LocM.Z), Qt, TargetHM, WidthMul, 300000.f, false))
+			return;
 		UInstancedStaticMeshComponent*& I = VegIsm.FindOrAdd(Name);
 		if (!I)
 		{
@@ -285,8 +315,7 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 			I->SetStaticMesh(Sm); I->SetupAttachment(Hs); I->SetCollisionEnabled(ECollisionEnabled::NoCollision); I->SetCastShadow(false);
 			I->RegisterComponent(); AddInstanceComponent(I);
 		}
-		if (LeanY != 0.f) I->AddInstance(FTransform(FQuat(FVector(1.f, 0.f, 0.f), FMath::DegreesToRadians(-LeanY)) * FQuat(FRotator(0.f, Yaw, 0.f)), M(LocM.X, LocM.Y, LocM.Z), FVector(S, S, S * Sz)));
-		else I->AddInstance(FTransform(FRotator(Pitch, Yaw, Roll), M(LocM.X, LocM.Y, LocM.Z), FVector(S, S, S * Sz)));
+		I->AddInstance(FTransform(Qt, M(LocM.X, LocM.Y, LocM.Z), FVector(S, S, S * Sz)));
 	};
 	UInstancedStaticMeshComponent* SmkIsm = NewObject<UInstancedStaticMeshComponent>(this);
 	SmkIsm->SetStaticMesh(SphereMesh); SmkIsm->SetupAttachment(Hs); SmkIsm->SetCollisionEnabled(ECollisionEnabled::NoCollision); SmkIsm->SetCastShadow(false);
@@ -531,7 +560,7 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 			}
 			return IronwakeWorld::Place(this, Hs, N, M(X, Y, Z - 0.1f), FRotator(0.f, Yaw, 0.f), FVector(1.f), true);
 		};
-		Land(TEXT("TownCustomsHouse"), -66.f, 48.f, -90.f, Q + 0.3f);
+		Land(IronwakeWorld::Mesh(TEXT("CustomsHouseV2")) ? TEXT("CustomsHouseV2") : TEXT("TownCustomsHouse"), -66.f, 48.f, -90.f, Q + 0.3f);
 		Land(TEXT("TownChapel"), -187.f, 22.f, -90.f, ChapelZ + 0.1f);
 		Land(TEXT("TownBandstand"), -72.f, 2.f, 0.f, Q + 0.3f);
 		for (int32 i = 0; i < 4; ++i) Land(TEXT("TownMarketStall"), -69.5f, -14.f + 4.8f * i, -90.f + (i % 2 ? 3.f : -3.f), Q + 0.3f);
@@ -728,7 +757,8 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 			const int32 Sd = k & 1; const float X = -96.f - 8.f * (k >> 1), Y = (Sd ? 155.f : -105.f) + (Sd ? 1.f : -1.f) * Rg.FRandRange(0.f, 12.f);
 			const float Z = Hill.Final(X, Y); if (Z > 0.5f) { const float Rs = Rg.FRandRange(2.6f, 4.8f); Rock(X, Y, Z - 0.6f - 1.0f * Rs, Rs); };
 		}
-		UE_LOG(LogIronwake, Display, TEXT("IWP15 scatter: %d veg, %d rocks"), NV, NR);
+		const int32 NumMp = MpHarbourBatch.Flush();
+		UE_LOG(LogIronwake, Display, TEXT("IWP15 scatter: %d veg, %d rocks, %d megaplants"), NV, NR, NumMp);
 	}
 
 	// ======================================================================== P17: seaward edge, jetties, slipway, batch-2 models, shrub belt
@@ -990,6 +1020,7 @@ void AIronwakeVoyage::BuildTownP12(USceneComponent* Hs)
 				const float Sc = Rb.FRandRange(3.5f, 7.f);
 				IronwakeWorld::Place(this, Hs, Rb.FRand() < 0.5f ? TEXT("CoastLandRocks02") : TEXT("CoastLandRocks03"), M(X, Y, Z - 1.2f - 1.6f * Sc), FRotator(Rb.FRandRange(-10.f, 10.f), Rb.FRandRange(0.f, 360.f), Rb.FRandRange(-10.f, 10.f)), FVector(Sc, Sc * Rb.FRandRange(0.8f, 1.3f), Sc * Rb.FRandRange(0.7f, 1.0f)), false, false); ++Nr;
 			}
+			MpHarbourBatch.Flush();
 			UE_LOG(LogIronwake, Display, TEXT("IWP17 shrub belt %d, outcrops %d"), Nw, Nr);
 		}
 	}

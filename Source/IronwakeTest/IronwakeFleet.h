@@ -86,6 +86,8 @@ public:
 	float GetLastLuffCm() const { return LastLuffCm; }
 
 	bool bTallBrig = false;
+	bool bHullSailsWPO = false;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UMaterialInstanceDynamic>> HullSailMIDs;
 	struct FBrigPartRuntime
 	{
 		TObjectPtr<USceneComponent> Pivot;

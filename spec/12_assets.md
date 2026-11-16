@@ -1,6 +1,6 @@
 # Chapter 12: Assets and credits
 
-Scope: every folder under `Content/Ironwake` (751 `.uasset` files, listed in `docs/spec/_assets.txt`, a verbatim `find Content/Ironwake -name '*.uasset' | sort` dump taken for this card), where each asset came from (Hunyuan3D-2 on the GPU batch cluster, Sketchfab CC-BY/CC0 library models, Poly Haven CC0 scans, NASA SVS star map, procedural and approved audio), its licence, and which script regenerates it. Source models live outside the repo in `$IRONWAKE_ASSETS/models/`; converted FBX/PNG intermediates under `build/assets/` are git-ignored (see 12.9), so a fresh clone needs the regeneration scripts plus the outside model library. Counts of files per folder are computed from `_assets.txt`, not typed from memory. Not used: Fab/Megascans (the BRIEF forbids Fab purchases [src build/BRIEF.md:66]); the only Epic content in the shipped map is the copied WaterExtras sample (12.8).
+Scope: every folder under `Content/Ironwake` (751 `.uasset` files, listed in `docs/spec/_assets.txt`, a verbatim `find Content/Ironwake -name '*.uasset' | sort` dump taken for this card), where each asset came from (Hunyuan3D-2 on the Ursa cluster, Sketchfab CC-BY/CC0 library models, Poly Haven CC0 scans, NASA SVS star map, procedural and approved audio), its licence, and which script regenerates it. Source models live outside the repo in `~/Projects/game-concepts/ironwake/models/`; converted FBX/PNG intermediates under `build/assets/` are git-ignored (see 12.9), so a fresh clone needs the regeneration scripts plus the outside model library. Counts of files per folder are computed from `_assets.txt`, not typed from memory. Not used: Fab/Megascans (the BRIEF forbids Fab purchases [src build/BRIEF.md:66]); the only Epic content in the shipped map is the copied WaterExtras sample (12.8).
 
 ## 12.1 Folder map
 
@@ -50,17 +50,17 @@ Counts above are computed from `_assets.txt` by the generator (not hand-typed); 
 | Aglae | `SM_Aglae_Hull` | "Type du remorqueur AGLAE ... 1874" | Gabrielcambreling, CC-BY [src build/CREDITS.txt:11] | `cfg_aglae.json` |
 | Frigate | `SM_Frigate_Hull` (sails/yards stripped) | "Russian archipelago frigate Svjatoi Nikolai" | Finnish Heritage Agency, CC-BY 4.0 [src build/CREDITS.txt:31] | `build/s2/prep_frigate.py` -> `build/r1/process.py build/s2/cfg_frigate.json` -> `Content/Python/iw_s2_import.py` |
 | BrassAirship | `SM_BrassAirship_Hull`, `SM_BrassAirship_PropStern` | "Steampunk Airship - Brass-Plated Vessel" | Pigcraft, CC-BY [src build/CREDITS.txt:12] | `cfg_brass.json`, `iw_r1_airfix.py`, `iw_r1_airab.py` |
-| Airship | `SM_Airship`, `SM_Airship110` | first Hunyuan3D-2 airship from GPU batch job 2048 | generated, no third-party licence [src build/BRIEF.md:55-57] | `Content/Python/iw_import_airship.py` (reads `build/assets/airship/airship110.fbx`) |
+| Airship | `SM_Airship`, `SM_Airship110` | first Hunyuan3D-2 airship from Ursa job 2048 | generated, no third-party licence [src build/BRIEF.md:55-57] | `Content/Python/iw_import_airship.py` (reads `build/assets/airship/airship110.fbx`) |
 | Ironclad | `SM_Ironclad` | first Hunyuan3D-2 ironclad, 140 m | generated [src build/BRIEF.md:77-78] | `build/assets/glb2fbx.py` (Blender) |
 | Materials | `M_IW_ShipPaint`, `M_IW_ShipTex`, `M_IW_ShipTex2`, `M_IW_Cloth`, `T_IW_WhiteMask` | project masters | authored; `T_IW_WhiteMask` from `build/assets/common/T_IW_WhiteMask.png` | `iw_r1_materials.py`, `iw_s2_cloth.py` |
 
 Notes:
 
-- R1 pipeline: headless Blender `build/r1/process.py <cfg>.json` strips stands/text, scales to metres, orients +X bow / Z up, splits parts with pivots, decimates, exports FBX + PNG textures (max 2K, 4K for the player hull) (build report `R1.md`). Then the headless editor runs `iw_r1_import.py` and `iw_r1_materials.py` (build report `R1.md`).
+- R1 pipeline: headless Blender `build/r1/process.py <cfg>.json` strips stands/text, scales to metres, orients +X bow / Z up, splits parts with pivots, decimates, exports FBX + PNG textures (max 2K, 4K for the player hull) [src build/logs/R1.md:18]. Then the headless editor runs `iw_r1_import.py` and `iw_r1_materials.py` [src build/logs/R1.md:18].
 - Hull length targets per config: Devastation `125.0` m [src build/r1/cfg_devastation.json:4], Kracken `120.0` [src build/r1/cfg_kracken.json:5], Goliath `50.0` [src build/r1/cfg_goliath.json:3], Aglae `30.0` [src build/r1/cfg_aglae.json:2], brass airship `110.0` [src build/r1/cfg_brass.json:4].
-- Sail rig, flags and pennants of the frigate are procedural meshes in C++ (`UIronwakeSailRig`), not assets (build report `S2.md`).
-- The brass airship in the world is the GPU batch remesh (`BrassAirshipRemesh`, 12.3), the R1 hull `SM_BrassAirship_Hull` is the decimated 190k version kept only as the base for the spinning stern prop (build report `E1.md`).
-- Source GLBs for the library (21 downloaded) live in `$IRONWAKE_ASSETS/models/library/`; only Devastation, Kracken, Goliath, Aglae, brass airship and Svjatoi Nikolai are in the game. The others (Aleksandr, Turuma, Amphion, Amadis, Styrbjorn, Minerva, Chapman, Implacable, Bucentaure, Victorine, Tartane, Rolf Krake, Tordenskjold, Broadford, steampunk_airship_light) are downloaded and credited in the library file but not imported (see `CREDITS.md`).
+- Sail rig, flags and pennants of the frigate are procedural meshes in C++ (`UIronwakeSailRig`), not assets [src build/logs/S2.md:17].
+- The brass airship in the world is the Ursa remesh (`BrassAirshipRemesh`, 12.3), the R1 hull `SM_BrassAirship_Hull` is the decimated 190k version kept only as the base for the spinning stern prop [src build/logs/E1.md:22].
+- Source GLBs for the library (21 downloaded) live in `~/Projects/game-concepts/ironwake/models/library/`; only Devastation, Kracken, Goliath, Aglae, brass airship and Svjatoi Nikolai are in the game. The others (Aleksandr, Turuma, Amphion, Amadis, Styrbjorn, Minerva, Chapman, Implacable, Bucentaure, Victorine, Tartane, Rolf Krake, Tordenskjold, Broadford, steampunk_airship_light) are downloaded and credited in the library file but not imported [src [REDACTED]/Projects/game-concepts/ironwake/models/library/CREDITS.md:3-25].
 
 ## 12.3 World folder (per-asset)
 
@@ -72,125 +72,125 @@ Script `build/e1/prep.py` (Blender) feeds the headless importer iw_e1_import.py 
 
 | Folder | prep.py key | Source file | Fit | Licence / credit |
 |---|---|---|---|---|
-| CoastalCliff01 | `CoastalCliff01` [src build/e1/prep.py:14] | Poly Haven | `1` [src build/e1/prep.py:14] | CC0 (see `CREDITS.md`) |
-| CoastalCliff02 | `CoastalCliff02` [src build/e1/prep.py:15] | Poly Haven | `1` [src build/e1/prep.py:15] | CC0 (see `CREDITS.md`) |
-| CoastalCliff04 | `CoastalCliff04` [src build/e1/prep.py:16] | Poly Haven | `1` [src build/e1/prep.py:16] | CC0 (see `CREDITS.md`) |
-| CoastRocks01 | `CoastRocks01` [src build/e1/prep.py:17] | Poly Haven | `1` [src build/e1/prep.py:17] | CC0 (see `CREDITS.md`) |
-| CoastRocks02 | `CoastRocks02` [src build/e1/prep.py:18] | Poly Haven | `1` [src build/e1/prep.py:18] | CC0 (see `CREDITS.md`) |
-| CoastRocks03 | `CoastRocks03` [src build/e1/prep.py:19] | Poly Haven | `1` [src build/e1/prep.py:19] | CC0 (see `CREDITS.md`) |
-| CoastLandRocks02 | `CoastLandRocks02` [src build/e1/prep.py:20] | Poly Haven | `1` [src build/e1/prep.py:20] | CC0 (see `CREDITS.md`) |
-| CoastLandRocks03 | `CoastLandRocks03` [src build/e1/prep.py:21] | Poly Haven | `1` [src build/e1/prep.py:21] | CC0 (see `CREDITS.md`) |
-| Boulder01 | `Boulder01` [src build/e1/prep.py:22] | Poly Haven | `1` [src build/e1/prep.py:22] | CC0 (see `CREDITS.md`) |
-| WreckStern | `WreckStern` [src build/e1/prep.py:23] | Stern Of SS Rifle, Scottish Maritime Museum | `1` [src build/e1/prep.py:23] | CC0 (see `CREDITS.md`) |
-| WharfBuilding | `WharfBuilding` [src build/e1/prep.py:24] | Wharf building in Oslo 1798, Tidvis | `0.01` [src build/e1/prep.py:24] | CC-BY (see `CREDITS.md`) |
-| VictorianFactory | `VictorianFactory` [src build/e1/prep.py:25] | Victorian Factory, Paolo Mercogliano | `1.8` [src build/e1/prep.py:25] | CC-BY (see `CREDITS.md`) |
-| WoodenPier | `WoodenPier` [src build/e1/prep.py:26] | Wooden Pier_22_MB, Mehdi Shahsavan | `1` [src build/e1/prep.py:26] | CC-BY (see `CREDITS.md`) |
-| ModularPier | `ModularPier` [src build/e1/prep.py:27] | Poly Haven | `1.5` [src build/e1/prep.py:27] | CC0 (see `CREDITS.md`) |
-| SeaMine | `SeaMine` [src build/e1/prep.py:28] | Old Sea Mine, Jorma Rysky | `1` [src build/e1/prep.py:28] | CC-BY (see `CREDITS.md`) |
-| WoodenBarrels | `WoodenBarrels` [src build/e1/prep.py:29] | Wooden Barrels, MaX3Dd | `2.6` [src build/e1/prep.py:29] | CC-BY (see `CREDITS.md`) |
-| Barrel03 | `Barrel03` [src build/e1/prep.py:30] | Poly Haven | `1` [src build/e1/prep.py:30] | CC0 (see `CREDITS.md`) |
-| MilitaryCrate | `MilitaryCrate` [src build/e1/prep.py:31] | Poly Haven | `1.4` [src build/e1/prep.py:31] | CC0 (see `CREDITS.md`) |
-| HangingLamp | `HangingLamp` [src build/e1/prep.py:32] | Poly Haven | `1.5` [src build/e1/prep.py:32] | CC0 (see `CREDITS.md`) |
-| WallLamp | `WallLamp` [src build/e1/prep.py:33] | Poly Haven | `2` [src build/e1/prep.py:33] | CC0 (see `CREDITS.md`) |
-| Rowboat | `Rowboat` [src build/e1/prep.py:34] | Victorian Row Boat, Ashley Aslett | `2.2` [src build/e1/prep.py:34] | CC-BY (see `CREDITS.md`) |
-| Fourareen | `Fourareen` [src build/e1/prep.py:35] | Venus, a Shetland fourareen, Scottish Maritime Museum | `1` [src build/e1/prep.py:35] | CC0 (see `CREDITS.md`) |
+| CoastalCliff01 | `CoastalCliff01` [src build/e1/prep.py:14] | Poly Haven | `1` [src build/e1/prep.py:14] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:10] |
+| CoastalCliff02 | `CoastalCliff02` [src build/e1/prep.py:15] | Poly Haven | `1` [src build/e1/prep.py:15] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:11] |
+| CoastalCliff04 | `CoastalCliff04` [src build/e1/prep.py:16] | Poly Haven | `1` [src build/e1/prep.py:16] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:12] |
+| CoastRocks01 | `CoastRocks01` [src build/e1/prep.py:17] | Poly Haven | `1` [src build/e1/prep.py:17] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:7] |
+| CoastRocks02 | `CoastRocks02` [src build/e1/prep.py:18] | Poly Haven | `1` [src build/e1/prep.py:18] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:8] |
+| CoastRocks03 | `CoastRocks03` [src build/e1/prep.py:19] | Poly Haven | `1` [src build/e1/prep.py:19] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:9] |
+| CoastLandRocks02 | `CoastLandRocks02` [src build/e1/prep.py:20] | Poly Haven | `1` [src build/e1/prep.py:20] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:5] |
+| CoastLandRocks03 | `CoastLandRocks03` [src build/e1/prep.py:21] | Poly Haven | `1` [src build/e1/prep.py:21] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:6] |
+| Boulder01 | `Boulder01` [src build/e1/prep.py:22] | Poly Haven | `1` [src build/e1/prep.py:22] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:4] |
+| WreckStern | `WreckStern` [src build/e1/prep.py:23] | Stern Of SS Rifle, Scottish Maritime Museum | `1` [src build/e1/prep.py:23] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:31] |
+| WharfBuilding | `WharfBuilding` [src build/e1/prep.py:24] | Wharf building in Oslo 1798, Tidvis | `0.01` [src build/e1/prep.py:24] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:28] |
+| VictorianFactory | `VictorianFactory` [src build/e1/prep.py:25] | Victorian Factory, Paolo Mercogliano | `1.8` [src build/e1/prep.py:25] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:26] |
+| WoodenPier | `WoodenPier` [src build/e1/prep.py:26] | Wooden Pier_22_MB, Mehdi Shahsavan | `1` [src build/e1/prep.py:26] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:30] |
+| ModularPier | `ModularPier` [src build/e1/prep.py:27] | Poly Haven | `1.5` [src build/e1/prep.py:27] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:20] |
+| SeaMine | `SeaMine` [src build/e1/prep.py:28] | Old Sea Mine, Jorma Rysky | `1` [src build/e1/prep.py:28] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:23] |
+| WoodenBarrels | `WoodenBarrels` [src build/e1/prep.py:29] | Wooden Barrels, MaX3Dd | `2.6` [src build/e1/prep.py:29] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:29] |
+| Barrel03 | `Barrel03` [src build/e1/prep.py:30] | Poly Haven | `1` [src build/e1/prep.py:30] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:3] |
+| MilitaryCrate | `MilitaryCrate` [src build/e1/prep.py:31] | Poly Haven | `1.4` [src build/e1/prep.py:31] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:22] |
+| HangingLamp | `HangingLamp` [src build/e1/prep.py:32] | Poly Haven | `1.5` [src build/e1/prep.py:32] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:15] |
+| WallLamp | `WallLamp` [src build/e1/prep.py:33] | Poly Haven | `2` [src build/e1/prep.py:33] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:17] |
+| Rowboat | `Rowboat` [src build/e1/prep.py:34] | Victorian Row Boat, Ashley Aslett | `2.2` [src build/e1/prep.py:34] | CC-BY [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:27] |
+| Fourareen | `Fourareen` [src build/e1/prep.py:35] | Venus, a Shetland fourareen, Scottish Maritime Museum | `1` [src build/e1/prep.py:35] | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:25] |
 
-Hunyuan3D-2 harbour pieces (generated from our own lumina concept art on GPU batch V100s, jobs `2153/2156/2158/2160`) (design archive `models/harbour_gen/USE.md`): no third-party licence, "ours to use" (design archive `models/harbour_gen/USE.md`). Credited in-game as generated with Hunyuan3D-2 (Tencent) [src build/CREDITS.txt:28].
+Hunyuan3D-2 harbour pieces (generated from our own lumina concept art on Ursa V100s, jobs `2153/2156/2158/2160`) [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:1]: no third-party licence, "ours to use" [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:3-4]. Credited in-game as generated with Hunyuan3D-2 (Tencent) [src build/CREDITS.txt:28].
 
-| Folder | prep.py key | Hunyuan source | Fit | Vision score at generation (design archive `models/harbour_gen/USE.md`) |
+| Folder | prep.py key | Hunyuan source | Fit | Vision score at generation [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7-9] |
 |---|---|---|---|---|
-| SteamCrane | `SteamCrane` [src build/e1/prep.py:36] | harbour_gen/steam_crane.glb | `22` [src build/e1/prep.py:36] | `8` (design archive `models/harbour_gen/USE.md`) |
-| CoalingStation | `CoalingStation` [src build/e1/prep.py:37] | harbour_gen/coaling_station.glb | `26` [src build/e1/prep.py:37] | `8` (design archive `models/harbour_gen/USE.md`) |
-| SignalTower | `SignalTower` [src build/e1/prep.py:38] | harbour_gen/signal_tower.glb | `30` [src build/e1/prep.py:38] | `5` (design archive `models/harbour_gen/USE.md`) |
-| SteamBuoy | `SteamBuoy` [src build/e1/prep.py:39] | harbour_gen/steam_buoy.glb | `5.5` [src build/e1/prep.py:39] | `8.5` (design archive `models/harbour_gen/USE.md`) |
-| MooringMast | `MooringMast` [src build/e1/prep.py:40] | harbour_gen/mooring_mast.glb | `55` [src build/e1/prep.py:40] | `8` (design archive `models/harbour_gen/USE.md`) |
-| GasLamp | `GasLamp` [src build/e1/prep.py:41] | harbour_gen/gas_lamp_post.glb | `4.6` [src build/e1/prep.py:41] | `7` (design archive `models/harbour_gen/USE.md`) |
-| BollardCapstan | `BollardCapstan` [src build/e1/prep.py:42] | harbour_gen/bollard_capstan.glb | `3.2` [src build/e1/prep.py:42] | `8.5` (design archive `models/harbour_gen/USE.md`) |
-| TorpedoBoat | `TorpedoBoat` [src build/e1/prep.py:43] | harbour_gen/torpedo_boat.glb | `40` [src build/e1/prep.py:43] | `8.5` (design archive `models/harbour_gen/USE.md`) |
-| SteamPinnace | `SteamPinnace` [src build/e1/prep.py:44] | harbour_gen/steam_pinnace.glb | `15` [src build/e1/prep.py:44] | `8` (design archive `models/harbour_gen/USE.md`) |
-| DockWarehouse | `DockWarehouse` [src build/e1/prep.py:45] | harbour_gen/dock_warehouse.glb | `26` [src build/e1/prep.py:45] | `9` (design archive `models/harbour_gen/USE.md`) |
+| SteamCrane | `SteamCrane` [src build/e1/prep.py:36] | harbour_gen/steam_crane.glb | `22` [src build/e1/prep.py:36] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| CoalingStation | `CoalingStation` [src build/e1/prep.py:37] | harbour_gen/coaling_station.glb | `26` [src build/e1/prep.py:37] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| SignalTower | `SignalTower` [src build/e1/prep.py:38] | harbour_gen/signal_tower.glb | `30` [src build/e1/prep.py:38] | `5` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:9] |
+| SteamBuoy | `SteamBuoy` [src build/e1/prep.py:39] | harbour_gen/steam_buoy.glb | `5.5` [src build/e1/prep.py:39] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| MooringMast | `MooringMast` [src build/e1/prep.py:40] | harbour_gen/mooring_mast.glb | `55` [src build/e1/prep.py:40] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| GasLamp | `GasLamp` [src build/e1/prep.py:41] | harbour_gen/gas_lamp_post.glb | `4.6` [src build/e1/prep.py:41] | `7` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:8] |
+| BollardCapstan | `BollardCapstan` [src build/e1/prep.py:42] | harbour_gen/bollard_capstan.glb | `3.2` [src build/e1/prep.py:42] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| TorpedoBoat | `TorpedoBoat` [src build/e1/prep.py:43] | harbour_gen/torpedo_boat.glb | `40` [src build/e1/prep.py:43] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| SteamPinnace | `SteamPinnace` [src build/e1/prep.py:44] | harbour_gen/steam_pinnace.glb | `15` [src build/e1/prep.py:44] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
+| DockWarehouse | `DockWarehouse` [src build/e1/prep.py:45] | harbour_gen/dock_warehouse.glb | `26` [src build/e1/prep.py:45] | `9` [src [REDACTED]/Projects/game-concepts/ironwake/models/harbour_gen/USE.md:7] |
 
-`BrassAirshipRemesh`: GPU batch job `2162`, 250k-face remesh + 4K bake of the Pigcraft model (batch asset log); E1 uses variant `a250k` at scale `115.5355967911108` [src build/e1/prep.py:47]; texmax `4096` and metal `0.3` [src build/e1/prep.py:49]. Licence follows the Pigcraft CC-BY credit [src build/CREDITS.txt:29].
+`BrassAirshipRemesh`: Ursa job `2162`, 250k-face remesh + 4K bake of the Pigcraft model [src build/URSA_REQUESTS.md:6]; E1 uses variant `a250k` at scale `115.5355967911108` [src build/e1/prep.py:47]; texmax `4096` and metal `0.3` [src build/e1/prep.py:49]. Licence follows the Pigcraft CC-BY credit [src build/CREDITS.txt:29].
 
 ### 12.3.2 P8 batch (Hunyuan cluster batch 1)
 
-Source: GPU batch batch 1 job IDs `2167`, `2175`, `2176`, `2177`, `2178`, `2179`, `2180`, `2181` (also `2183`, `2185` are sky jobs), outputs in `models/cluster_b1/<jobid>/<name>.glb`. `SCORES.json` holds the vision score and verdict for 34 generated models: 17 keep, 9 fix, 5 fix-minor, 2 reject, 1 reject-rig (counted from the file). Script `build/p8/prep.py` (Blender) -> importer iw_p8_import.py [src build/p8/prep.py:1-3]. Generated for Ironwake, no third-party licence; credited as Hunyuan3D-2 (Tencent) [src build/CREDITS.txt:38].
+Source: Ursa batch 1 job IDs `2167`, `2175`, `2176`, `2177`, `2178`, `2179`, `2180`, `2181` (also `2183`, `2185` are sky jobs), outputs in `models/cluster_b1/<jobid>/<name>.glb`. `SCORES.json` holds the vision score and verdict for 34 generated models: 17 keep, 9 fix, 5 fix-minor, 2 reject, 1 reject-rig (counted from the file). Script `build/p8/prep.py` (Blender) -> importer iw_p8_import.py [src build/p8/prep.py:1-3]. Generated for Ironwake, no third-party licence; credited as Hunyuan3D-2 (Tencent) [src build/CREDITS.txt:38].
 
 | Folder | prep.py fit | SCORES.json score | Verdict | In game as |
 |---|---|---|---|---|
-| PaddleSteamer | `45` [src build/p8/prep.py:18] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | NPC moored/loop boat |
-| PatrolAirship | `70` [src build/p8/prep.py:19] | `8.5` (design archive `models/cluster_b1/SCORES.json`) | keep | NPC airship |
-| PatrolGunboat | `32` [src build/p8/prep.py:20] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | NPC boat |
-| PilotLaunch | `14` [src build/p8/prep.py:21] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | moored at quay |
-| RowingGig | `8` [src build/p8/prep.py:22] | `8.5` (design archive `models/cluster_b1/SCORES.json`) | keep | moored at quay |
-| SkyYacht | `45` [src build/p8/prep.py:23] | `8.5` (design archive `models/cluster_b1/SCORES.json`) | keep | NPC airship |
-| SteamDrifter | `24` [src build/p8/prep.py:24] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | NPC boat |
-| TownBandstand | `7` [src build/p8/prep.py:25] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | town square |
-| TownChapel | `15` [src build/p8/prep.py:26] | `7` (design archive `models/cluster_b1/SCORES.json`) | keep | top terrace |
-| TownCrateStack | `3` [src build/p8/prep.py:27] | `8.5` (design archive `models/cluster_b1/SCORES.json`) | keep | quay props |
-| TownCustomsHouse | `22` [src build/p8/prep.py:28] | `8.5` (design archive `models/cluster_b1/SCORES.json`) | keep | quay end |
-| TownHandcart | `2.4` [src build/p8/prep.py:29] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | quay/street props |
-| TownMarketStall | `3.6` [src build/p8/prep.py:30] | `7.5` (design archive `models/cluster_b1/SCORES.json`) | keep | town square |
-| TownRowCottages | `18` [src build/p8/prep.py:31] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | terrace houses |
-| TownStoneTownhouse | `12` [src build/p8/prep.py:32] | `9` (design archive `models/cluster_b1/SCORES.json`) | keep | terrace houses |
-| TownStoneWall | `4` [src build/p8/prep.py:33] | `7` (design archive `models/cluster_b1/SCORES.json`) | keep | walls (no code reference found) |
-| TownTimberHouse | `9` [src build/p8/prep.py:34] | `8` (design archive `models/cluster_b1/SCORES.json`) | keep | terrace houses |
+| PaddleSteamer | `45` [src build/p8/prep.py:18] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:81-84] | keep | NPC moored/loop boat |
+| PatrolAirship | `70` [src build/p8/prep.py:19] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:102-105] | keep | NPC airship |
+| PatrolGunboat | `32` [src build/p8/prep.py:20] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:124-127] | keep | NPC boat |
+| PilotLaunch | `14` [src build/p8/prep.py:21] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:146-149] | keep | moored at quay |
+| RowingGig | `8` [src build/p8/prep.py:22] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:30-33] | keep | moored at quay |
+| SkyYacht | `45` [src build/p8/prep.py:23] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:8-11] | keep | NPC airship |
+| SteamDrifter | `24` [src build/p8/prep.py:24] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:86-89] | keep | NPC boat |
+| TownBandstand | `7` [src build/p8/prep.py:25] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:107-110] | keep | town square |
+| TownChapel | `15` [src build/p8/prep.py:26] | `7` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:151-154] | keep | top terrace |
+| TownCrateStack | `3` [src build/p8/prep.py:27] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:175-178] | keep | quay props |
+| TownCustomsHouse | `22` [src build/p8/prep.py:28] | `8.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:35-38] | keep | quay end |
+| TownHandcart | `2.4` [src build/p8/prep.py:29] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:135-138] | keep | quay/street props |
+| TownMarketStall | `3.6` [src build/p8/prep.py:30] | `7.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:180-183] | keep | town square |
+| TownRowCottages | `18` [src build/p8/prep.py:31] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:70-73] | keep | terrace houses |
+| TownStoneTownhouse | `12` [src build/p8/prep.py:32] | `9` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:19-22] | keep | terrace houses |
+| TownStoneWall | `4` [src build/p8/prep.py:33] | `7` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:97-100] | keep | walls (no code reference found) |
+| TownTimberHouse | `9` [src build/p8/prep.py:34] | `8` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:185-188] | keep | terrace houses |
 
-Other models in SCORES.json that were NOT imported (kept for GPU batch batch 2): the 9 `fix` models and 3 rejects. Verdict text copied from the file:
+Other models in SCORES.json that were NOT imported (kept for Ursa batch 2): the 9 `fix` models and 3 rejects. Verdict text copied from the file:
 
 | Model | Score | Verdict | Note (from SCORES.json) |
 |---|---|---|---|
-| fishing_smack | `4` (design archive `models/cluster_b1/SCORES.json`) | reject-rig | hull/cabin ok; rigging fused into pillars. Keep hull, rebuild masts/rigging in Blender (prep_ships.py path). |
-| town_fish_racks | `4.5` (design archive `models/cluster_b1/SCORES.json`) | fix | frame+shed ok; hanging fish melted. Cut below rack, replace with instanced fish cards. |
-| cargo_airship_long | `5` (design archive `models/cluster_b1/SCORES.json`) | fix | envelope/gondola ok; propellers, struts melted, tail fin notch. Rebuild props in Blender. |
-| town_picket_fence | `2` (design archive `models/cluster_b1/SCORES.json`) | reject | build procedurally in UE/Blender (simple slats); never use image-to-3D for fences. |
-| town_water_pump | `5` (design archive `models/cluster_b1/SCORES.json`) | fix | massing ok; handle/pipes/gear melted. |
-| coal_lighter | `6` (design archive `models/cluster_b1/SCORES.json`) | fix | hull/hold ok; crane boom fused. Rebuild derrick. |
-| salvage_tender | `6` (design archive `models/cluster_b1/SCORES.json`) | fix | hull/stack/bell ok; A-frame + cables fused. |
-| town_fisher_cottage | `7` (design archive `models/cluster_b1/SCORES.json`) | fix-minor | lobster pots clumped; cut + replace with props. |
-| town_windmill | `5` (design archive `models/cluster_b1/SCORES.json`) | fix | tower/cap ok; lattice sails melted. Rebuild sails as alpha-card planes. |
-| town_foundry | `4` (design archive `models/cluster_b1/SCORES.json`) | fix | massing ok, texture failed to read as brick (paint ran normally). Retexture with tiling brick PBR in UE, or re-paint at higher res. |
-| town_gasometer | `6` (design archive `models/cluster_b1/SCORES.json`) | fix | tank ok; lattice frame solid/chunky. Replace frame with thin-strut geometry or alpha. |
-| town_street_lamp | `2` (design archive `models/cluster_b1/SCORES.json`) | reject | post faded/thin, lantern glass corrupted. Build procedurally (cylinder + lantern) in UE. |
-| town_boathouse | `6` (design archive `models/cluster_b1/SCORES.json`) | fix-minor | building good; ramp missing (add a simple slipway mesh in UE). |
-| town_tavern | `6` (design archive `models/cluster_b1/SCORES.json`) | fix-minor | render cropped/dark so score is soft; massing + timber framing fine, slight roof waviness, props/sign to add as separate meshes. Recheck in engine. |
-| town_market_hall | `6.5` (design archive `models/cluster_b1/SCORES.json`) | fix-minor | timber frame good; renders dark (turntable backlight shows through arch, not a mesh fault). Recheck in engine. |
-| town_terrace_house | `5` (design archive `models/cluster_b1/SCORES.json`) | fix | front good; sides/rear flat brown, stray pipe bits. Terrace houses sit in rows so sides are hidden: cut pipes, tile brick on rear. |
-| revenue_cutter | `7` (design archive `models/cluster_b1/SCORES.json`) | fix-minor | hull/masts/stack good; furled sails lumpy. |
+| fishing_smack | `4` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:2-6] | reject-rig | hull/cabin ok; rigging fused into pillars. Keep hull, rebuild masts/rigging in Blender (prep_ships.py path). |
+| town_fish_racks | `4.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:13-17] | fix | frame+shed ok; hanging fish melted. Cut below rack, replace with instanced fish cards. |
+| cargo_airship_long | `5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:24-28] | fix | envelope/gondola ok; propellers, struts melted, tail fin notch. Rebuild props in Blender. |
+| town_picket_fence | `2` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:40-44] | reject | build procedurally in UE/Blender (simple slats); never use image-to-3D for fences. |
+| town_water_pump | `5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:46-50] | fix | massing ok; handle/pipes/gear melted. |
+| coal_lighter | `6` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:52-56] | fix | hull/hold ok; crane boom fused. Rebuild derrick. |
+| salvage_tender | `6` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:58-62] | fix | hull/stack/bell ok; A-frame + cables fused. |
+| town_fisher_cottage | `7` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:64-68] | fix-minor | lobster pots clumped; cut + replace with props. |
+| town_windmill | `5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:75-79] | fix | tower/cap ok; lattice sails melted. Rebuild sails as alpha-card planes. |
+| town_foundry | `4` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:91-95] | fix | massing ok, texture failed to read as brick (paint ran normally). Retexture with tiling brick PBR in UE, or re-paint at higher res. |
+| town_gasometer | `6` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:112-116] | fix | tank ok; lattice frame solid/chunky. Replace frame with thin-strut geometry or alpha. |
+| town_street_lamp | `2` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:118-122] | reject | post faded/thin, lantern glass corrupted. Build procedurally (cylinder + lantern) in UE. |
+| town_boathouse | `6` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:129-133] | fix-minor | building good; ramp missing (add a simple slipway mesh in UE). |
+| town_tavern | `6` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:140-144] | fix-minor | render cropped/dark so score is soft; massing + timber framing fine, slight roof waviness, props/sign to add as separate meshes. Recheck in engine. |
+| town_market_hall | `6.5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:157-161] | fix-minor | timber frame good; renders dark (turntable backlight shows through arch, not a mesh fault). Recheck in engine. |
+| town_terrace_house | `5` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:163-167] | fix | front good; sides/rear flat brown, stray pipe bits. Terrace houses sit in rows so sides are hidden: cut pipes, tile brick on rear. |
+| revenue_cutter | `7` [src [REDACTED]/Projects/game-concepts/ironwake/models/cluster_b1/SCORES.json:169-173] | fix-minor | hull/masts/stack good; furled sails lumpy. |
 
-P8 imports all 17 keep models with Nanite and simple collision (box for `Town*`, 26-DOP for boats) (build report `P8.md`). Orientation corrections in `OPTS`: RowingGig `-90`, TownHandcart `-90`, PilotLaunch `180`, SteamDrifter `180`, PatrolAirship `180`, SkyYacht `180` [src build/p8/prep.py:48].
+P8 imports all 17 keep models with Nanite and simple collision (box for `Town*`, 26-DOP for boats) [src build/logs/P8.md:7]. Orientation corrections in `OPTS`: RowingGig `-90`, TownHandcart `-90`, PilotLaunch `180`, SteamDrifter `180`, PatrolAirship `180`, SkyYacht `180` [src build/p8/prep.py:48].
 
 ### 12.3.3 I1 batch (islands, Poly Haven CC0)
 
-Script `build/i1/prep_i1.py` -> `Content/Python/iw_i1_import.py` (copy of the E1 importer that also re-attaches leaf alpha maps) (build report `I1.md`). Source models in `models/islands_prepped/` (GPU batch decimation job 2151 for the world set) and `models/islands_extra/` (`modular_fort_01`, glTF). All CC0 from Poly Haven (see `CREDITS.md`), fort kit added for I1 (see `CREDITS.md`).
+Script `build/i1/prep_i1.py` -> `Content/Python/iw_i1_import.py` (copy of the E1 importer that also re-attaches leaf alpha maps) [src build/logs/I1.md:33]. Source models in `models/islands_prepped/` (Ursa decimation job 2151 for the world set) and `models/islands_extra/` (`modular_fort_01`, glTF). All CC0 from Poly Haven [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:2], fort kit added for I1 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44].
 
 | Folder | prep key | Poly Haven asset |
 |---|---|---|
-| CoastLine01 | `coast_line_01` [src build/i1/prep_i1.py:17] | coast_line_01 (see `CREDITS.md`) |
-| CoastLandRocks04 | `coast_land_rocks_04` [src build/i1/prep_i1.py:18] | coast_land_rocks_04 (see `CREDITS.md`) |
-| SandRocksSmall01 | `sand_rocks_small_01` [src build/i1/prep_i1.py:19] | sand_rocks_small_01 (see `CREDITS.md`) |
-| NamaCliff01 | `namaqualand_cliff_01` [src build/i1/prep_i1.py:20] | namaqualand_cliff_01 (see `CREDITS.md`) |
-| NamaCliff02 | `namaqualand_cliff_02` [src build/i1/prep_i1.py:21] | namaqualand_cliff_02 (see `CREDITS.md`) |
-| RockFace01 | `rock_face_01` [src build/i1/prep_i1.py:22] | rock_face_01 (see `CREDITS.md`) |
-| RockMossSet01 | `rock_moss_set_01` [src build/i1/prep_i1.py:23] | rock_moss_set_01 (see `CREDITS.md`) |
-| CoastRocks05 | `coast_rocks_05` [src build/i1/prep_i1.py:24] | coast_rocks_05 (see `CREDITS.md`) |
-| IslandTree01 | `island_tree_01` [src build/i1/prep_i1.py:25] | island_tree_01 (see `CREDITS.md`) |
-| IslandTree02 | `island_tree_02` [src build/i1/prep_i1.py:26] | island_tree_02 (see `CREDITS.md`) |
-| IslandTree03 | `island_tree_03` [src build/i1/prep_i1.py:27] | island_tree_03 (see `CREDITS.md`) |
-| FirTree01 | `fir_tree_01` [src build/i1/prep_i1.py:28] | fir_tree_01 (see `CREDITS.md`) |
-| Shrub02 | `shrub_02` [src build/i1/prep_i1.py:29] | shrub_02 (see `CREDITS.md`) |
-| Shrub03 | `shrub_03` [src build/i1/prep_i1.py:30] | shrub_03 (see `CREDITS.md`) |
-| GrassMedium01 | `grass_medium_01` [src build/i1/prep_i1.py:31] | grass_medium_01 (see `CREDITS.md`) |
-| DeadTreeTrunk02 | `dead_tree_trunk_02` [src build/i1/prep_i1.py:32] | dead_tree_trunk_02 (see `CREDITS.md`) |
-| TreeStump01 | `tree_stump_01` [src build/i1/prep_i1.py:33] | tree_stump_01 (see `CREDITS.md`) |
-| FortTower | `tower_round` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
-| FortWallThick | `wall_thick_straight_01` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
-| FortWallThin | `wall_thin_straight_02` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
-| FortGate | `wall_thin_gate_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
-| FortCorner | `wall_thick_corner_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
-| FortWalkway | `wall_walkway_straight_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF (see `CREDITS.md`) |
+| CoastLine01 | `coast_line_01` [src build/i1/prep_i1.py:17] | coast_line_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:4] |
+| CoastLandRocks04 | `coast_land_rocks_04` [src build/i1/prep_i1.py:18] | coast_land_rocks_04 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:3] |
+| SandRocksSmall01 | `sand_rocks_small_01` [src build/i1/prep_i1.py:19] | sand_rocks_small_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:17] |
+| NamaCliff01 | `namaqualand_cliff_01` [src build/i1/prep_i1.py:20] | namaqualand_cliff_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:7] |
+| NamaCliff02 | `namaqualand_cliff_02` [src build/i1/prep_i1.py:21] | namaqualand_cliff_02 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:8] |
+| RockFace01 | `rock_face_01` [src build/i1/prep_i1.py:22] | rock_face_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:11] |
+| RockMossSet01 | `rock_moss_set_01` [src build/i1/prep_i1.py:23] | rock_moss_set_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:15] |
+| CoastRocks05 | `coast_rocks_05` [src build/i1/prep_i1.py:24] | coast_rocks_05 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:6] |
+| IslandTree01 | `island_tree_01` [src build/i1/prep_i1.py:25] | island_tree_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:18] |
+| IslandTree02 | `island_tree_02` [src build/i1/prep_i1.py:26] | island_tree_02 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:19] |
+| IslandTree03 | `island_tree_03` [src build/i1/prep_i1.py:27] | island_tree_03 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:20] |
+| FirTree01 | `fir_tree_01` [src build/i1/prep_i1.py:28] | fir_tree_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:22] |
+| Shrub02 | `shrub_02` [src build/i1/prep_i1.py:29] | shrub_02 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:25] |
+| Shrub03 | `shrub_03` [src build/i1/prep_i1.py:30] | shrub_03 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:26] |
+| GrassMedium01 | `grass_medium_01` [src build/i1/prep_i1.py:31] | grass_medium_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:28] |
+| DeadTreeTrunk02 | `dead_tree_trunk_02` [src build/i1/prep_i1.py:32] | dead_tree_trunk_02 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:31] |
+| TreeStump01 | `tree_stump_01` [src build/i1/prep_i1.py:33] | tree_stump_01 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:32] |
+| FortTower | `tower_round` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
+| FortWallThick | `wall_thick_straight_01` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
+| FortWallThin | `wall_thin_straight_02` [src build/i1/prep_i1.py:41] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
+| FortGate | `wall_thin_gate_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
+| FortCorner | `wall_thick_corner_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
+| FortWalkway | `wall_walkway_straight_01` [src build/i1/prep_i1.py:42] | `modular_fort_01` piece, from the multi-piece glTF [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:44] |
 
-Material problems solved in the importer: glTF KHR texture transforms baked into UVs; Poly Haven leaf alpha maps re-attached through `M_IW_Foliage` (build report `I1.md`); instanced masters need `bUsedWithInstancedStaticMeshes`, set by `iw_i1_usage.py` (build report `I1.md`); foliage Nanite OFF with 4 auto-LODs (`iw_i1_veglod.py`) [src Content/Python/iw_i1_veglod.py:1].
+Material problems solved in the importer: glTF KHR texture transforms baked into UVs; Poly Haven leaf alpha maps re-attached through `M_IW_Foliage` [src build/logs/I1.md:33]; instanced masters need `bUsedWithInstancedStaticMeshes`, set by `iw_i1_usage.py` [src build/logs/I1.md:36]; foliage Nanite OFF with 4 auto-LODs (`iw_i1_veglod.py`) [src Content/Python/iw_i1_veglod.py:1].
 
 Unreferenced meshes: `CoastLandRocks04`, `CoastLine01`, `FortWalkway`, `HangingLamp`, `TownStoneWall`, `WoodenPier` have no literal name occurrence in `Source/IronwakeTest/*.cpp|h` (checked with grep for this card). They may be loaded by a constructed string; verify by grepping the logs for `IWE1 place`. They are imported and cooked (always-cook rule 12.9) but probably unused.
 
@@ -198,7 +198,7 @@ Unreferenced meshes: `CoastLandRocks04`, `CoastLine01`, `FortWalkway`, `HangingL
 
 ### Sky (`Content/Ironwake/Sky`)
 
-NASA/Goddard SVS Deep Star Maps 2020 (1.7 billion real stars, Hipparcos-2, Tycho-2, Gaia DR2) (design archive `models/sky_final/SKY_USE.md`), credit required (design archive `models/sky_final/SKY_USE.md`); moon from NASA LROC CGI Moon Kit with phase table `moon_2027.json` from skyfield DE421 (design archive `models/sky_final/SKY_USE.md`). Sources in `models/sky_final/` and `models/sky_nasa/`. `T_IW_StarHDR` is built from `starmap_2020_8k.exr` [src Content/Python/iw_p10_sky.py:24] and imported as RGBA16F by iw_p10_sky.py. `T_IW_StarMap8k` and `T_IW_StarGlow` are the earlier 8-bit path from `build/p8/skyprep.py` and `build/p8/glowprep.py`, dropped in P10 (build report `P10.md`). `MI_StormDeck2` is the storm cloud deck from card A (build report `A.md`)
+NASA/Goddard SVS Deep Star Maps 2020 (1.7 billion real stars, Hipparcos-2, Tycho-2, Gaia DR2) [src [REDACTED]/Projects/game-concepts/ironwake/models/sky_final/SKY_USE.md:2-3], credit required [src [REDACTED]/Projects/game-concepts/ironwake/models/sky_final/SKY_USE.md:4]; moon from NASA LROC CGI Moon Kit with phase table `moon_2027.json` from skyfield DE421 [src [REDACTED]/Projects/game-concepts/ironwake/models/sky_final/SKY_USE.md:8-9]. Sources in `models/sky_final/` and `models/sky_nasa/`. `T_IW_StarHDR` is built from `starmap_2020_8k.exr` [src Content/Python/iw_p10_sky.py:24] and imported as RGBA16F by iw_p10_sky.py. `T_IW_StarMap8k` and `T_IW_StarGlow` are the earlier 8-bit path from `build/p8/skyprep.py` and `build/p8/glowprep.py`, dropped in P10 [src build/logs/P10.md:5]. `MI_StormDeck2` is the storm cloud deck from card A [src build/logs/A.md:10]
 
 Files: `MI_StormDeck2`, `M_IW_NightSky`, `T_IW_MoonPhase0`, `T_IW_MoonPhase1`, `T_IW_MoonPhase2`, `T_IW_MoonPhase3`, `T_IW_MoonPhase4`, `T_IW_MoonPhase5`, `T_IW_MoonPhase6`, `T_IW_MoonPhase7`, `T_IW_StarGlow`, `T_IW_StarHDR`, `T_IW_StarMap8k`.
 
@@ -210,37 +210,37 @@ Files: `MI_IW_Cobble`, `MI_IW_Deck`, `MI_IW_Ground`, `MI_IW_Setts`, `MI_IW_Windo
 
 ### Islands (`Content/Ironwake/Islands`)
 
-Poly Haven CC0 textures `coast_sand_01`, `aerial_grass_rock` (see `CREDITS.md`); materials authored. Scripts `iw_i1_mats.py` (ground + surf + surf audio), `iw_i1_shelf.py` (`M_IW_Shelf`, `M_IW_Surf2`), `iw_i1_surfparams.py`
+Poly Haven CC0 textures `coast_sand_01`, `aerial_grass_rock` [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:45-46]; materials authored. Scripts `iw_i1_mats.py` (ground + surf + surf audio), `iw_i1_shelf.py` (`M_IW_Shelf`, `M_IW_Surf2`), `iw_i1_surfparams.py`
 
 Files: `M_IW_Foliage`, `M_IW_IslandGround`, `M_IW_Shelf`, `M_IW_Surf`, `M_IW_Surf2`, `T_aerial_grass_rock_Diffuse`, `T_aerial_grass_rock_nor_gl`, `T_coast_sand_01_Diffuse`, `T_coast_sand_01_nor_gl`.
 
 ### Water (`Content/Ironwake/Water`)
 
-Project-owned copy of the Water plugin material chain: `M_IW_WaterRoot` <- `MI_IW_WaterInst` <- `MI_IW_WaterOcean` <- `MI_Ocean_Storm` (build report `W2.md`). Built idempotently by `Content/Python/w2_foammat.py`; the `IW_Foam` Custom node is edited in place by `w3_foammat.py` and `w4_foammat.py` (never delete referenced water assets: it crashed the editor) [src Content/Python/w4_foammat.py:2]
+Project-owned copy of the Water plugin material chain: `M_IW_WaterRoot` <- `MI_IW_WaterInst` <- `MI_IW_WaterOcean` <- `MI_Ocean_Storm` [src build/logs/W2.md:96]. Built idempotently by `Content/Python/w2_foammat.py`; the `IW_Foam` Custom node is edited in place by `w3_foammat.py` and `w4_foammat.py` (never delete referenced water assets: it crashed the editor) [src Content/Python/w4_foammat.py:2]
 
 Files: `MI_IW_WaterInst`, `MI_IW_WaterOcean`, `MI_Ocean_Storm`, `M_IW_WaterRoot`.
 
 ### FX (`Content/Ironwake/FX`)
 
-Project-authored. Niagara systems are duplicates of engine templates retuned over MCP (build report `C.md`). `NS_IW_Splash`, `NS_IW_Explosion2`, `NS_IW_Fire`, `NS_IW_Smoke` (card C); `NS_IW_BowSpray`, `M_IW_BowFoam` (W1, `w1_assets.py`); `NS_IW_Spume`, `NS_IW_Rain`, `NS_IW_BowSheet` (W2, `w2_assets.py`); `M_IW_Spray` (W4, `w4_spray.py`); `NS_IW_FunnelSmoke` (P5b, `p5b_assets.py`); `M_WakeFoam` (card B)
+Project-authored. Niagara systems are duplicates of engine templates retuned over MCP [src build/logs/C.md:42]. `NS_IW_Splash`, `NS_IW_Explosion2`, `NS_IW_Fire`, `NS_IW_Smoke` (card C); `NS_IW_BowSpray`, `M_IW_BowFoam` (W1, `w1_assets.py`); `NS_IW_Spume`, `NS_IW_Rain`, `NS_IW_BowSheet` (W2, `w2_assets.py`); `M_IW_Spray` (W4, `w4_spray.py`); `NS_IW_FunnelSmoke` (P5b, `p5b_assets.py`); `M_WakeFoam` (card B)
 
 Files: `M_IW_BowFoam`, `M_IW_Particle`, `M_IW_Spray`, `M_IW_Tracer`, `M_WakeFoam`, `NS_IW_BowSheet`, `NS_IW_BowSpray`, `NS_IW_Explosion2`, `NS_IW_Fire`, `NS_IW_FunnelSmoke`, `NS_IW_Rain`, `NS_IW_Smoke`, `NS_IW_Splash`, `NS_IW_Spume`.
 
 ### Core (`Content/Ironwake/Core`)
 
-Project-authored Blueprint. DefaultPawn = BP_PlayerShip, HUD = AIronwakeHUD (build report `B.md`)
+Project-authored Blueprint. DefaultPawn = BP_PlayerShip, HUD = AIronwakeHUD [src build/logs/B.md:27-28]
 
 Files: `BP_IronwakeGameMode`.
 
-Ships root also holds `BP_PlayerShip` (child of the C++ pawn) (build report `B.md`).
+Ships root also holds `BP_PlayerShip` (child of the C++ pawn) [src build/logs/B.md:27].
 
 ## 12.5 Audio assets
 
-24 sounds in `Content/Ironwake/Audio`, imported from the repo `Audio/*.wav` by `Content/Python/iw_import_audio.py` (loops flagged looping) [src Content/Python/iw_import_audio.py:9-15]. Sources outside the repo: `$IRONWAKE_ASSETS/audio/{music,sfx,voice,ambience,sfx_cc0}`. Full audio behaviour is chapter 10; this table is provenance.
+24 sounds in `Content/Ironwake/Audio`, imported from the repo `Audio/*.wav` by `Content/Python/iw_import_audio.py` (loops flagged looping) [src Content/Python/iw_import_audio.py:9-15]. Sources outside the repo: `~/Projects/game-concepts/ironwake/audio/{music,sfx,voice,ambience,sfx_cc0}`. Full audio behaviour is chapter 10; this table is provenance.
 
 | Asset | Origin | Licence | How made / regenerate |
 |---|---|---|---|
-| `main_theme` | approved music file `audio/music/main_theme.wav` | ours (approved generation; tool unknown) | copy; 30.8 s (build report `P4.md`) |
+| `main_theme` | approved music file `audio/music/main_theme.wav` | ours (approved generation; tool unknown) | copy; 30.8 s [src build/logs/P4.md:13] |
 | `battle_night_storm` | approved music `audio/music/battle_night_storm.wav` | ours (approved generation) | copy |
 | `broadside_sfx` | approved `audio/sfx/broadside_sfx.wav` | ours | copy |
 | `foghorn_sfx` | approved `audio/sfx/foghorn_sfx.wav` | ours | copy |
@@ -249,19 +249,19 @@ Ships root also holds `BP_PlayerShip` (child of the C++ pawn) (build report `B.m
 | `hull_wake_loop` | approved file, REGENERATED in P11 | ours (procedural) | `build/audio/gen.py` |
 | `hull_hiss_proc` | procedural, regenerated in P11 | ours (procedural) | `build/audio/gen.py` |
 | `bow_rush_proc` | procedural moving-water layer | ours (procedural) | W3 audio fix; generator script not located (unknown) |
-| `harbour_lap_proc` | procedural noise, 4.3 s swell rhythm | ours (procedural) | generated with ffmpeg noise (design archive `audio/sfx_cc0/USE.md`) |
-| `wind_sea_proc` | procedural filtered noise | ours | ffmpeg (see `CREDITS.md`) |
-| `gale_proc` | procedural filtered noise | ours | ffmpeg (see `CREDITS.md`) |
-| `rain_proc` | procedural filtered noise | ours | ffmpeg (see `CREDITS.md`) |
+| `harbour_lap_proc` | procedural noise, 4.3 s swell rhythm | ours (procedural) | generated with ffmpeg noise [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/USE.md:20] |
+| `wind_sea_proc` | procedural filtered noise | ours | ffmpeg [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:16] |
+| `gale_proc` | procedural filtered noise | ours | ffmpeg [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:16] |
+| `rain_proc` | procedural filtered noise | ours | ffmpeg [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:16] |
 | `surf_proc` | procedural filtered noise | ours | ffmpeg, imported by `iw_i1_mats.py` |
-| `creak_wooden_hull` | SFXMint ship-creak-02 | CC0 1.0 | mp3 -> wav (see `CREDITS.md`) |
-| `creak_storm_strain` | SFXMint ship-creak-10 | CC0 1.0 | mp3 -> wav (see `CREDITS.md`) |
-| `storm_howling_wind` | SFXMint hurricane-10 | CC0 1.0 | mp3 -> wav (see `CREDITS.md`) |
-| `thunder_near / thunder_far` | synthesised: brown noise burst, lowpass 300 Hz, 3-6 s decay | ours | W2 (build report `W2.md`); recipe (design archive `audio/sfx_cc0/USE.md`) |
-| `captain_contact / captain_load` | first half / rest of approved `audio/voice/captain.wav` | ours (approved voice) | split by silence detection (build report `C.md`) |
-| `officer_splash / officer_correct / officer_damage` | split from approved `audio/voice/officer.wav` | ours (approved voice) | split by silence detection (build report `C.md`) |
+| `creak_wooden_hull` | SFXMint ship-creak-02 | CC0 1.0 | mp3 -> wav [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:5] |
+| `creak_storm_strain` | SFXMint ship-creak-10 | CC0 1.0 | mp3 -> wav [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:3] |
+| `storm_howling_wind` | SFXMint hurricane-10 | CC0 1.0 | mp3 -> wav [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:6] |
+| `thunder_near / thunder_far` | synthesised: brown noise burst, lowpass 300 Hz, 3-6 s decay | ours | W2 [src build/logs/W2.md:19]; recipe [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/USE.md:13] |
+| `captain_contact / captain_load` | first half / rest of approved `audio/voice/captain.wav` | ours (approved voice) | split by silence detection [src build/logs/C.md:28-30] |
+| `officer_splash / officer_correct / officer_damage` | split from approved `audio/voice/officer.wav` | ours (approved voice) | split by silence detection [src build/logs/C.md:32] |
 
-Deleted/never imported: `harbour_ambience` (choir-like stack, replaced by `harbour_lap_proc`) and `sea_wind` (synth pad, "angelic") (build report `W3.md`); `creak_mast_rope` has a sustained harmonic comb, dropped (design archive `audio/sfx_cc0/USE.md`); `harbor_windy_rigging` is in the CC0 pack but not imported. Spectral hum check: build/audio/spec.py.
+Deleted/never imported: `harbour_ambience` (choir-like stack, replaced by `harbour_lap_proc`) and `sea_wind` (synth pad, "angelic") [src build/logs/W3.md:19]; `creak_mast_rope` has a sustained harmonic comb, dropped [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/USE.md:19]; `harbor_windy_rigging` is in the CC0 pack but not imported. Spectral hum check: build/audio/spec.py.
 
 ## 12.6 Python scripts under `Content/Python`
 
@@ -342,17 +342,17 @@ Run headless with `IWTEST_SCRIPT=<module> UnrealEditor IronwakeTest.uproject -lo
 | `build/w1/clear.py` | W1 hull clearance profile (half-breadth between z -0.5 and +2.5 m) |
 | `build/assets/glb2fbx.py` | first Hunyuan ironclad/airship GLB -> FBX |
 
-Batch-side scripts in `$IRONWAKE_ASSETS/cluster/`: `img3d.sbatch` (Hunyuan3D-2 image -> GLB on L4, array 0-1) (design archive `cluster/img3d.sbatch`), `harbour3d.sbatch`, `harbour3d_v100.sbatch`, `prep_ships.py/.sbatch` (library decimation, 10 CPU nodes) [src build/BRIEF.md:163], `remesh_bake.py` (airship remesh), `prep_island.py`, `make_sky.py`, `score_job.sh`, `turntable.py`. Worker rule: workers never submit cluster jobs; they append to `batch_requests.md` [src build/BRIEF.md:166-167].
+Ursa-side scripts in `~/Projects/game-concepts/ironwake/cluster/`: `img3d.sbatch` (Hunyuan3D-2 image -> GLB on L4, array 0-1) [src [REDACTED]/Projects/game-concepts/ironwake/cluster/img3d.sbatch:4], `harbour3d.sbatch`, `harbour3d_v100.sbatch`, `prep_ships.py/.sbatch` (library decimation, 10 CPU nodes) [src build/BRIEF.md:163], `remesh_bake.py` (airship remesh), `prep_island.py`, `make_sky.py`, `score_job.sh`, `turntable.py`. Worker rule: workers never submit cluster jobs; they append to `build/URSA_REQUESTS.md` [src build/BRIEF.md:166-167].
 
 ## 12.8 Maps and engine content
 
 | Map | Origin |
 |---|---|
-| `Content/Maps/Ironwake_Sea.umap` | shipping map; copy of OceanStorm, cleaned in card A (build report `A.md`) |
+| `Content/Maps/Ironwake_Sea.umap` | shipping map; copy of OceanStorm, cleaned in card A [src build/logs/A.md:3] |
 | `Content/Maps/OceanStorm.umap` | copy of Epic's WaterExtras test map [src build/BRIEF.md:50] |
 | `Content/Maps/StormTest.umap`, `StormTest2.umap` | early storm tests from `Content/Python/build_storm_test.py`/`build_storm_v2.py` |
 
-Epic engine content in use: the Water plugin material chain (copied into `Content/Ironwake/Water`), `T_soft_smoke` and Niagara templates for FX (build report `C.md`), and `/PCG/SampleContent/SimpleForest/Meshes/PCG_Boulder_02` for the card-D lighthouse island (build report `D.md`). Epic content is under the Unreal Engine EULA, not redistributable outside the engine. Fab/Megascans: none.
+Epic engine content in use: the Water plugin material chain (copied into `Content/Ironwake/Water`), `T_soft_smoke` and Niagara templates for FX [src build/logs/C.md:46], and `/PCG/SampleContent/SimpleForest/Meshes/PCG_Boulder_02` for the card-D lighthouse island [src build/logs/D.md:27]. Epic content is under the Unreal Engine EULA, not redistributable outside the engine. Fab/Megascans: none.
 
 ## 12.9 Licence summary and credits
 
@@ -360,28 +360,28 @@ Epic engine content in use: the Water plugin material chain (copied into `Conten
 |---|---|---|---|
 | Sketchfab CC-BY 4.0 | Devastation, Kracken, Goliath, Aglae, brass airship, Svjatoi Nikolai frigate, wharf building, Victorian factory, rowboat, sea mine, barrels | Creative Commons Attribution 4.0 [src build/CREDITS.txt:5] | credit author + link, state changes [src build/CREDITS.txt:6] |
 | Sketchfab CC0 | SS Rifle stern, Venus fourareen | CC0 [src build/CREDITS.txt:22] | none |
-| Poly Haven | cliffs, rocks, pier, props, trees, shrubs, textures, fort kit | CC0 (see `CREDITS.md`) | none (credited anyway) |
-| SFXMint | creaks, hurricane | CC0 1.0 (see `CREDITS.md`) | none |
-| NASA SVS / Gaia / LROC | star map, moon | NASA media + ESA/Gaia/DPAC | credit required (design archive `models/sky_final/SKY_USE.md`) |
+| Poly Haven | cliffs, rocks, pier, props, trees, shrubs, textures, fort kit | CC0 [src [REDACTED]/Projects/game-concepts/ironwake/models/islands/CREDITS.md:2] | none (credited anyway) |
+| SFXMint | creaks, hurricane | CC0 1.0 [src [REDACTED]/Projects/game-concepts/ironwake/audio/sfx_cc0/CREDITS.md:2] | none |
+| NASA SVS / Gaia / LROC | star map, moon | NASA media + ESA/Gaia/DPAC | credit required [src [REDACTED]/Projects/game-concepts/ironwake/models/sky_final/SKY_USE.md:4] |
 | Hunyuan3D-2 output | harbour pieces, town, NPC craft, first ironclad/airship | generated from our concept art; model by Tencent | credited in-game [src build/CREDITS.txt:38] |
 
-CC-BY sources are never committed; they are re-made by the build scripts [src SPEC.md:103]. In the development repo the cooked `.uasset` files are committed (751 under `Content/Ironwake`), so CC-BY derived meshes live there as engine assets and licence terms still apply. This public repo leaves out all cooked content and licensed sources: `.gitignore` excludes `Content/Ironwake/` and `Content/Maps/` [src .gitignore:8-9] and `*.fbx`, `*.uasset`, `*.umap` [src .gitignore:28-31].
+CC-BY sources are never committed; they are re-made by the build scripts [src SPEC.md:103]. `.gitignore` excludes `build/` [src .gitignore:27] and `*.fbx`, `*.fbm` [src .gitignore:28-29]. The cooked `.uasset` files ARE committed in the private development repository (and excluded in the public mirror via `.gitignore`), which means CC-BY derived meshes are in the engine repo as assets [src build/logs/E1.md:11]; licence terms still apply to them.
 
-Credit text locations: `build/CREDITS.txt` (38 lines), `Packaged/Ironwake/CREDITS.txt`, `Packaged/Ironwake/README_CREDITS.txt` (all three byte-identical when checked: `diff` on 2026-11-11 printed nothing), and the in-game CREDITS card (comment `CC-BY attribution` in IronwakePlayerController.cpp) [src Source/IronwakeTest/IronwakePlayerController.cpp:46]. Cooking: `DirectoriesToAlwaysCook=(Path="/Game/Ironwake")` [src Config/DefaultGame.ini:8] so unreferenced assets are cooked anyway.
+Credit text locations: `build/CREDITS.txt` (38 lines), `~/Games/Ironwake/CREDITS.txt`, `~/Games/Ironwake/README_CREDITS.txt` (all three byte-identical when checked: `diff` on 2026-11-11 printed nothing), and the in-game CREDITS card (comment `CC-BY attribution` in IronwakePlayerController.cpp) [src Source/IronwakeTest/IronwakePlayerController.cpp:46]. Cooking: `DirectoriesToAlwaysCook=(Path="/Game/Ironwake")` [src Config/DefaultGame.ini:8] so unreferenced assets are cooked anyway.
 
 ### Credit gaps
 
-- CONFLICT: the library credit file lists 21 models (see `CREDITS.md`); `build/CREDITS.txt` credits 6 ship models plus the world set. Unimported library models need no credit until used.
+- CONFLICT: the library credit file lists 21 models [src [REDACTED]/Projects/game-concepts/ironwake/models/library/CREDITS.md:3-25]; `build/CREDITS.txt` credits 6 ship models plus the world set. Unimported library models need no credit until used.
 - `Wooden Pier_22_MB` by Mehdi Shahsavan (CC-BY) is credited in world CREDITS.md (line 30) but is not named in `build/CREDITS.txt` (grep for Shahsavan in build/CREDITS.txt returned nothing). The WoodenPier mesh is also unreferenced in code, so either credit it or delete the asset.
-- In-game CREDITS card text vs file: the card is hand-typed in C++; no check ties it to `CREDITS.txt` after E1/I1 additions beyond the R1/E1 log statements (build report `E1.md`).
-- `models/world/CREDITS.md` also credits models flagged AVOID (crane_tower, harbour_crane under Sketchfab Standard "Free Standard" licence) (see `CREDITS.md`); they are not imported (not in `Content/Ironwake/World`).
+- In-game CREDITS card text vs file: the card is hand-typed in C++; no check ties it to `CREDITS.txt` after E1/I1 additions beyond the R1/E1 log statements [src build/logs/E1.md:36].
+- `models/world/CREDITS.md` also credits models flagged AVOID (crane_tower, harbour_crane under Sketchfab Standard "Free Standard" licence) [src [REDACTED]/Projects/game-concepts/ironwake/models/world/CREDITS.md:12-17]; they are not imported (not in `Content/Ironwake/World`).
 
 ## Gaps / unknown
 
-- Generator script for `bow_rush_proc.wav` and the original generator for `thunder_*.wav`, `wind_sea_proc.wav` etc. (ffmpeg one-liners): not found in the repo. Where to look: `logs/W2.md`/`W3.md` shell history; the files in `$IRONWAKE_ASSETS/audio/sfx_cc0/` are the only record.
-- Provenance (tool, prompt) of the approved music, voice, `broadside_sfx`, `foghorn_sfx` and `slow_lap_loop` files: unknown. Source of truth is `$IRONWAKE_ASSETS/audio/`.
-- Exact GPU batch job ID for each cluster_b1 model: the job folder name is the ID (`2167` etc.) and each model's folder holds `job.log`; the per-model job is not listed here beyond SCORES.json `job` values.
-- First Hunyuan ironclad/airship: concept image to model chain is in `concepts/batch1` (`ironclad_34.png`, `airship_34.png`); the GPU batch job 2048 command line is not in the repo.
+- Generator script for `bow_rush_proc.wav` and the original generator for `thunder_*.wav`, `wind_sea_proc.wav` etc. (ffmpeg one-liners): not found in the repo. Where to look: `build/logs/W2.md`/`W3.md` shell history; the files in `~/Projects/game-concepts/ironwake/audio/sfx_cc0/` are the only record.
+- Provenance (tool, prompt) of the approved music, voice, `broadside_sfx`, `foghorn_sfx` and `slow_lap_loop` files: unknown. Source of truth is `~/Projects/game-concepts/ironwake/audio/`.
+- Exact Ursa job ID for each cluster_b1 model: the job folder name is the ID (`2167` etc.) and each model's folder holds `job.log`; the per-model job is not listed here beyond SCORES.json `job` values.
+- First Hunyuan ironclad/airship: concept image to model chain is in `concepts/batch1` (`ironclad_34.png`, `airship_34.png`); the Ursa job 2048 command line is not in the repo.
 - Poly Haven texture file list for Town (`build/assets/p10/`): files exist on disk but `build/assets/` is git-ignored, so a clean clone cannot re-run `iw_p10_mats.py` without re-downloading from Poly Haven.
 - Whether `OceanStorm.umap`, `StormTest.umap`, `StormTest2.umap` are still needed (not in the cook list): unknown; check `Config/DefaultGame.ini` map list.
 
@@ -404,12 +404,12 @@ All prepped by `build/p8/prep.py` (CBf2 reads `models/cluster_b2/<job>/<name>.gl
 P23: no new meshes. Existing Town* types reused with non-uniform footprint/height scale per house; retaining walls and plinths are cube primitives with MI_IW_Setts/MI_IW_Cobble.
 
 ## P26 rigged Tall Brig + 17 moving parts + sail/spar materials (2026-11-13)
-- Source: Hunyuan3D-2 `b2_brig_hull_rigged.glb` rigged in Blender (`rig_brig.py`) and prepped on GPU batch CPU job `2253` (`prep_parts_batch.py`, scaled to `42` m hull length, bow `+X`, 2K PNGs, `parts.json` pivots), staged to `build/assets/p26/` and imported headlessly by `Content/Python/iw_p26_import.py`.
+- Source: Hunyuan3D-2 `b2_brig_hull_rigged.glb` rigged in Blender (`rig_brig.py`) and prepped on Ursa CPU job `2253` (`prep_parts_ursa.py`, scaled to `42` m hull length, bow `+X`, 2K PNGs, `parts.json` pivots), staged to `build/assets/p26/` and imported headlessly by `Content/Python/iw_p26_import.py`.
 - Imported folders under `Content/Ironwake/World/`: `TallBrig` (`SM_TallBrig`, Nanite ON, 26-DOP simple collision) plus 17 non-Nanite moving-part subfolders (`TallBrig_yard_m0_0..2`, `TallBrig_sail_m0_0..2`, `TallBrig_yard_m1_0..2`, `TallBrig_sail_m1_0..2`, `TallBrig_boom_spanker`, `TallBrig_gaff_spanker`, `TallBrig_sail_spanker`, `TallBrig_fore_staysail`, `TallBrig_jib`).
 - New masters in `Content/Ironwake/Ships/Materials/`: matte timber/paint masters `M_IW_BrigTex` and `M_IW_BrigPaint` [src Content/Python/iw_p26_import.py:65] (`Metallic = 0`, `Roughness = 0.78..0.88`) and two-sided subsurface WPO sail master `M_IW_SailCanvas` [src Content/Python/iw_p26_import.py:70] (zero `Clamp` expressions on `SF_METAL_SM6`).
 
 ## P28 batch-3/4 moving vessels, crew, gulls, buildings, signs & 4K Megascans ground (2026-11-13)
-- Imported 20 pre-built FBX + PNG bundles from `$IRONWAKE_ASSETS/models/ue_ready/{p28,p28_signs}/` via `Content/Python/iw_p28_import.py` (`build/tools/p28import.sh`, `-nullrhi`, port `8019`) into `Content/Ironwake/World/<Name>/`:
+- Imported 20 pre-built FBX + PNG bundles from `~/Projects/game-concepts/ironwake/models/ue_ready/{p28,p28_signs}/` via `Content/Python/iw_p28_import.py` (`build/tools/p28import.sh`, `-nullrhi`, port `8019`) into `Content/Ironwake/World/<Name>/`:
   - Nanite hulls/buildings (26-DOP / Box simple collision): `PaddleSteamerV3`, `SalvageTenderV3`, `PatrolAirshipV4`, `TownTavernV4`, `TownChandleryV4`, `TownFoundryV4`.
   - Non-Nanite moving parts, signs & 3-LOD (`100/22/6/1.5%`) crew/gulls: `PaddleSteamerV3_wheel_{port,stbd}`, `SalvageTenderV3_{crane,bell}`, `PatrolAirshipV4_prop_{port,stbd,stern}`, `SeaGullV4`, `SeaGullV4_wing_{L,R}`, `SailorCrewStand`, `SailorCrewRower`, `SignAnchorTavern`, `SignShipChandlery`.
 - Imported pruned 4K Megascans ground maps (`T_Ground_ForestFloor_4K_Albedo` [src Content/Python/iw_p28_import.py:272], `Normal`, `Roughness`, `T_Ground_MossyFloor_4K_{Albedo,Normal,Roughness}`) into `Content/Ironwake/Materials/GroundScans/` and rebuilt `M_IW_Hill`, `M_IW_Road`, `M_IW_Tile`, plus `MI_IW_DarkStone` with 3-axis world-space triplanar projection and Metal-safe rational `1 / (1 + (PixelDepth / 3500)^2)` micro-detail (`0` material compile errors).

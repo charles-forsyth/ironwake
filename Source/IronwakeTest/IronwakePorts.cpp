@@ -8,6 +8,7 @@
 #include "IronwakeP15.h"
 #include "IronwakeP23.h"
 #include "IronwakeWorld.h"
+#include "IronwakeMegaplants.h"
 #include "IronwakeCollision.h"
 #include "IronwakeShell.h"
 #include "IronwakeLivingSea.h"
@@ -475,10 +476,42 @@ namespace IwPorts
 			SmkIsm->SetMaterial(0, DarkSoot);
 		SmkIsm->RegisterComponent(); Voy->AddInstanceComponent(SmkIsm);
 
+		IronwakeMegaplants::FLocalFoliageBatch MpBatch;
+		MpBatch.Init(Voy, PortRoot);
 		TMap<FString, UInstancedStaticMeshComponent*> VegIsm;
 		auto AddVeg = [&](const TCHAR* Nm, const FVector& LocM, float Yaw, float S, float Sz = 1.f, float LeanY = 0.f, float CullCm = 240000.f)
 		{
 			if (FParse::Param(FCommandLine::Get(), TEXT("iwnoveg"))) return;
+			const FQuat Qt = (LeanY != 0.f)
+				? (FQuat(FVector(1.f, 0.f, 0.f), FMath::DegreesToRadians(-LeanY)) * FQuat(FRotator(0.f, Yaw, 0.f)))
+				: FQuat(FRotator(0.f, Yaw, 0.f));
+
+			// P31: Route trees & coastal shrubs to full 3D Nanite Megaplants via UInstancedSkinnedMeshComponent (graceful static-mesh fallback if Megaplant_Library absent!)
+			const TCHAR* MpKey = nullptr;
+			float TargetHM = 8.0f, WidthMul = 1.25f;
+			if (FCString::Strcmp(Nm, TEXT("FirTree01")) == 0)
+			{
+				MpKey = (FMath::RoundToInt(Yaw) & 1) ? TEXT("spruce_B") : TEXT("spruce_C");
+				TargetHM = FMath::Clamp(S * 7.8f, 6.2f, 15.5f);
+				WidthMul = 1.22f;
+			}
+			else if (FCString::Strcmp(Nm, TEXT("IslandTree01")) == 0 || FCString::Strcmp(Nm, TEXT("IslandTree02")) == 0 || FCString::Strcmp(Nm, TEXT("IslandTree03")) == 0)
+			{
+				const int32 PickMp = FMath::Abs(FMath::RoundToInt(Yaw * 3.f)) % 4;
+				MpKey = (PickMp == 0) ? TEXT("beech_A") : ((PickMp == 1) ? TEXT("beech_B") : ((PickMp == 2) ? TEXT("birch_A") : TEXT("birch_C")));
+				TargetHM = FMath::Clamp(S * 4.4f * Sz, 5.8f, 13.8f);
+				WidthMul = 1.38f;
+			}
+			else if (FCString::Strcmp(Nm, TEXT("Shrub02")) == 0 || FCString::Strcmp(Nm, TEXT("Shrub03")) == 0)
+			{
+				const int32 PickSh = FMath::Abs(FMath::RoundToInt(Yaw * 5.f)) % 3;
+				MpKey = (PickSh == 0) ? TEXT("hazel_A") : ((PickSh == 1) ? TEXT("bracken_A") : TEXT("bilberry_A"));
+				TargetHM = (PickSh == 0) ? FMath::Clamp(S * 1.45f, 1.8f, 4.2f) : FMath::Clamp(S * 0.55f, 0.7f, 1.6f);
+				WidthMul = 1.32f;
+			}
+			if (MpKey && MpBatch.AddMegaplant(MpKey, M(LocM.X, LocM.Y, LocM.Z), Qt, TargetHM, WidthMul, CullCm, false))
+				return;
+
 			UInstancedStaticMeshComponent*& I = VegIsm.FindOrAdd(Nm);
 			if (!I)
 			{
@@ -489,16 +522,13 @@ namespace IwPorts
 				I->SetCullDistance(CullCm);
 				I->SetForcedLodModel(1); // Keep LOD0 full leaf canopy cards within port cull radius!
 				I->RegisterComponent(); Voy->AddInstanceComponent(I);
-				// Match Archipelago::Hism leaf albedo boost so M_IW_Foliage crowns read lush green instead of dark sticks!
+				// Calibrated leaf albedo tint so M_IW_Foliage fallback never blows out or glows at night!
 				for (int32 mi = 0; mi < I->GetNumMaterials(); ++mi)
 					if (UMaterialInterface* Mt = I->GetMaterial(mi))
 						if (Mt->GetBaseMaterial() && Mt->GetBaseMaterial()->GetName() == TEXT("M_IW_Foliage"))
 							if (UMaterialInstanceDynamic* D = I->CreateAndSetMaterialInstanceDynamic(mi))
-								D->SetVectorParameterValue(TEXT("Color"), FLinearColor(2.25f, 2.55f, 1.75f));
+								D->SetVectorParameterValue(TEXT("Color"), FLinearColor(1.45f, 1.62f, 1.20f));
 			}
-			const FQuat Qt = (LeanY != 0.f)
-				? (FQuat(FVector(1.f, 0.f, 0.f), FMath::DegreesToRadians(-LeanY)) * FQuat(FRotator(0.f, Yaw, 0.f)))
-				: FQuat(FRotator(0.f, Yaw, 0.f));
 			I->AddInstance(FTransform(Qt, M(LocM.X, LocM.Y, LocM.Z), FVector(S, S, S * Sz)));
 		};
 
@@ -675,10 +705,10 @@ namespace IwPorts
 		}
 
 		// ---- 4) Flank headland cliffs, shoreline boulders & breakwaters (leaving [-68, +68] m deep mouth open!)
-		PlaceP(bFoundry ? TEXT("CoastalCliff04") : TEXT("CoastalCliff02"), -135.f * Sc - 40.f, -240.f * Sc, -5.5f, -118.f, 3.1f * Sc + 0.8f, true, true, 0.f);
-		PlaceP(bFoundry ? TEXT("NamaCliff02") : TEXT("CoastalCliff01"), -130.f * Sc - 40.f, 245.f * Sc, -5.5f, -62.f, 3.0f * Sc + 0.8f, true, true, 0.f);
-		PlaceP(TEXT("CoastRocks02"), -115.f * Sc - 35.f, -185.f * Sc, -2.0f, 22.f, 1.85f, true, true, 0.f);
-		PlaceP(TEXT("CoastRocks01"), -115.f * Sc - 35.f, 190.f * Sc, -2.0f, 74.f, 1.80f, true, true, 0.f);
+		PlaceP(bFoundry ? TEXT("BasaltCrag_3") : TEXT("CoastalCliff02"), -135.f * Sc - 40.f, -240.f * Sc, -5.5f, -118.f, bFoundry ? 1.85f : (3.1f * Sc + 0.8f), true, true, 0.f);
+		PlaceP(bFoundry ? TEXT("BasaltCrag_2") : TEXT("CoastalCliff01"), -130.f * Sc - 40.f, 245.f * Sc, -5.5f, -62.f, bFoundry ? 2.15f : (3.0f * Sc + 0.8f), true, true, 0.f);
+		PlaceP(bFoundry ? TEXT("BasaltCrag_1") : TEXT("CoastRocks02"), -115.f * Sc - 35.f, -185.f * Sc, -2.0f, 22.f, bFoundry ? 14.0f : 1.85f, true, true, 0.f);
+		PlaceP(bFoundry ? TEXT("BasaltCrag_4") : TEXT("CoastRocks01"), -115.f * Sc - 35.f, 190.f * Sc, -2.0f, 74.f, bFoundry ? 12.5f : 1.80f, true, true, 0.f);
 		// Shoreline riprap boulders softening both ends of the seawall
 		PlaceP(TEXT("CoastLandRocks02"), -52.f, -96.f, -2.2f, 18.f, 2.6f, true, true, 300000.f);
 		PlaceP(TEXT("CoastLandRocks03"), -52.f,  96.f, -2.2f, -42.f, 2.5f, true, true, 300000.f);
@@ -700,18 +730,19 @@ namespace IwPorts
 		BuildBreakwater(42.f, -114.f, 14.f, 150.f);
 		BuildBreakwater(38.f, 114.f, -14.f, 145.f);
 
-		// Harbour mouth red (port-hand entering = -Y) & green (+Y) navigation beacons (crisp maritime night beacons!)
+		// IALA Region A Harbour Mouth Beacons: inbound from sea (+X -> -X) has port-hand (left = +Y) RED and starboard-hand (right = -Y) GREEN!
+		// Compact maritime radius (2200 cm) so beacons never spill green/red light onto hillside tree crowns at night!
 		{
 			const FLinearColor RedGlow(3.8f, 0.28f, 0.14f), GrnGlow(0.22f, 3.6f, 0.48f);
 			PlaceP(TEXT("CoastRocks03"), 112.f, -94.f, -1.5f, 35.f, 0.95f, true, true, 0.f);
 			PlaceP(TEXT("SignalTower"), 112.f, -94.f, 1.8f, 195.f, 0.85f, true, true, 380000.f);
-			Voy->PortMesh(PortRoot, Voy->SphereMesh, M(112.f, -94.f, 26.8f), FRotator::ZeroRotator, FVector(1.15f), &RedGlow);
-			LampP(112.f, -94.f, 26.8f, FLinearColor(1.f, 0.18f, 0.10f), 2600.f, 6500.f);
+			Voy->PortMesh(PortRoot, Voy->SphereMesh, M(112.f, -94.f, 26.8f), FRotator::ZeroRotator, FVector(1.15f), &GrnGlow);
+			LampP(112.f, -94.f, 26.8f, FLinearColor(0.22f, 1.f, 0.35f), 1600.f, 2200.f);
 
 			PlaceP(TEXT("CoastRocks03"), 106.f, 94.f, -1.5f, 125.f, 0.85f, true, true, 0.f);
 			PlaceP(TEXT("GasLamp"), 106.f, 94.f, 1.3f, 0.f, 2.2f, false, false, 380000.f);
-			Voy->PortMesh(PortRoot, Voy->SphereMesh, M(106.f, 94.f, 11.6f), FRotator::ZeroRotator, FVector(1.05f), &GrnGlow);
-			LampP(106.f, 94.f, 11.6f, FLinearColor(0.22f, 1.f, 0.35f), 2200.f, 5800.f);
+			Voy->PortMesh(PortRoot, Voy->SphereMesh, M(106.f, 94.f, 11.6f), FRotator::ZeroRotator, FVector(1.05f), &RedGlow);
+			LampP(106.f, 94.f, 11.6f, FLinearColor(1.f, 0.18f, 0.10f), 1600.f, 2200.f);
 		}
 
 		// Moored swell-bobbing vessel helper (returns root static mesh at calibrated boot-top waterline!)
@@ -764,7 +795,7 @@ namespace IwPorts
 			// Harbourmaster & Miners' Tavern overlooking the quay square (framed by Ironcrag diorama camera!)
 			PlaceP(TEXT("TownTavernV4"), -74.f, 22.f, Q + 0.16f, 0.f, 1.f, true, true, 360000.f);
 			PlaceP(TEXT("SignAnchorTavern"), -69.58f, 22.f, Q + 3.64f, 0.f, 1.f, false, false, 180000.f);
-			PlaceP(TEXT("TownCustomsHouse"), -66.f, 44.f, Q + 0.20f, -90.f, 0.92f, true, true, 380000.f);
+			PlaceP(IronwakeWorld::Mesh(TEXT("CustomsHouseV2")) ? TEXT("CustomsHouseV2") : TEXT("TownCustomsHouse"), -66.f, 44.f, Q + 0.20f, -90.f, 0.92f, true, true, 380000.f);
 			LampP(-68.5f, 22.f, Q + 3.8f, FLinearColor(1.f, 0.72f, 0.36f), 420.f, 1600.f);
 
 			// 3x Steam Cranes along the coaling pier & foundry wharf
@@ -848,11 +879,13 @@ namespace IwPorts
 				Solid(Lx, Ly, 6.5f, 6.5f, TEXT("lighthouse"));
 			}
 
-			// Craggy basalt outcrops along the upper ridge breaking the hill silhouette!
+			// Craggy photogrammetry basalt outcrops along the upper ridge breaking the hill silhouette!
 			for (int32 r = 0; r < 5; ++r)
 			{
 				const float Rx = -155.f * Sc - 42.f - r * 8.f, Ry = (-110.f + r * 55.f) * Sc;
-				PlaceP((r & 1) ? TEXT("CoastLandRocks02") : TEXT("Boulder01"), Rx, Ry, Hill.Final(Rx, Ry) - 1.2f, r * 47.f, 2.4f, false, false, 340000.f);
+				const bool bHasBasalt = IronwakeWorld::Mesh(TEXT("BasaltCrag_2")) != nullptr;
+				const TCHAR* CragNm = bHasBasalt ? ((r & 1) ? TEXT("BasaltCrag_2") : TEXT("BasaltCrag_3")) : ((r & 1) ? TEXT("CoastLandRocks02") : TEXT("Boulder01"));
+				PlaceP(CragNm, Rx, Ry, Hill.Final(Rx, Ry) - 1.2f, r * 47.f, bHasBasalt ? 0.65f : 2.4f, false, false, 340000.f);
 			}
 
 			// Bustling Coaling Fleet moored at Ironcrag Pier & Basin (50m Collier Steamer, Harbour Tug, Salvage Tender, Coal Lighter & Launches!)
@@ -1028,8 +1061,9 @@ namespace IwPorts
 			UGameplayStatics::SpawnSoundAtLocation(Voy, Voy->HarbourSnd, Spec.MoorWorldCm + FVector(0.f, 0.f, 600.f), FRotator::ZeroRotator, 1.4f, 0.97f, 0.f, Att, nullptr, false);
 		}
 
-		UE_LOG(LogIronwake, Display, TEXT("IWP29 built port '%s' (%s) at (%.0f, %.0f) m yaw=%.0f houses=%d windows=%d berths=%d"),
-			*Spec.Name, *Spec.Style, Spec.WorldX, Spec.WorldY, Spec.SeawardYaw, NHouses, NWin, Spec.Berths.Num());
+		const int32 NumMp = MpBatch.Flush();
+		UE_LOG(LogIronwake, Display, TEXT("IWP29 built port '%s' (%s) at (%.0f, %.0f) m yaw=%.0f houses=%d windows=%d megaplants=%d berths=%d"),
+			*Spec.Name, *Spec.Style, Spec.WorldX, Spec.WorldY, Spec.SeawardYaw, NHouses, NWin, NumMp, Spec.Berths.Num());
 	}
 
 	// ========================================================================= Procedural Harbourmaster Bell (Audio-Route Safe)
@@ -1074,8 +1108,10 @@ namespace IwPorts
 
 	int32 HullCargoCapTons(FName ShipId)
 	{
-		if (ShipId == TEXT("cutter")) return 12;
-		if (ShipId == TEXT("brig")) return 140;
+		if (ShipId == TEXT("cutter"))   return 12;
+		if (ShipId == TEXT("sloop"))    return 38;
+		if (ShipId == TEXT("schooner")) return 85;
+		if (ShipId == TEXT("brig"))     return 140;
 		if (ShipId == TEXT("ironclad")) return 60;
 		return 90; // frigate (Albatross) default
 	}
@@ -1511,8 +1547,8 @@ TSharedRef<SWidget> UIronwakeDockWidget::RebuildWidget()
 			{
 				UBorder* Sb = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
 				Sb->SetBrush(FSlateRoundedBoxBrush(FLinearColor(0.025f, 0.032f, 0.040f, 0.78f), 4.f, FLinearColor(0.42f, 0.34f, 0.18f, 0.45f), 1.f));
-				Sb->SetPadding(FMargin(12.f, 7.f));
-				Sy->AddChildToVerticalBox(Sb)->SetPadding(FMargin(0.f, 3.f));
+				Sb->SetPadding(FMargin(10.f, 4.f));
+				Sy->AddChildToVerticalBox(Sb)->SetPadding(FMargin(0.f, 2.f));
 
 				UHorizontalBox* Sr = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
 				Sb->SetContent(Sr);
@@ -1521,22 +1557,22 @@ TSharedRef<SWidget> UIronwakeDockWidget::RebuildWidget()
 				UVerticalBox* Iv = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass());
 				InfoBox->SetContent(Iv);
 				UTextBlock* St = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-				St->SetFont(DockBold(16));
+				St->SetFont(DockBold(14));
 				St->SetColorAndOpacity(FSlateColor(DkBrass));
 				Iv->AddChildToVerticalBox(St);
 				UTextBlock* Sd = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-				Sd->SetFont(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 13));
+				Sd->SetFont(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 12));
 				Sd->SetColorAndOpacity(FSlateColor(DkSteel));
 				Sd->SetAutoWrapText(true);
 				Sd->SetWrapTextAt(710.f);
-				Iv->AddChildToVerticalBox(Sd)->SetPadding(FMargin(0.f, 2.f, 0.f, 0.f));
+				Iv->AddChildToVerticalBox(Sd)->SetPadding(FMargin(0.f, 1.f, 0.f, 0.f));
 				if (UHorizontalBoxSlot* HS = Cast<UHorizontalBoxSlot>(Sr->AddChild(InfoBox)))
 				{
 					HS->SetVerticalAlignment(VAlign_Center);
 					HS->SetPadding(FMargin(0.f, 0.f, 14.f, 0.f));
 				}
 				UTextBlock* BtnLbl = nullptr;
-				MakeBtn(Sr, TEXT("TAKE COMMAND"), Act_ShipBase + i, 14, FMargin(14.f, 7.f), &BtnLbl);
+				MakeBtn(Sr, TEXT("TAKE COMMAND"), Act_ShipBase + i, 13, FMargin(12.f, 5.f), &BtnLbl);
 				ShipTitleTexts.Add(St);
 				ShipDescTexts.Add(Sd);
 				ShipBtnTexts.Add(BtnLbl);
@@ -2327,7 +2363,7 @@ void AIronwakeVoyage::TickP29Test(float RealDt)
 		}
 		break;
 
-	case 13: // Collision Gate at Stigsby + Clean Exit
+	case 13: // Collision Gate at Stigsby + P31/P32 Outer Ports & Fleet Up-Close Proof Shots
 		if (Since >= 22.0f && !bP29Shot)
 		{
 			const FVector2D LocH = WorldPorts[2].W2H(P->GetActorLocation());
@@ -2338,6 +2374,35 @@ void AIronwakeVoyage::TickP29Test(float RealDt)
 			bP29Shot = true;
 		}
 		if (Since >= 23.2f)
+		{
+			if (WorldPorts.Num() >= 6)
+			{
+				PlaceSeaCam(WorldPorts[3], 380.f, 0.f, 10.0f, 88.f, 12.0f, 13.8f, 0, 52.f); // Kestrel Cove
+				Next(14);
+			}
+			else
+			{
+				UE_LOG(LogIronwake, Display, TEXT("IWP29 ALL GATES DONE"));
+				P29Mode.Empty();
+				if (FParse::Param(FCommandLine::Get(), TEXT("iwp29quit")) || FParse::Param(FCommandLine::Get(), TEXT("iwp12quit")))
+					UKismetSystemLibrary::QuitGame(this, C, EQuitPreference::Quit, false);
+			}
+		}
+		break;
+
+	case 14: // P32 Outer Port 4: Kestrel Cove (-10.8, +11.4 km)
+		if (Since >= 5.5f && !bP29Shot) { ShotScene(TEXT("P32_kestrel_cove_380"), false); bP29Shot = true; }
+		if (Since >= 6.8f) { PlaceSeaCam(WorldPorts[4], 380.f, 0.f, 10.5f, 92.f, 13.0f, 13.6f, 0, 52.f); Next(15); }
+		break;
+
+	case 15: // P32 Outer Port 5: North Grimscar (+12.4, +8.6 km)
+		if (Since >= 5.5f && !bP29Shot) { ShotScene(TEXT("P32_north_grimscar_380"), false); bP29Shot = true; }
+		if (Since >= 6.8f) { PlaceSeaCam(WorldPorts[5], 380.f, 0.f, 10.0f, 88.f, 12.0f, 14.2f, 0, 52.f); Next(16); }
+		break;
+
+	case 16: // P32 Outer Port 6: Sable Haven (+7.8, -11.8 km) + Clean Exit
+		if (Since >= 5.5f && !bP29Shot) { ShotScene(TEXT("P32_sable_haven_380"), false); bP29Shot = true; }
+		if (Since >= 6.8f)
 		{
 			UE_LOG(LogIronwake, Display, TEXT("IWP29 ALL GATES DONE"));
 			P29Mode.Empty();

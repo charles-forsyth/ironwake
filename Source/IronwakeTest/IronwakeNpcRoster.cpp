@@ -43,9 +43,12 @@ void AIronwakeNpcDirector::BuildRoster()
 	};
 
 	// ---- 4 coastal merchant steamers, 4 merchant brigs, 1 paddle ferry (berth ALL docked hulls BEFORE calling StartTrip!)
-	// P29: connect all 3 working ports (0 = Greyhaven, 4 = Ironcrag, 5 = Stigsby) while preserving exact t=0 harbour lane/channel occupancy!
+	// P29+P32: connect all 6 working ports (0=Greyhaven, 4=Ironcrag, 5=Stigsby, 6=Kestrel Cove, 7=North Grimscar, 8=Sable Haven)
 	const int32 P_Ironcrag = Ports.Num() > 4 ? 4 : 1;
 	const int32 P_Stigsby  = Ports.Num() > 5 ? 5 : 2;
+	const int32 P_Kestrel  = Ports.Num() > 6 ? 6 : P_Stigsby;
+	const int32 P_Grimscar = Ports.Num() > 7 ? 7 : P_Ironcrag;
+	const int32 P_Sable    = Ports.Num() > 8 ? 8 : 0;
 	const int32 M0 = Add(TEXT("goliath"), ENpcRole::Merchant, ENpcFaction::Trade, Trade); Berth(M0, 0, 26.f); Recs[M0].HomeLane = -1; Ports[0].Spans[0].HomeOf = -1; Recs[M0].Itinerary = { P_Ironcrag, 0, P_Stigsby, 0 };
 	const int32 M1 = Add(TEXT("goliath"), ENpcRole::Merchant, ENpcFaction::Trade, Trade); Recs[M1].Itinerary = { 0, P_Ironcrag, P_Stigsby, 0 };
 	const int32 M2 = Add(TEXT("goliath"), ENpcRole::Merchant, ENpcFaction::Trade, Trade); Berth(M2, 3, 72.f); Recs[M2].HomeLane = -1; Ports[0].Spans[3].HomeOf = -1; Recs[M2].Itinerary = { P_Stigsby, 0, P_Ironcrag, 0 };
@@ -106,6 +109,29 @@ void AIronwakeNpcDirector::BuildRoster()
 		A = Add(TEXT("pirate"), ENpcRole::Pirate, ENpcFaction::Pirate, Pir);
 		FNpcRec& R = Recs[A]; R.Pos = H2W(2550.f, -850.f); R.Yaw = 90.f; R.State = ENpcState::Patrol; R.SpeedKn = 5.5f;
 		R.PatrolPts = { H2W(2550.f, -850.f), H2W(2850.f, -150.f), H2W(2550.f, 550.f) }; R.Target = TEXT("unknown"); R.Threat = 2;
+	}
+
+	// ---- P32: Outer Archipelago Packet Schooners, Chapman Dispatch Sloops & Admiralty Flagship Convoy!
+	if (Ports.Num() > 8)
+	{
+		const int32 Sc0 = Add(TEXT("schooner"), ENpcRole::Merchant, ENpcFaction::Trade, Trade);
+		if (Sc0 >= 0) { FNpcRec& R = Recs[Sc0]; R.Itinerary = { P_Grimscar, P_Ironcrag, P_Stigsby, P_Kestrel }; R.Pos = Ports[P_Kestrel].Offing; R.State = ENpcState::Anchored; R.bHold = true; R.CurPort = P_Kestrel; R.NextActionT = 18.f; R.Target = FString::Printf(TEXT("anchored off %s"), *Ports[P_Kestrel].Name); }
+
+		const int32 Sc1 = Add(TEXT("schooner"), ENpcRole::Merchant, ENpcFaction::Trade, Trade);
+		if (Sc1 >= 0) { FNpcRec& R = Recs[Sc1]; R.Itinerary = { P_Sable, 0, P_Grimscar, P_Ironcrag }; R.Pos = Ports[P_Grimscar].Offing; R.State = ENpcState::Anchored; R.bHold = true; R.CurPort = P_Grimscar; R.NextActionT = 22.f; R.Target = FString::Printf(TEXT("anchored off %s"), *Ports[P_Grimscar].Name); }
+
+		const int32 Sl0 = Add(TEXT("sloop_npc"), ENpcRole::Merchant, ENpcFaction::Trade, Trade);
+		if (Sl0 >= 0) { FNpcRec& R = Recs[Sl0]; R.Itinerary = { 0, P_Sable, P_Kestrel, P_Stigsby }; R.Pos = Ports[P_Sable].Offing; R.State = ENpcState::Anchored; R.bHold = true; R.CurPort = P_Sable; R.NextActionT = 15.f; R.Target = FString::Printf(TEXT("anchored off %s"), *Ports[P_Sable].Name); }
+
+		const int32 Imp = Add(TEXT("implacable"), ENpcRole::Escort, ENpcFaction::Crown, Crown);
+		if (Imp >= 0)
+		{
+			FNpcRec& R = Recs[Imp];
+			Sea(Imp, Ports[P_Grimscar].Offing + FVector(-45000.f, -35000.f, 0.f), 215.f);
+			R.RoadPt = R.Pos;
+			R.PatrolPts = { Ports[P_Grimscar].Offing + FVector(-45000.f, -35000.f, 0.f), FVector(520000.f, 380000.f, 0.f), FVector(640000.f, -220000.f, 0.f) };
+			R.NextActionT = 14.f;
+		}
 	}
 
 	// ---- 3 airships
